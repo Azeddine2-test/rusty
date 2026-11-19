@@ -1,4 +1,5 @@
 <meta>
+    <min_mta_version client="1.5.6-9.18728" />
     <info author='iDannz'/>
 
     <script src='s.main.luac' type='shared' cache='false'/>
