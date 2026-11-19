@@ -279,7 +279,7 @@ addEvent('resetbase',true)
 addEventHandler('resetbase',root,resetBase)
 addCommandHandler('resetbase',resetBase)
 
-addCommandHandler('resetbase',function(source)
+addCommandHandler('resetbed',function(source)
 		if getElementData(source,'cama') == false then outputChatBox('Você não tem cama!',source,255,255,0) end
 object = getElementsByType('object')
 for i,data in ipairs(object) do
