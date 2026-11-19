@@ -1,4 +1,4 @@
-# Audit initial — StoneAge / MTA
+# Audit initial — Rusty / MTA
 
 Date: 2026-11-19
 Branch: audit/cleanup-phase-1
@@ -21,19 +21,19 @@ Branch: audit/cleanup-phase-1
 
 Suppression des artefacts clairement non chargés par les `meta.xml` concernés ou des fichiers Windows temporaires :
 
-- `[STONE-AGE]/[GAMEMODE]/StoneAge/group_system/groupsystem_client -backup.lua`
-- `[STONE-AGE]/[GAMEMODE]/StoneAge/tools/jq_client - Copia.lua`
-- `[STONE-AGE]/[GAMEMODE]/[login]/login/images/intro - Copia.png` (copie exacte de `StoneAge/images/dead.png`, et non déclarée par le meta.xml login)
+- `[STONE-AGE]/[GAMEMODE]/Rusty/group_system/groupsystem_client -backup.lua`
+- `[STONE-AGE]/[GAMEMODE]/Rusty/tools/jq_client - Copia.lua`
+- `[STONE-AGE]/[GAMEMODE]/[login]/login/images/intro - Copia.png` (copie exacte de `Rusty/images/dead.png`, et non déclarée par le meta.xml login)
 - `[STONE-AGE]/[GAMEMODE]/[plugins]/cameratool/c_linear.lua.old`
 - `[STONE-AGE]/[addons]/addon_hit/hitmarker - Copia.png`
 - `[STONE-AGE]/[addons]/addon_icones_radar/img/siteM16 - Copia.png`
-- Les quatre fichiers `Thumbs.db` trouvés dans les ressources StoneAge / GUI Editor / radar / HUD véhicule.
+- Les quatre fichiers `Thumbs.db` trouvés dans les ressources Rusty / GUI Editor / radar / HUD véhicule.
 - `[gameplay]/realdriveby.zip.old`
 
 ## Éléments volontairement conservés
 
 - Polices identiques dans plusieurs ressources : chaque ressource peut avoir besoin de son propre fichier local et de sa déclaration `meta.xml`.
-- Drapeaux présents dans StoneAge et dans l'administration : ressources indépendantes.
+- Drapeaux présents dans Rusty et dans l'administration : ressources indépendantes.
 - Fichiers DFF/TXD identiques ou proches : certains modèles peuvent volontairement partager un modèle visuel.
 - WAV identiques entre dossiers d'armes : les chemins peuvent être des alias de remplacement distincts.
 - Fichiers `.psd` : sources graphiques de travail, conservées.
@@ -42,7 +42,7 @@ Suppression des artefacts clairement non chargés par les `meta.xml` concernés 
 
 ## Étape 1 — Cartographie des ressources
 
-Le dépôt contient 36 `meta.xml`. Le meta principal de StoneAge charge notamment :
+Le dépôt contient 36 `meta.xml`. Le meta principal de Rusty charge notamment :
 - scripts de survie, animaux, inventaire, craft, éditeur, menu et outils ;
 - système de groupes actif : `gang_utils.lua`, `gang_server.lua`, `groupsystem.lua`, `groupsystem_client.lua` ;
 - des modules historiques de groupes sous `group_system/scripts/` sont commentés dans le meta principal.
@@ -68,7 +68,7 @@ Aucun changement de code de gameplay n'est inclus dans cette première passe.
 ## Vérification des déclarations meta.xml
 
 - Les 36 fichiers meta.xml ont été recensés et leurs déclarations locales (scripts, fichiers et configurations) ont été comparées à l'arbre du dépôt.
-- Trois familles d'erreurs de casse ont été repérées : `StoneAge/images/itens/Sniper.png` (fichier réel en minuscules), `addon_veiculo_hud/ligado.png` (fichier réel `LIGADO.png`) et 10 références audio dans `[replaces]/replaces/meta.xml` (`Sounds/primary` / `Sounds/pistols`, alors que les dossiers réels sont `Sounds/Primary` / `Sounds/Pistols`). Elles ont été corrigées dans cette branche pour la compatibilité avec les systèmes de fichiers sensibles à la casse.
+- Trois familles d'erreurs de casse ont été repérées : `Rusty/images/itens/Sniper.png` (fichier réel en minuscules), `addon_veiculo_hud/ligado.png` (fichier réel `LIGADO.png`) et 10 références audio dans `[replaces]/replaces/meta.xml` (`Sounds/primary` / `Sounds/pistols`, alors que les dossiers réels sont `Sounds/Primary` / `Sounds/Pistols`). Elles ont été corrigées dans cette branche pour la compatibilité avec les systèmes de fichiers sensibles à la casse.
 - `ComandosTemporarios.lua` était bien chargé, mais ne faisait qu'enregistrer un `onClientRender` vide ; il a été retiré du meta et supprimé afin d'éviter un handler de rendu inutile par image.
 - `addon_hud/scripts/server.lua` était vide (blob Git vide) et seulement déclaré dans le meta ; sa déclaration et le fichier vide ont été retirés.
 - Les dossiers `[gameplay]/editor_dump` et `[gameplay]/editor_test` ont des metas proches mais des cartes différentes ; ils sont conservés.
@@ -85,3 +85,8 @@ La cartographie détaillée des 36 ressources déclarées est dans [RESOURCE-MAP
 ## Première passe sécurité
 
 Les premiers événements distants du craft/construction, du réarmement, des groupes et de la connexion ont été examinés. Plusieurs handlers acceptent des données envoyées par le client sans contrôle visible de l'appelant via `client` ni validation complète des droits. Les détails, fichiers et fonctions sont consignés dans [SECURITY-FINDINGS.md](SECURITY-FINDINGS.md). Aucun correctif de gameplay n'a encore été appliqué.
+
+
+## Mise à jour — renommage SA:O
+
+Le 2026-11-19, le dossier de la ressource principale a été renommé `Rusty`. Les références de démarrage dans `mtaserver.conf` et d'ACL dans `acl.xml` ont été alignées. Cette modification de nom ne constitue pas un test de démarrage réel sur le serveur dédié SA:O.
