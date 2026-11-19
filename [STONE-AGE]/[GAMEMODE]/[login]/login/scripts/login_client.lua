@@ -335,14 +335,14 @@ end
 end
 
 function click_jogar()
-if guiGetText(jogar_button) == "Jogar" and razao == "login" then 
+if guiGetText(jogar_button) == "Jouer" and razao == "login" then 
 if not getElementData(jogar_button,'ready') then outputChatBox('Veuillez patienter jusqu’à la fin de l’animation.',255,0,0) return end
 		local username = guiGetText(edit_id_login)
 		local password = guiGetText(edit_senha_login)
 triggerServerEvent("sendLoginToServer", getLocalPlayer(), username, password)
 return
 end
-if guiGetText(jogar_button) == "Jogar" and razao == "registro" then 
+if guiGetText(jogar_button) == "Jouer" and razao == "registro" then 
 		local username = guiGetText(edit_id_login)
 		local password = guiGetText(edit_senha_login)
 triggerServerEvent("sendRegisterToServer", getLocalPlayer(), username, password)
@@ -512,7 +512,7 @@ end
 
 function change_labels(text)
 if not isElement(jogar_button) then return end
-	guiSetText(jogar_button,"Jogar")
+	guiSetText(jogar_button,"Jouer")
 	razao = text
 end
 addEvent("change_labels",true)
