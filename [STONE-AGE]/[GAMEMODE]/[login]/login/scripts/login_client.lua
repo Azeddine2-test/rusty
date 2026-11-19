@@ -128,6 +128,8 @@ end
         check_confirm_registro = guiCreateCheckBox(0.055, 0.82, 0.10, 0.14, "", false, true, imagem_do_registro)
         label_ouvrir_termes = guiCreateLabel(0.72, 0.84, 0.23, 0.10, "Lire le règlement", true, imagem_do_registro)
         guiLabelSetColor(label_ouvrir_termes, 70, 175, 235)
+        guiLabelSetColor(label_pg_registro, 70, 175, 235)
+        guiLabelSetColor(label_confirm_registro, 235, 240, 245)
         guiSetEnabled(check_confirm_registro, true)
         button_salvar_registro = guiCreateButton(0.57, 0.515, 0.34, 0.23, "Créer le compte", true, imagem_do_registro)
         label_ver_senha = guiCreateLabel(0.78, 0.02, 0.20, 0.12, "Afficher", true, imagem_do_registro)
@@ -140,6 +142,7 @@ end
 	imagem_do_login = guiCreateStaticImage(0.37, 0.45, 0.26, 0.21, ":login/images/image_2.png", true)
 	guiSetVisible(imagem_do_login,false)
         label_pg_login = guiCreateLabel(0.22, 0.02, 0.40, 0.12, "Connexion", true, imagem_do_login)
+        guiLabelSetColor(label_pg_login, 70, 175, 235)
         label_id_login = guiCreateLabel(0.11, 0.27, 0.25, 0.10, "Nom d’utilisateur", true, imagem_do_login)
         edit_id_login = guiCreateEdit(0.06, 0.38, 0.34, 0.15,infoTable["account"], true, imagem_do_login)
         label_senha_login = guiCreateLabel(0.11, 0.59, 0.25, 0.10, "Mot de passe", true, imagem_do_login)
@@ -182,6 +185,7 @@ registro = {
 {label_senha_registro},
 {label_senha_registro_confirm},
 {label_ver_senha},
+{label_confirm_registro},
 {label_ouvrir_termes},
 }
 
