@@ -1,6 +1,0 @@
-<meta>
-    <info author="Kre_Ker" version="1.0" type="script"/>
-    <script src="mod.lua" type="client"/>
-    <file src="infernus.txd" type="client"/>
-    <file src="infernus.dff" type="client"/>
-</meta>

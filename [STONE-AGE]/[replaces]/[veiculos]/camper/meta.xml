@@ -1,6 +1,0 @@
-<meta>
-<info name='Camper2' type='misc' />
-<script src='script.lua' type='client' />
-<file src='camper.txd' />
-<file src='camper.dff' />
-</meta>

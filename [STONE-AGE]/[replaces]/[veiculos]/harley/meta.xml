@@ -1,6 +1,0 @@
-<meta>
-    <info author="Kre_Ker" version="1.0" type="script"/>
-    <script src="mod.lua" type="client"/>
-    <file src="563.txd" type="client"/>
-    <file src="563.dff" type="client"/>
-</meta>

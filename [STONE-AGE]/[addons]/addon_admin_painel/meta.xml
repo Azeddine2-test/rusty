@@ -1,6 +1,0 @@
-<meta>
-    <info author="iDannz" name="Painel de admin" version="1.0.0" type="script"/>
-	<script src="client.lua" type="client"/>
-	<script src="vip.lua" type="client"/>
-    <script src="server.lua"/>
-</meta>

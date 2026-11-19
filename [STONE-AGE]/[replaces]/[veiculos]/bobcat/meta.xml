@@ -1,6 +1,0 @@
-﻿<meta>
-     <info author="iDannz" type="misc" name="PicapeSkin" description="Skin do carro picape(422)" />
-     <script src="script.lua" type="client" />
-     <file src="bobcat.txd" />
-     <file src="bobcat.dff" />
-</meta>

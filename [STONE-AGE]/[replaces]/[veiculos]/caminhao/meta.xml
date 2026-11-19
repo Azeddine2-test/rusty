@@ -1,7 +1,0 @@
-﻿<meta> 
-                <script src="carpack.lua" type="client"/> 
-
-                <file src="barracks.txd" type="client"/> 
-                <file src="barracks.dff" type="client"/> 
-
-</meta> 

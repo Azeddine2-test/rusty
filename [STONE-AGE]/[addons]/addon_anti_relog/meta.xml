@@ -1,5 +1,0 @@
-<meta>
-<info author="Uknow" type="script" name="Antirelog"/>
-<script src="Antirelog.lua" type="client" cache="false" />
-<script src="server.lua" type="server" cache="false" />
-</meta>
