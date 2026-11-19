@@ -1,0 +1,6 @@
+<meta>
+<info name='FZ-Ambulance' type='misc' />
+<script src='script.lua' type='client' />
+<file src='ambulan.txd' />
+<file src='ambulan.dff' />
+</meta>

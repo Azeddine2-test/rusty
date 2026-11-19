@@ -1,0 +1,214 @@
+local screenH, screenW = guiGetScreenSize()
+local x, y = (screenH/1366), (screenW/768)
+
+Font_1 = dxCreateFont("font/font.ttf", 16)
+Font_2 = dxCreateFont("font/font.ttf", 11)
+Font_3 = dxCreateFont("font/font.ttf", 13)
+
+local J_ajuda = fileOpen("txt/ajuda.txt", true)
+local ajuda = fileRead(J_ajuda, 50000)
+
+local J_comandos = fileOpen("txt/comandos.txt", true)
+local comandos = fileRead(J_comandos, 50000)
+
+local J_radio = fileOpen("txt/radio.txt", true)
+local radio = fileRead(J_radio, 50000)
+
+local J_regras = fileOpen("txt/regras.txt", true)
+local regras = fileRead(J_regras, 50000)
+
+local J_vendas = fileOpen("txt/vendas.txt", true)
+local vendas = fileRead(J_vendas, 50000)
+
+img = guiCreateStaticImage(x*379, y*306, x*607, y*267, "image.png", false)    
+guiSetVisible (img, false)   
+
+txt = guiCreateMemo(x*379, y*306, x*607, y*267, "", false)    
+guiMemoSetReadOnly (txt, true)
+guiSetVisible (txt, false)   
+
+cor = {}
+cor_2 = {}
+
+Painel = false
+function DxAjuda()
+
+	cor[1] = tocolor(0, 255, 127, 105)
+	cor_2[1] = tocolor(255, 255, 255, 255)
+	cor[2] = tocolor(0, 255, 127, 55)
+	cor_2[2] = tocolor(255, 255, 255, 255)
+	cor[3] = tocolor(0, 255, 127, 5)
+	cor_2[3] = tocolor(255, 255, 255, 255)
+	cor[4] = tocolor(0, 255, 127, 105)
+	cor_2[4] = tocolor(255, 255, 255, 255)
+	cor[5] = tocolor(0, 255, 127, 55)
+	cor_2[5] = tocolor(255, 255, 255, 255)
+	cor[6] = tocolor(0, 255, 127, 5)
+	cor_2[6] = tocolor(255, 255, 255, 255)
+	cor[7] = tocolor(0, 255, 127, 105)
+	cor[8] = tocolor(0, 255, 127, 55)
+	cor[9] = tocolor(0, 255, 127, 5)
+	cor[10] = tocolor(0, 255, 127, 105)
+	cor[11] = tocolor(0, 255, 127, 55)
+	cor[12] = tocolor(0, 255, 127, 5)
+	cor[13] = tocolor(0, 255, 127, 105)
+	cor[14] = tocolor(0, 255, 127, 55)
+	cor[15] = tocolor(0, 255, 127, 5)
+	cor[16] = tocolor(0, 255, 127, 105)
+	cor[17] = tocolor(0, 255, 127, 55)
+	cor[18] = tocolor(0, 255, 127, 5)
+
+	if cursorPosition(x*557, y*587, x*252, y*24) then cor[1] = tocolor(0, 255, 127, 255)  cor_2[1] = tocolor(0, 0, 0, 255)  end
+	if cursorPosition(x*555, y*585, x*256, y*28) then cor[2] = tocolor(0, 255, 127, 155) end
+	if cursorPosition(x*553, y*583, x*260, y*32) then cor[3] = tocolor(0, 255, 127, 75) end
+	if cursorPosition(x*376, y*249, x*108, y*24) then cor[4] = tocolor(0, 255, 127, 255) cor_2[2] = tocolor(0, 0, 0, 255) end
+	if cursorPosition(x*374, y*247, x*112, y*28) then cor[5] = tocolor(0, 255, 127, 155) end
+	if cursorPosition(x*372, y*245, x*116, y*32) then cor[6] = tocolor(0, 255, 127, 75) end
+	if cursorPosition(x*503, y*249, x*108, y*24) then cor[7] = tocolor(0, 255, 127, 255)cor_2[3] = tocolor(0, 0, 0, 255) end
+	if cursorPosition(x*501, y*247, x*112, y*28) then cor[8] = tocolor(0, 255, 127, 155) end
+	if cursorPosition(x*499, y*245, x*116, y*32) then cor[9] = tocolor(0, 255, 127, 75) end
+	if cursorPosition(x*629, y*249, x*108, y*24) then cor[10] = tocolor(0, 255, 127, 255) cor_2[4] = tocolor(0, 0, 0, 255) end
+	if cursorPosition(x*627, y*247, x*112, y*28) then cor[11] = tocolor(0, 255, 127, 155) end
+	if cursorPosition(x*625, y*245, x*116, y*32) then cor[12] = tocolor(0, 255, 127, 75) end
+	if cursorPosition(x*756, y*249, x*108, y*24) then cor[13] = tocolor(0, 255, 127, 255)cor_2[5] = tocolor(0, 0, 0, 255) end
+	if cursorPosition(x*754, y*247, x*112, y*28) then cor[14] = tocolor(0, 255, 127, 155) end
+	if cursorPosition(x*752, y*245, x*116, y*32) then cor[15] = tocolor(0, 255, 127, 75) end
+	if cursorPosition(x*883, y*249, x*108, y*24) then cor[16] = tocolor(0, 255, 127, 255) cor_2[6] = tocolor(0, 0, 0, 255)end
+	if cursorPosition(x*881, y*247, x*112, y*28) then cor[17] = tocolor(0, 255, 127, 155) end
+	if cursorPosition(x*879, y*245, x*116, y*32) then cor[18] = tocolor(0, 255, 127, 75) end
+
+        dxDrawRectangle(x*350, y*180, x*666, y*456, tocolor(0, 0, 0, 60), false)
+        dxDrawRectangle(x*352, y*182, x*662, y*452, tocolor(0, 0, 0, 60), false)
+        dxDrawRectangle(x*354, y*184, x*658, y*448, tocolor(0, 0, 0, 60), false)
+        dxDrawRectangle(x*356, y*186, x*654, y*444, tocolor(0, 0, 0, 60), false)
+        dxDrawRectangle(x*358, y*188, x*650, y*440, tocolor(0, 0, 0, 60), false)
+        dxDrawText("Painel Ajuda", x*358, y*190, x*1008, y*226, tocolor(255, 255, 255, 255), x*1.00, Font_1, "center", "center", false, false, false, false, false)
+        dxDrawText("-------------------------------------------------------------------------------------------------------------------------------------------------------------------", x*358, y*227, x*1008, y*237, tocolor(255, 255, 255, 255), x*1.00, "default", "center", "center", false, false, false, false, false)
+        dxDrawText("-------------------------------------------------------------------------------------------------------------------------------------------------------------------", x*358, y*286, x*1008, y*296, tocolor(255, 255, 255, 255), x*1.00, "default", "center", "center", false, false, false, false, false)
+
+        dxDrawRectangle(x*557, y*587, x*252, y*24, cor[1], false)
+        dxDrawRectangle(x*555, y*585, x*256, y*28, cor[2], false)
+        dxDrawRectangle(x*553, y*583, x*260, y*32, cor[3], false)
+        dxDrawText("Fechar Painel", x*555, y*585, x*811, y*613, cor_2[1], x*1.00, Font_3, "center", "center", false, false, false, false, false)
+
+        dxDrawRectangle(x*376, y*249, x*108, y*24, cor[4], false)
+        dxDrawRectangle(x*374, y*247, x*112, y*28, cor[5], false)
+        dxDrawRectangle(x*372, y*245, x*116, y*32, cor[6], false)
+
+        dxDrawRectangle(x*503, y*249, x*108, y*24, cor[7], false)
+        dxDrawRectangle(x*501, y*247, x*112, y*28, cor[8], false)
+        dxDrawRectangle(x*499, y*245, x*116, y*32, cor[9], false)
+
+        dxDrawRectangle(x*629, y*249, x*108, y*24, cor[10], false)
+        dxDrawRectangle(x*627, y*247, x*112, y*28, cor[11], false)
+        dxDrawRectangle(x*625, y*245, x*116, y*32, cor[12], false)
+
+        dxDrawRectangle(x*756, y*249, x*108, y*24, cor[13], false)
+        dxDrawRectangle(x*754, y*247, x*112, y*28, cor[14], false)
+        dxDrawRectangle(x*752, y*245, x*116, y*32, cor[15], false)
+
+        dxDrawRectangle(x*883, y*249, x*108, y*24, cor[16], false)
+        dxDrawRectangle(x*881, y*247, x*112, y*28, cor[17], false)
+        dxDrawRectangle(x*879, y*245, x*116, y*32, cor[18], false)
+
+        dxDrawText("Ajuda", x*374, y*247, x*486, y*275, cor_2[2], x*1.00, Font_2, "center", "center", false, false, false, false, false)
+        dxDrawText("Créditos", x*500, y*247, x*613, y*275, cor_2[3], x*1.00, Font_2, "center", "center", false, false, false, false, false)
+        dxDrawText("StoneAge", x*627, y*247, x*739, y*275, cor_2[4], x*1.00, Font_2, "center", "center", false, false, false, false, false)
+        dxDrawText("Regras", x*754, y*247, x*866, y*275, cor_2[5], x*1.00, Font_2, "center", "center", false, false, false, false, false)
+        dxDrawText("Vendas", x*881, y*247, x*993, y*275, cor_2[6], x*1.00, Font_2, "center", "center", false, false, false, false, false)
+end
+	
+function clickVip1(button, state)
+	if Painel and button == "left" and state == "down" then
+		if cursorPosition(x*372, y*245, x*116, y*32) then
+			playSoundFrontEnd(1)
+			guiSetText(txt,comandos)
+			guiSetVisible(img,false)
+			guiSetVisible(txt,true)
+		elseif cursorPosition(x*499, y*245, x*116, y*32) then
+			playSoundFrontEnd(1)
+			guiSetText(txt,ajuda)
+			guiSetVisible(img,false)
+			guiSetVisible(txt,true)
+		elseif cursorPosition(x*625, y*245, x*116, y*32) then
+			playSoundFrontEnd(1) 
+			guiSetVisible(img,true)
+			guiSetVisible(txt,false)
+		elseif cursorPosition(x*752, y*245, x*116, y*32) then
+			playSoundFrontEnd(1)
+			guiSetText(txt,regras)
+			guiSetVisible(img,false)
+			guiSetVisible(txt,true)
+		elseif cursorPosition(x*879, y*245, x*116, y*32) then
+			playSoundFrontEnd(1)
+			guiSetText(txt,vendas)
+			guiSetVisible(img,false)
+			guiSetVisible(txt,true)
+		elseif cursorPosition(x*553, y*583, x*260, y*32) then
+			playSoundFrontEnd(1)
+			removeEventHandler ("onClientRender", root, DxAjuda)
+			Painel = false 
+			showCursor (false)
+			guiSetVisible (txt, false)
+			guiSetVisible(img,false)
+        end
+    end
+end
+addEventHandler("onClientClick", getRootElement(), clickVip1)
+	
+
+function abrir()
+    if Painel == false then
+        showCursor(true)
+		Painel = true
+		guiSetVisible(img,true)
+		guiSetVisible(txt,false)
+        addEventHandler ("onClientRender", root, DxAjuda)
+			triggerEvent('hide_group_window',localPlayer)
+			triggerEvent('hide_config_window',localPlayer)
+			triggerEvent('hide_inventory_window',localPlayer)
+			triggerEvent('hide_admin_window',localPlayer)
+			triggerEvent('hide_craft_window',localPlayer)
+			triggerEvent('hide_confirm_window',localPlayer)
+    else
+        removeEventHandler ("onClientRender", root, DxAjuda)
+		Painel = false 
+        showCursor (false)
+        guiSetVisible (txt, false)
+        guiSetVisible (img, false)
+	
+    end
+end
+bindKey ("F4", "down", abrir)
+
+function hide_help_window()
+        removeEventHandler ("onClientRender", root, DxAjuda)
+        Painel = false 
+        showCursor (false)
+        guiSetVisible (txt, false)
+        guiSetVisible (img, false)
+end
+addEvent('hide_help_window',true)
+addEventHandler('hide_help_window',root,hide_help_window)
+
+
+function cursorPosition(x, y, w, h)
+	if (not isCursorShowing()) then
+		return false
+	end
+	local mx, my = getCursorPosition()
+	local fullx, fully = guiGetScreenSize()
+	cursorx, cursory = mx*fullx, my*fully
+	if cursorx > x and cursorx < x + w and cursory > y and cursory < y + h then
+		return true
+	else
+		return false
+	end
+end
+
+function filedelet ()
+if fileExists("client.lua") then
+   fileDelete("client.lua")
+ end
+end
+addEventHandler("onClientResourceStart", getResourceRootElement(getThisResource()), filedelet)

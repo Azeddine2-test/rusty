@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<meta>
+     <info author="MundoZ_SkinAlpha" type="misc" name="MundoZ_SkinAlpha" description="MundoZ_SkinAlpha" />
+     <script src="script.lua" type="client" />
+     <file src="alpha.txd" />
+     <file src="alpha.dff" />
+</meta>

@@ -1,0 +1,34 @@
+
+GUIEditor = {
+    gridlist = {},
+    window = {},
+    button = {},
+    label = {},
+}
+
+        window_inGroup_interface = guiCreateWindow(0.35, 0.24, 0.30, 0.53, "Primeiro teste sistema de grupo 04/03/2018", true)
+        guiWindowSetMovable(window_inGroup_interface, false)
+        guiWindowSetSizable(window_inGroup_interface, false)
+
+        gridlist_inGroup_jogadores = guiCreateGridList(0.02, 0.14, 0.57, 0.74, true, window_inGroup_interface)
+        guiGridListAddColumn(gridlist_inGroup_jogadores, "Nome ", 0.5)
+        guiGridListAddColumn(gridlist_inGroup_jogadores, "Criador", 0.5)
+        guiGridListAddRow(gridlist_inGroup_jogadores)
+        guiGridListSetItemText(gridlist_inGroup_jogadores, 0, 1, "", false, false)
+        guiGridListSetItemText(gridlist_inGroup_jogadores, 0, 2, "", false, false)
+        label_lista = guiCreateLabel(0.02, 0.05, 0.58, 0.09, "Lista de Jogadores", true, window_inGroup_interface)
+        guiLabelSetHorizontalAlign(label_lista, "center", false)
+        guiLabelSetVerticalAlign(label_lista, "center")
+        button_criar_grupo = guiCreateButton(0.75, 0.44, 0.22, 0.11, "Criar Grupo", true, window_inGroup_interface)
+        guiSetProperty(button_criar_grupo, "NormalTextColour", "FFAAAAAA")
+        button_desabilitar_invite = guiCreateButton(0.75, 0.58, 0.22, 0.11, "Desabilitar Convites", true, window_inGroup_interface)
+        guiSetProperty(button_desabilitar_invite, "NormalTextColour", "FFAAAAAA")
+        GUIEditor.label[3] = guiCreateLabel(0.62, 0.06, 0.34, 0.08, "Status", true, window_inGroup_interface)
+        guiLabelSetHorizontalAlign(GUIEditor.label[3], "center", false)
+        guiLabelSetVerticalAlign(GUIEditor.label[3], "center")
+        GUIEditor.button[5] = guiCreateButton(0.61, 0.77, 0.22, 0.11, "Criar Grupo", true, window_inGroup_interface)
+        guiSetProperty(GUIEditor.button[5], "NormalTextColour", "FFAAAAAA")
+        GUIEditor.label[4] = guiCreateLabel(0.63, 0.14, 0.33, 0.04, "Mobilidade", true, window_inGroup_interface)
+        GUIEditor.label[5] = guiCreateLabel(0.63, 0.19, 0.33, 0.04, "Cargo", true, window_inGroup_interface)
+        GUIEditor.label[6] = guiCreateLabel(0.63, 0.24, 0.33, 0.04, "Cargo", true, window_inGroup_interface)
+

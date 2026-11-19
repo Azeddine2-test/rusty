@@ -1,0 +1,10 @@
+<messages>
+    <message>
+        <read>true</read>
+        <subject>Jogador está de hack</subject>
+        <category>Question</category>
+        <author>teste</author>
+        <time>2018-05-01 09:39</time>
+        <text>teste&#x0A;&#x0A;</text>
+    </message>
+</messages>

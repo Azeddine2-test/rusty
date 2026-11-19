@@ -1,0 +1,6 @@
+<meta>
+     <file src="fuel.png" />
+     <file src="ligado.png" />
+     <file src="desligado.png" />
+	 <script src="client.lua" type="client" cache="false"/>
+</meta>

@@ -1,0 +1,23 @@
+<meta>
+	<info author="iDannz" name="Login" type="script" version="1.0.0a" />
+	
+	<script src="scripts/login_server.lua" type="server"/>
+	<script src="scripts/login_client.lua" type="client"/>
+	<script src="scripts/intro.lua" type="client"/>
+	<script src="scripts/credits.lua" type="client"/>
+	<script src="scripts/cloth.lua" type="client"/>
+	<file src="images/intro.png"/>
+	<file src="images/logo.png"/>
+	<file src="images/setinha.png"/>
+	<file src="images/image_1.png"/>
+	<file src="images/image_2.png"/>
+	<file src="sounds/button.mp3"/>
+	<file src="fonts/font.ttf"/>
+	<file src="fonts/font2.ttf"/>
+	<file src="fonts/needhelp.ttf"/>
+	
+	<file src="sounds/ChopSuey.ogg"/>
+	<file src="sounds/ItsMyLife.ogg"/>
+	<file src="sounds/LastResort.ogg"/>
+	<file src="sounds/SmoothCriminal.ogg"/>
+</meta>

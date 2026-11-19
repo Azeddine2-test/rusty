@@ -1,0 +1,23 @@
+01- DIVULGAÇÃO INDEVIDA:
+O chat global foi feito com propósito de criar uma interação entre os jogadores, não para divulgar vídeos, links, ou outras coisas.
+(Punição: KICK)
+
+02- SPAWN KILL:
+Todos sabemos que é injusto matar jogadores que acabaram de nascer, logo não têm como se defender.
+(Punição: BAN Temporario Por 1H (Requer provas))
+
+03- OFENSAS:
+Xingar ou ofender players no chat, utilizando ou nao de palavras de baixo calão.
+(Punição: KICK ou BAN Temporario Por 1H, dependendo do caso)
+
+04- FLOOD:
+Dizer a mesma mensagem varias vezes.
+(Punição: Primeira vez: aviso, depois: BAN Temporario de 30 minutos)
+
+05- RACISMO/MISOGINIA:
+Ofender players ou administradores por conta de sua cor, crença ou raça é extremamente repugnante.
+(Punição: BANIMENTO temporario de 6 horas, podendo ser permanente dependendo do caso.)
+
+06- ABUSO DE BUGS:
+Se aproveitar de bugs, ou erros no jogo para tirar vantagem é algo totalmente injusto.
+(Punição: BANIMENTO temporario de 24 horas, podendo ser permanente dependendo do caso.)

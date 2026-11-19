@@ -1,0 +1,75 @@
+﻿----------------------------------------- Radio -----------------------------------------
+Nosso Servidor Vivendo Na Loucura Conta Com Um Otimo Sistema De Radio
+Onde Voce Pode Ouvir Qualquer Radio Onde Toque Musicas De Seu Gosto!
+
+Para Mudar A Radio E Simples ...
+1 - Entre no veiculo
+2 - Aperte "R" 
+3 - Aperte F8 Para Abrir o Console
+4 - E Digite: setradio [Ip Da Radio Ou Um Download De Uma Musica] Ex: setradio http://69.64.56.11:8130
+*Voce Tambem Pode Digitar O Ip Da Radio Do Chat Porem Tera Que Adiconar '/' Antes De Tudo Digitado.
+
+Reggae   
+setradio http://184.107.197.154:8002
+
+Hip Hop Radio   
+setradio http://mp3uplink.duplexfx.com:8054/listen.pls
+
+Radio Hunter   
+setradio http://cdn.hunterfm.com/players/mediaplayer/mp3.asx
+
+Mundo do FUNK   
+setradio http://170.75.145.138:10004
+
+Radio Rap Brasil   
+setradio http://184.154.89.186:9944/listen.pls
+
+Sertanejo   
+setradio http://46.165.197.6:8005/listen.pls
+
+Sertanejo   
+setradio http://64.15.147.221:12016/list
+
+Electo   
+setradio http://stream.electroradio.ch:26630/
+
+Pop/Dance   
+setradio http://95.141.24.41:80
+
+Hitradio 181   
+setradio http://www.181.fm/winamp.pls?station=181-power&amp;amp;style=mp3&amp;amp;description=Power%20181%20(Top%2040)&amp;amp;file=181-power.pls
+
+Drum and Bass   
+setradio http://95.168.216.197:8555
+
+Drumstep   
+setradio http://193.34.51.81:80
+
+Pop Rock   
+setradio http://listen.rockradio.com/public3/poprock.pls
+
+Metal   
+setradio http://listen.rockradio.com/public3/metal.pls
+
+Heavy Metal   
+setradio http://listen.rockradio.com/public3/heavymetal.pls
+
+Modern Rock   
+setradio http://listen.rockradio.com/public3/modernrock.pls
+
+Hard Rock   
+setradio http://listen.rockradio.com/public3/hardrock.pls
+
+Classic Metal   
+setradio http://listen.rockradio.com/public3/classicmetal.pls
+
+Grunge   
+setradio http://bigrradio.com/asx/grunge.asx
+
+Rock Ano 90   
+setradio http://listen.rockradio.com/public3/90srock.pls
+
+Rock Ano 80   
+setradio http://listen.rockradio.com/public3/80srock.pls
+
+----------------------------------------- Radio -----------------------------------------

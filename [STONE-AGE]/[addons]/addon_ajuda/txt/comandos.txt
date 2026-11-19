@@ -1,0 +1,18 @@
+﻿- Geral - 
+F1 - Painel Do Jogador
+F2 - Painel De Grupo
+B - Painel de craft
+TAB ou /inventory - Inventário
+K - Ligar/Desligar Veiculo
+" (aspas) - Painel do Servidor
+/kill - Suicidio
+/resetbase - Destroi Todos os Itens de Base
+/resetbase - Destroi a Cama
+/report - Painel de Denuncias
+
+- Animações -
+, - Animação Sentar
+. - Animação Maos pra Cima
+l - Animação Fingir de Morto
+; - Animação Tchau
+ç - Animação Apontar
