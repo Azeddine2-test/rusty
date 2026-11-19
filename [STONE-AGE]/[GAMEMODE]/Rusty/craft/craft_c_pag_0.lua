@@ -9,74 +9,74 @@ item_setup_0 = {}
 
       pagina[0] = guiCreateTab("Itens", painel)
 
-        craft_item_0[1] = guiCreateStaticImage(0.02, 0.04, 0.16, 0.22, ":stoneage/images/itens/logo_borda.png", true, pagina[0])
-        imagem_craft_0[1] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/machado.png", true, craft_item_0[1])
+        craft_item_0[1] = guiCreateStaticImage(0.02, 0.04, 0.16, 0.22, ":Rusty/images/itens/logo_borda.png", true, pagina[0])
+        imagem_craft_0[1] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/machado.png", true, craft_item_0[1])
 		label_item_0[1] = guiCreateLabel(0, 58, 87, 19, "Machado", false, craft_item_0[1])
 		
-        craft_item_0[2] = guiCreateStaticImage(0.185, 0.04, 0.16, 0.22, ":stoneage/images/itens/logo_borda.png", true, pagina[0])
-		imagem_craft_0[2] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/pickaxe.png", true, craft_item_0[2])
+        craft_item_0[2] = guiCreateStaticImage(0.185, 0.04, 0.16, 0.22, ":Rusty/images/itens/logo_borda.png", true, pagina[0])
+		imagem_craft_0[2] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/pickaxe.png", true, craft_item_0[2])
 		label_item_0[2] = guiCreateLabel(0, 58, 87, 19, "Picareta", false, craft_item_0[2])
 		
-        craft_item_0[3] = guiCreateStaticImage(0.35, 0.04, 0.16, 0.22, ":stoneage/images/itens/logo_borda.png", true, pagina[0])
-		imagem_craft_0[3] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/c4.png", true, craft_item_0[3])
+        craft_item_0[3] = guiCreateStaticImage(0.35, 0.04, 0.16, 0.22, ":Rusty/images/itens/logo_borda.png", true, pagina[0])
+		imagem_craft_0[3] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/c4.png", true, craft_item_0[3])
 		label_item_0[3] = guiCreateLabel(0, 58, 87, 19, "Bomba Relógio", false, craft_item_0[3])
 		
-        craft_item_0[4] = guiCreateStaticImage(0.513, 0.04, 0.16, 0.22, ":stoneage/images/itens/logo_borda.png", true, pagina[0])
-		imagem_craft_0[4] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/polvora.png", true, craft_item_0[4])
+        craft_item_0[4] = guiCreateStaticImage(0.513, 0.04, 0.16, 0.22, ":Rusty/images/itens/logo_borda.png", true, pagina[0])
+		imagem_craft_0[4] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/polvora.png", true, craft_item_0[4])
 		label_item_0[4] = guiCreateLabel(0, 58, 87, 19, "Pólvora", false, craft_item_0[4])		
 		
-        craft_item_0[5] = guiCreateStaticImage(0.02, 0.265, 0.16, 0.22, ":stoneage/images/itens/logo_borda.png", true, pagina[0])
-		imagem_craft_0[5] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/m16a4.png", true, craft_item_0[5])
+        craft_item_0[5] = guiCreateStaticImage(0.02, 0.265, 0.16, 0.22, ":Rusty/images/itens/logo_borda.png", true, pagina[0])
+		imagem_craft_0[5] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/m16a4.png", true, craft_item_0[5])
 		label_item_0[5] = guiCreateLabel(0, 58, 87, 19, "M16A4", false, craft_item_0[5])		
 		
-        craft_item_0[6] = guiCreateStaticImage(0.185, 0.265, 0.16, 0.22, ":stoneage/images/itens/logo_borda.png", true, pagina[0])
-		imagem_craft_0[6] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/ak.png", true, craft_item_0[6])
+        craft_item_0[6] = guiCreateStaticImage(0.185, 0.265, 0.16, 0.22, ":Rusty/images/itens/logo_borda.png", true, pagina[0])
+		imagem_craft_0[6] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/ak.png", true, craft_item_0[6])
 		label_item_0[6] = guiCreateLabel(0, 58, 87, 19, "AKM", false, craft_item_0[6])		
 		
-        craft_item_0[7] = guiCreateStaticImage(0.35, 0.265, 0.16, 0.22, ":stoneage/images/itens/logo_borda.png", true, pagina[0])
-		imagem_craft_0[7] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/Sniper.png", true, craft_item_0[7])
+        craft_item_0[7] = guiCreateStaticImage(0.35, 0.265, 0.16, 0.22, ":Rusty/images/itens/logo_borda.png", true, pagina[0])
+		imagem_craft_0[7] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/Sniper.png", true, craft_item_0[7])
 		label_item_0[7] = guiCreateLabel(0, 58, 87, 19, "Sniper", false, craft_item_0[7])		
 		
-        craft_item_0[8] = guiCreateStaticImage(0.513, 0.265, 0.16, 0.22, ":stoneage/images/itens/logo_borda.png", true, pagina[0])
-		imagem_craft_0[8] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/mp5.png", true, craft_item_0[8])
+        craft_item_0[8] = guiCreateStaticImage(0.513, 0.265, 0.16, 0.22, ":Rusty/images/itens/logo_borda.png", true, pagina[0])
+		imagem_craft_0[8] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/mp5.png", true, craft_item_0[8])
 		label_item_0[8] = guiCreateLabel(0, 58, 87, 19, "MP5A5", false, craft_item_0[8])		
 		
-        craft_item_0[9] = guiCreateStaticImage(0.02, 0.49, 0.16, 0.22, ":stoneage/images/itens/logo_borda.png", true, pagina[0])
-		imagem_craft_0[9] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/556.png", true, craft_item_0[9])
+        craft_item_0[9] = guiCreateStaticImage(0.02, 0.49, 0.16, 0.22, ":Rusty/images/itens/logo_borda.png", true, pagina[0])
+		imagem_craft_0[9] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/556.png", true, craft_item_0[9])
 		label_item_0[9] = guiCreateLabel(0, 58, 87, 19, "5.56mm", false, craft_item_0[9])		
 		
-        craft_item_0[10] = guiCreateStaticImage(0.185, 0.49, 0.16, 0.22, ":stoneage/images/itens/logo_borda.png", true, pagina[0])
-		imagem_craft_0[10] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/762.png", true, craft_item_0[10])
+        craft_item_0[10] = guiCreateStaticImage(0.185, 0.49, 0.16, 0.22, ":Rusty/images/itens/logo_borda.png", true, pagina[0])
+		imagem_craft_0[10] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/762.png", true, craft_item_0[10])
 		label_item_0[10] = guiCreateLabel(0, 58, 87, 19, "7.62mm", false, craft_item_0[10])		
 		
-        craft_item_0[11] = guiCreateStaticImage(0.35, 0.49, 0.16, 0.22, ":stoneage/images/itens/logo_borda.png", true, pagina[0])
-		imagem_craft_0[11] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/.300.png", true, craft_item_0[11])
+        craft_item_0[11] = guiCreateStaticImage(0.35, 0.49, 0.16, 0.22, ":Rusty/images/itens/logo_borda.png", true, pagina[0])
+		imagem_craft_0[11] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/.300.png", true, craft_item_0[11])
 		label_item_0[11] = guiCreateLabel(0, 58, 87, 19, ".300 Magnum", false, craft_item_0[11])		
 		
-        craft_item_0[12] = guiCreateStaticImage(0.513, 0.49, 0.16, 0.22, ":stoneage/images/itens/logo_borda.png", true, pagina[0])
-		imagem_craft_0[12] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/9mm.png", true, craft_item_0[12])
+        craft_item_0[12] = guiCreateStaticImage(0.513, 0.49, 0.16, 0.22, ":Rusty/images/itens/logo_borda.png", true, pagina[0])
+		imagem_craft_0[12] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/9mm.png", true, craft_item_0[12])
 		label_item_0[12] = guiCreateLabel(0, 58, 87, 19, "9mm", false, craft_item_0[12])		
 		
-        craft_item_0[13] = guiCreateStaticImage(0.02, 0.7125, 0.16, 0.22, ":stoneage/images/itens/logo.png", true, pagina[0])
-		imagem_craft_0[13] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/logo.png", true, craft_item_0[13])
+        craft_item_0[13] = guiCreateStaticImage(0.02, 0.7125, 0.16, 0.22, ":Rusty/images/itens/logo.png", true, pagina[0])
+		imagem_craft_0[13] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/logo.png", true, craft_item_0[13])
 		label_item_0[13] = guiCreateLabel(0, 58, 87, 19, "", false, craft_item_0[13])		
 		
-        craft_item_0[14] = guiCreateStaticImage(0.185, 0.7125, 0.16, 0.22, ":stoneage/images/itens/logo.png", true, pagina[0])
-		imagem_craft_0[14] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/logo.png", true, craft_item_0[14])
+        craft_item_0[14] = guiCreateStaticImage(0.185, 0.7125, 0.16, 0.22, ":Rusty/images/itens/logo.png", true, pagina[0])
+		imagem_craft_0[14] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/logo.png", true, craft_item_0[14])
 		label_item_0[14] = guiCreateLabel(0, 58, 87, 19, "", false, craft_item_0[14])
 		
-        craft_item_0[15] = guiCreateStaticImage(0.35, 0.7125, 0.16, 0.22, ":stoneage/images/itens/logo.png", true, pagina[0])
-		imagem_craft_0[15] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/logo.png", true, craft_item_0[15])
+        craft_item_0[15] = guiCreateStaticImage(0.35, 0.7125, 0.16, 0.22, ":Rusty/images/itens/logo.png", true, pagina[0])
+		imagem_craft_0[15] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/logo.png", true, craft_item_0[15])
 		label_item_0[15] = guiCreateLabel(0, 58, 87, 19, "", false, craft_item_0[15])
 		
-        craft_item_0[16] = guiCreateStaticImage(0.513, 0.7125, 0.16, 0.22, ":stoneage/images/itens/logo.png", true, pagina[0])
-		imagem_craft_0[16] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/logo.png", true, craft_item_0[16])
+        craft_item_0[16] = guiCreateStaticImage(0.513, 0.7125, 0.16, 0.22, ":Rusty/images/itens/logo.png", true, pagina[0])
+		imagem_craft_0[16] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/logo.png", true, craft_item_0[16])
 		label_item_0[16] = guiCreateLabel(0, 58, 87, 19, "", false, craft_item_0[16])
 		
-        item_setup_0 = guiCreateStaticImage(380, 29, 157, 314, ":stoneage/images/itens/logo.png", false, pagina[0])
+        item_setup_0 = guiCreateStaticImage(380, 29, 157, 314, ":Rusty/images/itens/logo.png", false, pagina[0])
 		
-        fundo_item_imagem_0_0 = guiCreateStaticImage(0.75, 0.02, 0.20, 0.29, ":stoneage/images/itens/logo_borda.png", true, pagina[0])
-        item_imagem_0 = guiCreateStaticImage(0,0,1,1, ":stoneage/images/itens/logo.png", true, fundo_item_imagem_0_0)
+        fundo_item_imagem_0_0 = guiCreateStaticImage(0.75, 0.02, 0.20, 0.29, ":Rusty/images/itens/logo_borda.png", true, pagina[0])
+        item_imagem_0 = guiCreateStaticImage(0,0,1,1, ":Rusty/images/itens/logo.png", true, fundo_item_imagem_0_0)
         guiSetProperty(fundo_item_imagem_0_0, "AlwaysOnTop", "True") 
 	
         item_name_0 = guiCreateLabel(0.00, 0.28, 1.00, 0.05, "Selecione algum item", true, item_setup_0)
@@ -85,39 +85,39 @@ item_setup_0 = {}
 
         item_descricao_0 = guiCreateLabel(0.03, 0.32, 0.91, 0.16, " ", true, item_setup_0)
 
-		requerimento_0[1] = guiCreateStaticImage(0.06, 0.48, 0.28, 0.14, ":stoneage/images/itens/logo.png", true, item_setup_0)
-		imagem_requerimento_0[1] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/logo.png", true, requerimento_0[1])
+		requerimento_0[1] = guiCreateStaticImage(0.06, 0.48, 0.28, 0.14, ":Rusty/images/itens/logo.png", true, item_setup_0)
+		imagem_requerimento_0[1] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/logo.png", true, requerimento_0[1])
         quantidade_requerimento_0[1] = guiCreateLabel(0.00, 0.65, 1.02, 0.35, "", true, requerimento_0[1])
         nome_requerimento_0[1] = guiCreateLabel(0.00, 0, 1.02, 0.35, "", true, requerimento_0[1])
 
-        requerimento_0[2] = guiCreateStaticImage(0.37, 0.48, 0.27, 0.14, ":stoneage/images/itens/logo.png", true, item_setup_0)
-		imagem_requerimento_0[2] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/logo.png", true, requerimento_0[2])
+        requerimento_0[2] = guiCreateStaticImage(0.37, 0.48, 0.27, 0.14, ":Rusty/images/itens/logo.png", true, item_setup_0)
+		imagem_requerimento_0[2] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/logo.png", true, requerimento_0[2])
         quantidade_requerimento_0[2] = guiCreateLabel(0.00, 0.67, 1.00, 0.33, "", true, requerimento_0[2])
 		nome_requerimento_0[2] = guiCreateLabel(0.00, 0, 1.02, 0.35, "", true, requerimento_0[2])
 
 
-        requerimento_0[3] = guiCreateStaticImage(0.66, 0.48, 0.27, 0.14, ":stoneage/images/itens/logo.png", true, item_setup_0)
-		imagem_requerimento_0[3] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/logo.png", true, requerimento_0[3])
+        requerimento_0[3] = guiCreateStaticImage(0.66, 0.48, 0.27, 0.14, ":Rusty/images/itens/logo.png", true, item_setup_0)
+		imagem_requerimento_0[3] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/logo.png", true, requerimento_0[3])
         quantidade_requerimento_0[3] = guiCreateLabel(0.00, 0.67, 1.00, 0.33, " ", true, requerimento_0[3])
 		nome_requerimento_0[3] = guiCreateLabel(0.00, 0, 1.02, 0.35, " ", true, requerimento_0[3])
 		
 
-        requerimento_0[4] = guiCreateStaticImage(0.06, 0.64, 0.29, 0.14, ":stoneage/images/itens/logo.png", true, item_setup_0)
-		imagem_requerimento_0[4] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/logo.png", true, requerimento_0[4])
+        requerimento_0[4] = guiCreateStaticImage(0.06, 0.64, 0.29, 0.14, ":Rusty/images/itens/logo.png", true, item_setup_0)
+		imagem_requerimento_0[4] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/logo.png", true, requerimento_0[4])
         quantidade_requerimento_0[4] = guiCreateLabel(0.00, 0.65, 1.00, 0.35, " ", true, requerimento_0[4])
 		nome_requerimento_0[4] = guiCreateLabel(0.00, 0, 1.02, 0.35, "", true, requerimento_0[4])
 
-        requerimento_0[5] = guiCreateStaticImage(0.37, 0.64, 0.27, 0.14, ":stoneage/images/itens/logo.png", true, item_setup_0)
-		imagem_requerimento_0[5] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/logo.png", true, requerimento_0[5])
+        requerimento_0[5] = guiCreateStaticImage(0.37, 0.64, 0.27, 0.14, ":Rusty/images/itens/logo.png", true, item_setup_0)
+		imagem_requerimento_0[5] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/logo.png", true, requerimento_0[5])
         quantidade_requerimento_0[5] = guiCreateLabel(0.00, 0.67, 1.00, 0.33, " ", true, requerimento_0[5])
 		nome_requerimento_0[5] = guiCreateLabel(0.00, 0, 1.02, 0.35, "", true, requerimento_0[5])
 
-        requerimento_0[6] = guiCreateStaticImage(0.66, 0.64, 0.27, 0.14, ":stoneage/images/itens/logo.png", true, item_setup_0)
-		imagem_requerimento_0[6] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":stoneage/images/itens/logo.png", true, requerimento_0[6])
+        requerimento_0[6] = guiCreateStaticImage(0.66, 0.64, 0.27, 0.14, ":Rusty/images/itens/logo.png", true, item_setup_0)
+		imagem_requerimento_0[6] = guiCreateStaticImage(0.1,0.1,0.8,0.8, ":Rusty/images/itens/logo.png", true, requerimento_0[6])
         quantidade_requerimento_0[6] = guiCreateLabel(0.00, 0.67, 1.00, 0.33, " ", true, requerimento_0[6])
 		nome_requerimento_0[6] = guiCreateLabel(0.00, 0, 1.02, 0.35, "", true, requerimento_0[6])
 
-        fundo_button_craft_0 = guiCreateStaticImage(0.09, 0.79, 0.82, 0.12, ":stoneage/images/itens/logo_borda.png", true, item_setup_0)
+        fundo_button_craft_0 = guiCreateStaticImage(0.09, 0.79, 0.82, 0.12, ":Rusty/images/itens/logo_borda.png", true, item_setup_0)
         button_craft_0 = guiCreateLabel(0.00, 0.00, 1.00, 1.00, "Craft", true, fundo_button_craft_0)
         guiLabelSetColor(button_craft_0, 255, 255, 0)
         guiLabelSetHorizontalAlign(button_craft_0, "center", false)
@@ -237,40 +237,40 @@ end
 end
 addEventHandler("onClientGUIClick",root,destacar_requerimento)
 
-guiStaticImageLoadImage(item_imagem_0,":stoneage/images/itens/"..imagem)
+guiStaticImageLoadImage(item_imagem_0,":Rusty/images/itens/"..imagem)
 guiSetText(item_name_0,nome)
 
-guiStaticImageLoadImage(imagem_requerimento_0[1],":stoneage/images/itens/"..getImageByName(item1))
+guiStaticImageLoadImage(imagem_requerimento_0[1],":Rusty/images/itens/"..getImageByName(item1))
 guiSetText(nome_requerimento_0[1],item1)
 guiSetVisible(nome_requerimento_0[1],true)
 guiSetText(quantidade_requerimento_0[1],getElementData(localPlayer,'9mm'))
 guiSetVisible(quantidade_requerimento_0[1],true)
 
-guiStaticImageLoadImage(imagem_requerimento_0[2],":stoneage/images/itens/"..getImageByName(item2))
+guiStaticImageLoadImage(imagem_requerimento_0[2],":Rusty/images/itens/"..getImageByName(item2))
 guiSetText(nome_requerimento_0[2],item2)
 guiSetVisible(nome_requerimento_0[2],true)
 guiSetText(quantidade_requerimento_0[2],getElementData(localPlayer,'.45 ACP'))
 guiSetVisible(quantidade_requerimento_0[2],true)
 
-guiStaticImageLoadImage(imagem_requerimento_0[3],":stoneage/images/itens/"..getImageByName(item3))
+guiStaticImageLoadImage(imagem_requerimento_0[3],":Rusty/images/itens/"..getImageByName(item3))
 guiSetText(nome_requerimento_0[3],item3)
 guiSetVisible(nome_requerimento_0[3],true)
 guiSetText(quantidade_requerimento_0[3],getElementData(localPlayer,'7.62mm'))
 guiSetVisible(quantidade_requerimento_0[3],true)
 
-guiStaticImageLoadImage(imagem_requerimento_0[4],":stoneage/images/itens/"..getImageByName(item4))
+guiStaticImageLoadImage(imagem_requerimento_0[4],":Rusty/images/itens/"..getImageByName(item4))
 guiSetText(nome_requerimento_0[4],item4)
 guiSetVisible(nome_requerimento_0[4],true)
 guiSetText(quantidade_requerimento_0[4],getElementData(localPlayer,'5.56mm'))
 guiSetVisible(quantidade_requerimento_0[4],true)
 
-guiStaticImageLoadImage(imagem_requerimento_0[5],":stoneage/images/itens/"..getImageByName(item5))
+guiStaticImageLoadImage(imagem_requerimento_0[5],":Rusty/images/itens/"..getImageByName(item5))
 guiSetText(nome_requerimento_0[5],item5)
 guiSetVisible(nome_requerimento_0[5],true)
 guiSetText(quantidade_requerimento_0[5],getElementData(localPlayer,'12 Gauge'))
 guiSetVisible(quantidade_requerimento_0[5],true)
 
-guiStaticImageLoadImage(imagem_requerimento_0[6],":stoneage/images/itens/"..getImageByName(item6))
+guiStaticImageLoadImage(imagem_requerimento_0[6],":Rusty/images/itens/"..getImageByName(item6))
 guiSetText(nome_requerimento_0[6],item6)
 guiSetVisible(nome_requerimento_0[6],true)
 guiSetText(quantidade_requerimento_0[6],getElementData(localPlayer,'.300 Magnum'))
@@ -339,9 +339,9 @@ function update_menu_craft_0(imagem,nome,item1,quant_1,item2,quant_2,item3,quant
 
 
 undestack()
-guiStaticImageLoadImage(item_imagem_0,":stoneage/images/itens/"..imagem)
+guiStaticImageLoadImage(item_imagem_0,":Rusty/images/itens/"..imagem)
 guiSetText(item_name_0,nome)
-guiStaticImageLoadImage(imagem_requerimento_0[1],":stoneage/images/itens/"..getImageByName(item1))
+guiStaticImageLoadImage(imagem_requerimento_0[1],":Rusty/images/itens/"..getImageByName(item1))
 guiSetText(nome_requerimento_0[1],item1)
 guiSetText(quantidade_requerimento_0[1],getElementData(localPlayer,getNameByImage(item1) ).."/"..quant_1)
 if item1 == "alivetime" then 
@@ -351,7 +351,7 @@ else
 guiSetVisible(nome_requerimento_0[1],true)
 guiSetVisible(quantidade_requerimento_0[1],true)
 end
-guiStaticImageLoadImage(imagem_requerimento_0[2],":stoneage/images/itens/"..getImageByName(item2))
+guiStaticImageLoadImage(imagem_requerimento_0[2],":Rusty/images/itens/"..getImageByName(item2))
 guiSetText(nome_requerimento_0[2],item2)
 guiSetText(quantidade_requerimento_0[2],getElementData(localPlayer,getNameByImage(item2)).."/"..quant_2)
 if item2 == "alivetime" then 
@@ -361,7 +361,7 @@ else
 guiSetVisible(nome_requerimento_0[2],true)
 guiSetVisible(quantidade_requerimento_0[2],true)
 end
-guiStaticImageLoadImage(imagem_requerimento_0[3],":stoneage/images/itens/"..getImageByName(item3))
+guiStaticImageLoadImage(imagem_requerimento_0[3],":Rusty/images/itens/"..getImageByName(item3))
 guiSetText(nome_requerimento_0[3],item3)
 guiSetText(quantidade_requerimento_0[3],getElementData(localPlayer,getNameByImage(item3)).."/"..quant_3)
 if item3 == "alivetime" then 
@@ -371,7 +371,7 @@ else
 guiSetVisible(nome_requerimento_0[3],true)
 guiSetVisible(quantidade_requerimento_0[3],true)
 end
-guiStaticImageLoadImage(imagem_requerimento_0[4],":stoneage/images/itens/"..getImageByName(item4))
+guiStaticImageLoadImage(imagem_requerimento_0[4],":Rusty/images/itens/"..getImageByName(item4))
 guiSetText(nome_requerimento_0[4],item4)
 guiSetText(quantidade_requerimento_0[4],getElementData(localPlayer,getNameByImage(item4)).."/"..quant_4)
 if item4 == "alivetime" then 
@@ -381,7 +381,7 @@ else
 guiSetVisible(nome_requerimento_0[4],true)
 guiSetVisible(quantidade_requerimento_0[4],true)
 end
-guiStaticImageLoadImage(imagem_requerimento_0[5],":stoneage/images/itens/"..getImageByName(item5))
+guiStaticImageLoadImage(imagem_requerimento_0[5],":Rusty/images/itens/"..getImageByName(item5))
 guiSetText(nome_requerimento_0[5],item5)
 guiSetText(quantidade_requerimento_0[5],getElementData(localPlayer,getNameByImage(item4)).."/"..quant_5)
 if item5 == "alivetime" then 
@@ -391,7 +391,7 @@ else
 guiSetVisible(nome_requerimento_0[5],true)
 guiSetVisible(quantidade_requerimento_0[5],true)
 end
-guiStaticImageLoadImage(imagem_requerimento_0[6],":stoneage/images/itens/"..getImageByName(item6))
+guiStaticImageLoadImage(imagem_requerimento_0[6],":Rusty/images/itens/"..getImageByName(item6))
 guiSetText(nome_requerimento_0[6],item6)
 guiSetText(quantidade_requerimento_0[6],getElementData(localPlayer,getNameByImage(item6)).."/"..quant_6)
 if item6 == "alivetime" then 
