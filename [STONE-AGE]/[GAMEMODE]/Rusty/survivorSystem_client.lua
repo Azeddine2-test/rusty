@@ -16,10 +16,10 @@ addEventHandler("onClientRender", root,
 	if not getElementData(localPlayer,'logedin') then return end
 	local screenW, screenH = guiGetScreenSize()
 	if isMainMenuActive() then
-        dxDrawImage(screenW * 0.7794, screenH * 0.6914, screenW * 0.1522, screenH * 0.2747, ":StoneAge/images/logotipo.png", 0, 0, 0, tocolor(255, 255, 255, 255), false)	
+        dxDrawImage(screenW * 0.7794, screenH * 0.6914, screenW * 0.1522, screenH * 0.2747, ":Rusty/images/logotipo.png", 0, 0, 0, tocolor(255, 255, 255, 255), false)	
 	else
 		if getElementData(localPlayer,'HUD_PESSOAL_Render') then 
-		dxDrawImage(screenW * 0.9338, screenH * 0.8659, screenW * 0.0588, screenH * 0.1029, ":StoneAge/images/logotipo.png", 0, 0, 0, tocolor(255, 255, 255, 255), false)
+		dxDrawImage(screenW * 0.9338, screenH * 0.8659, screenW * 0.0588, screenH * 0.1029, ":Rusty/images/logotipo.png", 0, 0, 0, tocolor(255, 255, 255, 255), false)
 		end
 	end
 end)
@@ -466,9 +466,9 @@ function dayZDeathInfo ()
     setTimer(showDayZDeathScreen,2000,1)
 	number = math.random(0,1)
 	if number == 1 then 
-	sound_death = playSound(':stoneage/sounds/death1.ogg',false)
+	sound_death = playSound(':Rusty/sounds/death1.ogg',false)
 	else
-	sound_death = playSound(':stoneage/sounds/death.mp3',false)
+	sound_death = playSound(':Rusty/sounds/death.mp3',false)
 	end
 end
 addEvent("onClientPlayerDeathInfo",true)
@@ -490,23 +490,25 @@ end,100*20,1)
 end
 local screenW, screenH = guiGetScreenSize()
 
-        background = guiCreateStaticImage(0,0, screenW, screenH, ":StoneAge/images/dead.png", true, window_selecao_spawn)
-		guiSetVisible(background,false)
-		guiSetEnabled(background,false)
         window_selecao_spawn = guiCreateWindow(0.29, 0.26, 0.43, 0.49, "Respawn", true)
+        background = guiCreateStaticImage(0, 0, 1, 1, ":Rusty/images/dead.png", true, window_selecao_spawn)
+        if isElement(background) then
+            guiSetVisible(background, false)
+            guiSetEnabled(background, false)
+        end
         guiWindowSetMovable(window_selecao_spawn, false)
         guiWindowSetSizable(window_selecao_spawn, false)
 		guiSetAlpha(window_selecao_spawn,1)
 		guiSetVisible(window_selecao_spawn,false)
 		
-        mapa_selecao_spawn = guiCreateStaticImage(0.02, 0.07, 0.60, 0.90, ":StoneAge/images/radar.png", true, window_selecao_spawn)
+        mapa_selecao_spawn = guiCreateStaticImage(0.02, 0.07, 0.60, 0.90, ":Rusty/images/radar.png", true, window_selecao_spawn)
 spawn = {}
-        spawn[1] = guiCreateStaticImage(0.10, 0, 0.5, 0.5, ":StoneAge/images/radio_button.png", true, mapa_selecao_spawn)
-        spawn[2] = guiCreateStaticImage(0.55, 0.3, 0.5, 0.5, ":StoneAge/images/radio_button.png", true, mapa_selecao_spawn)
-        spawn[3] = guiCreateStaticImage(-0.1, 0.55, 0.5, 0.5, ":StoneAge/images/radio_button.png", true, mapa_selecao_spawn)
-        spawn[4] = guiCreateStaticImage(0.3, 0.25, 0.5, 0.5, ":StoneAge/images/radio_button.png", true, mapa_selecao_spawn)
-        spawn[5] = guiCreateStaticImage(0.1, 0.45, 0.5, 0.5, ":StoneAge/images/radio_button.png", true, mapa_selecao_spawn)
-        spawn[6] = guiCreateStaticImage(0.0, 0.0, 0.0, 0.0, ":StoneAge/images/radio_button.png", true, mapa_selecao_spawn) 
+        spawn[1] = guiCreateStaticImage(0.10, 0, 0.5, 0.5, ":Rusty/images/radio_button.png", true, mapa_selecao_spawn)
+        spawn[2] = guiCreateStaticImage(0.55, 0.3, 0.5, 0.5, ":Rusty/images/radio_button.png", true, mapa_selecao_spawn)
+        spawn[3] = guiCreateStaticImage(-0.1, 0.55, 0.5, 0.5, ":Rusty/images/radio_button.png", true, mapa_selecao_spawn)
+        spawn[4] = guiCreateStaticImage(0.3, 0.25, 0.5, 0.5, ":Rusty/images/radio_button.png", true, mapa_selecao_spawn)
+        spawn[5] = guiCreateStaticImage(0.1, 0.45, 0.5, 0.5, ":Rusty/images/radio_button.png", true, mapa_selecao_spawn)
+        spawn[6] = guiCreateStaticImage(0.0, 0.0, 0.0, 0.0, ":Rusty/images/radio_button.png", true, mapa_selecao_spawn) 
 		
         gridlist_selecao_spawn = guiCreateGridList(0.63, 0.06, 0.35, 0.53, true, window_selecao_spawn)
         coluna = guiGridListAddColumn(gridlist_selecao_spawn, "Lugares", 0.9)
@@ -524,9 +526,9 @@ spawn = {}
 		row = guiGridListAddRow(gridlist_selecao_spawn)
         guiGridListSetItemText(gridlist_selecao_spawn, row, coluna, "Flint County", false, false)
 		
-        fundo_cama = guiCreateStaticImage(0.63, 0.77, 0.12, 0.19, ":StoneAge/images/itens/logo_borda.png", true, window_selecao_spawn)
+        fundo_cama = guiCreateStaticImage(0.63, 0.77, 0.12, 0.19, ":Rusty/images/itens/logo_borda.png", true, window_selecao_spawn)
 
-        cama = guiCreateStaticImage(0.01, 0.01, 0.99, 0.99, ":StoneAge/images/itens/cama.png", true, fundo_cama)
+        cama = guiCreateStaticImage(0.01, 0.01, 0.99, 0.99, ":Rusty/images/itens/cama.png", true, fundo_cama)
 
         button_spawn_mapa = guiCreateButton(0.63, 0.59, 0.35, 0.13, "Spawn pelo mapa", true, window_selecao_spawn)
         button_spawn_cama = guiCreateButton(0.76, 0.81, 0.22, 0.13, "Voltar pra cama", true, window_selecao_spawn)
@@ -610,7 +612,7 @@ end)
 function tudo_morte()
 
 local screenW, screenH = guiGetScreenSize()
-		dxDrawImage(screenW * 0.0000, screenH * 0.0000, screenW * 1.0000, screenH * 1.0000, ":StoneAge/images/dead.png", 0, 0, 0, tocolor(255, 255, 255, 255), false)
+		dxDrawImage(screenW * 0.0000, screenH * 0.0000, screenW * 1.0000, screenH * 1.0000, ":Rusty/images/dead.png", 0, 0, 0, tocolor(255, 255, 255, 255), false)
 
         dxDrawRectangle((screenW - 1360) / 2, (screenH - 768) / 2, 1360, 768, tocolor(0, 0, 0, 255), false)
         dxDrawLine((screenW * 0.3206) - 1, (screenH * 0.4245) - 1, (screenW * 0.3206) - 1, screenH * 0.5768, tocolor(255, 255, 255, 255), 1, false)
@@ -981,12 +983,18 @@ end
 addEventHandler('onClientPreRender',root,check_animation)
 
 function sound_heart_beatin_C (player,x,y,z)
-if getElementData(player,"blood") <= 3000 then
-   beating = playSound3D(":stoneage/sounds/coracao.wav",x,y,z)
-   setSoundMaxDistance( beating, 25 )
-   setSoundVolume(beating,0.5)
+    if not isElement(player) or getElementType(player) ~= "player" then
+        return
+    end
 
-end
+    local blood = tonumber(getElementData(player, "blood"))
+    if blood and blood <= 3000 then
+        local beating = playSound3D(":Rusty/sounds/coracao.wav", x, y, z)
+        if isElement(beating) then
+            setSoundMaxDistance(beating, 25)
+            setSoundVolume(beating, 0.5)
+        end
+    end
 end
 addEvent('sound_heart_beatin_C',true)
 addEventHandler('sound_heart_beatin_C',root,sound_heart_beatin_C)
