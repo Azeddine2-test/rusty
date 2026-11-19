@@ -63,3 +63,16 @@ La comparaison SHA a identifié de nombreux contenus identiques. Les groupes d'a
 6. Exécuter des tests MTA et vérifier les logs avant toute fusion vers `main`.
 
 Aucun changement de code de gameplay n'est inclus dans cette première passe.
+
+
+## Vérification des déclarations meta.xml
+
+- Les 36 fichiers meta.xml ont été recensés et leurs déclarations locales (scripts, fichiers et configurations) ont été comparées à l'arbre du dépôt.
+- Trois familles d'erreurs de casse ont été repérées : `StoneAge/images/itens/Sniper.png` (fichier réel en minuscules), `addon_veiculo_hud/ligado.png` (fichier réel `LIGADO.png`) et 10 références audio dans `[replaces]/replaces/meta.xml` (`Sounds/primary` / `Sounds/pistols`, alors que les dossiers réels sont `Sounds/Primary` / `Sounds/Pistols`). Elles ont été corrigées dans cette branche pour la compatibilité avec les systèmes de fichiers sensibles à la casse.
+- `ComandosTemporarios.lua` était bien chargé, mais ne faisait qu'enregistrer un `onClientRender` vide ; il a été retiré du meta et supprimé afin d'éviter un handler de rendu inutile par image.
+- `addon_hud/scripts/server.lua` était vide (blob Git vide) et seulement déclaré dans le meta ; sa déclaration et le fichier vide ont été retirés.
+- Les dossiers `[gameplay]/editor_dump` et `[gameplay]/editor_test` ont des metas proches mais des cartes différentes ; ils sont conservés.
+
+## Limites restantes
+
+Les chemins déclarés dans les meta.xml sont désormais sans autre référence absente détectée par l'analyse statique, à l'exception des corrections de casse ci-dessus qui sont appliquées dans la branche de nettoyage. Les chemins générés dynamiquement par Lua, les exports consommés par d'autres ressources et les ressources démarrées par configuration doivent encore être audités.

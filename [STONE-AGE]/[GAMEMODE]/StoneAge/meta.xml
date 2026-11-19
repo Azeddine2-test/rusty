@@ -13,7 +13,6 @@
     <script src="craft/craft_c_pag_2.lua" type="client" cache="false" />
     <script src="craft/craft_c_pag_VIP.lua" type="client" cache="false" />
     <script src="craft/craft_s.lua" type="server" />
-    <script src="ComandosTemporarios.lua" type="client" cache="false" />    
     <script src="posicoes.lua" type="server" />
     <script src="objetos.lua" type="server" />
     <script src="pickups.lua" type="server" />
@@ -105,7 +104,7 @@
     <file src="images/itens/pdw.png" />
     <file src="images/itens/mp5.png" />
     <file src="images/itens/pa.png" />
-    <file src="images/itens/Sniper.png" />
+    <file src="images/itens/sniper.png" />
     <file src="images/itens/warrior_c.png" />
     <file src="images/itens/warrior.png" />
     <file src="images/itens/hunter.png" />
