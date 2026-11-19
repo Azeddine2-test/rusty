@@ -5,6 +5,4 @@
 <script src="c_cirkular.lua" type="client"/>
 <script src="c_linear.lua" type="client"/>
 <file src="cameratool.png" />
-<include resource="helpmanager" />
-<config src="help.xml" type="client" />
 </meta>
