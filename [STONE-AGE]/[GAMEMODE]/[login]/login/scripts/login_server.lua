@@ -1,7 +1,7 @@
 function tryToLoginPlayer (username, password)
 	local account = getAccount(username, password)
 	if not account then
-		triggerClientEvent("Change_Label_Login",source,"Esta conta não existe")
+		triggerClientEvent("Change_Label_Login",source,"Ce compte n’existe pas.")
 		return
 	elseif account then
 		local accountName = getAccountName(account)
@@ -26,7 +26,7 @@ addEventHandler("kick_player", root, kick_player)
 function fazer_login (username, password)
 	local account = getAccount(username, password)
 	if not account then
-		triggerClientEvent("Change_Label_Login",source,"Usuário ou senha incorreto!")
+		triggerClientEvent("Change_Label_Login",source,"Nom d’utilisateur ou mot de passe incorrect.")
 	else
 		local accountName = getAccountName(account)
 		logIn(source, account, password)
@@ -56,7 +56,7 @@ function fazer_registro (username, password)
 		local theAccount = addAccount(username,password)
 		acc = getPlayerAccount(source)
 		logIn(source, theAccount, password)
-		outputChatBox("Você criou a conta: "..username.." com a senha: "..password..' !',source,255,255,0)
+		outputChatBox("Votre compte « "..username.." » a été créé avec succès.",source,80,200,120)
 		triggerClientEvent("change_labels",source,"registro")
 		triggerClientEvent("logou",source)
 		setElementData ( source, "cloth0",0)
@@ -67,7 +67,7 @@ function fazer_registro (username, password)
 		setElementData ( source, "cloth16",-1)
 		triggerClientEvent("updatePedClothes",source)
 	else
-	outputChatBox("Esta conta já existe",source,255,0,0)
+	outputChatBox("Ce compte existe déjà.",source,255,0,0)
 	end
 end
 addEvent("fazer_registro", true)
