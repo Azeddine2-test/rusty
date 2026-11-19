@@ -47,13 +47,14 @@ musics = {
 
 local number = math.random(table.size(musics))
 sound = playSound(':login/sounds/'..musics[number]..'.ogg',true)
+if sound then setSoundVolume(sound, 0.12) end
 
-        musica_label = guiCreateLabel(0.68, 0.93, 0.32, 0.03, "Musica: "..musics[number], true)
+        musica_label = guiCreateLabel(0.68, 0.93, 0.32, 0.03, "Musique : "..musics[number], true)
         guiSetFont(musica_label, "default-bold-small")
         guiLabelSetHorizontalAlign(musica_label, "right", false)
         guiLabelSetVerticalAlign(musica_label, "center")    
 
-		dancing_button = guiCreateCheckBox(0.94, 0.91, 0.06, 0.02, "Dançando", false, true)
+		dancing_button = guiCreateCheckBox(0.94, 0.91, 0.06, 0.02, "Danser", false, true)
         guiSetFont(dancing_button, "default-bold-small")
 		
 addEvent('stop_music_login',true)
