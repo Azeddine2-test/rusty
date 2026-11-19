@@ -76,3 +76,12 @@ Aucun changement de code de gameplay n'est inclus dans cette première passe.
 ## Limites restantes
 
 Les chemins déclarés dans les meta.xml sont désormais sans autre référence absente détectée par l'analyse statique, à l'exception des corrections de casse ci-dessus qui sont appliquées dans la branche de nettoyage. Les chemins générés dynamiquement par Lua, les exports consommés par d'autres ressources et les ressources démarrées par configuration doivent encore être audités.
+
+
+## Cartographie des ressources
+
+La cartographie détaillée des 36 ressources déclarées est dans [RESOURCE-MAP.md](RESOURCE-MAP.md). Elle couvre le gamemode, login/personnage, plugins, addons, remplacements, administration et maps de test.
+
+## Première passe sécurité
+
+Les premiers événements distants du craft/construction, du réarmement, des groupes et de la connexion ont été examinés. Plusieurs handlers acceptent des données envoyées par le client sans contrôle visible de l'appelant via `client` ni validation complète des droits. Les détails, fichiers et fonctions sont consignés dans [SECURITY-FINDINGS.md](SECURITY-FINDINGS.md). Aucun correctif de gameplay n'a encore été appliqué.
