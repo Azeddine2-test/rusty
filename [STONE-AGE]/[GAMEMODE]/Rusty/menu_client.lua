@@ -109,25 +109,25 @@ objeto_de_base = {
 {"Portao de Ferro", 2166},
 }
 
-fonte = guiCreateFont( ":stoneage/fonts/font.ttf", 8 )
+fonte = guiCreateFont( ":Rusty/fonts/font.ttf", 8 )
 
 
 
-spalteGuiImage[1] = guiCreateStaticImage(0.005, 0.45, 0.105, 0.02, ":stoneage/images/itens/logo.png", true)
+spalteGuiImage[1] = guiCreateStaticImage(0.005, 0.45, 0.105, 0.02, ":Rusty/images/itens/logo.png", true)
 spalteGuiText[1] = guiCreateLabel(0.03, 0.00, 0.97, 1.00, "", true,spalteGuiImage[1])
-spalteGuiImage[2] = guiCreateStaticImage(0.005, 0.472, 0.105, 0.02, ":stoneage/images/itens/logo.png", true)
+spalteGuiImage[2] = guiCreateStaticImage(0.005, 0.472, 0.105, 0.02, ":Rusty/images/itens/logo.png", true)
 spalteGuiText[2] = guiCreateLabel(0.03, 0.00, 0.97, 1.00, "", true,spalteGuiImage[2])
-spalteGuiImage[3] = guiCreateStaticImage(0.005, 0.492, 0.105, 0.02, ":stoneage/images/itens/logo.png", true)
+spalteGuiImage[3] = guiCreateStaticImage(0.005, 0.492, 0.105, 0.02, ":Rusty/images/itens/logo.png", true)
 spalteGuiText[3] = guiCreateLabel(0.03, 0.00, 0.97, 1.00, "", true,spalteGuiImage[3])
-spalteGuiImage[4] = guiCreateStaticImage(0.005, 0.513, 0.105, 0.02, ":stoneage/images/itens/logo.png", true)
+spalteGuiImage[4] = guiCreateStaticImage(0.005, 0.513, 0.105, 0.02, ":Rusty/images/itens/logo.png", true)
 spalteGuiText[4] = guiCreateLabel(0.03, 0.00, 0.97, 1.00, "", true,spalteGuiImage[4])
-spalteGuiImage[5] = guiCreateStaticImage(0.005, 0.534, 0.105, 0.02, ":stoneage/images/itens/logo.png", true)
+spalteGuiImage[5] = guiCreateStaticImage(0.005, 0.534, 0.105, 0.02, ":Rusty/images/itens/logo.png", true)
 spalteGuiText[5] = guiCreateLabel(0.03, 0.00, 0.97, 1.00, "", true,spalteGuiImage[5])
-spalteGuiImage[6] = guiCreateStaticImage(0.005, 0.555, 0.105, 0.02, ":stoneage/images/itens/logo.png", true)
+spalteGuiImage[6] = guiCreateStaticImage(0.005, 0.555, 0.105, 0.02, ":Rusty/images/itens/logo.png", true)
 spalteGuiText[6] = guiCreateLabel(0.03, 0.00, 0.97, 1.00, "", true,spalteGuiImage[6])
-spalteGuiImage[7] = guiCreateStaticImage(0.005, 0.576, 0.105, 0.02, ":stoneage/images/itens/logo.png", true)
+spalteGuiImage[7] = guiCreateStaticImage(0.005, 0.576, 0.105, 0.02, ":Rusty/images/itens/logo.png", true)
 spalteGuiText[7] = guiCreateLabel(0.03, 0.00, 0.97, 1.00, "", true,spalteGuiImage[7])
-spalteGuiImage[8] = guiCreateStaticImage(0.005, 0.597, 0.105, 0.02, ":stoneage/images/itens/logo.png", true)
+spalteGuiImage[8] = guiCreateStaticImage(0.005, 0.597, 0.105, 0.02, ":Rusty/images/itens/logo.png", true)
 spalteGuiText[8] = guiCreateLabel(0.03, 0.00, 0.97, 1.00, "", true,spalteGuiImage[8])
 
 for i = 1,8 do 
@@ -517,13 +517,13 @@ addEventHandler("showClientMenuItem",getLocalPlayer(),showClientMenuItem)
 
 function DestacarItem(id)
 for i = 1,8 do 
---guiStaticImageLoadImage(spalteGuiImage[i],':stoneage/images/itens/logo.png')
+--guiStaticImageLoadImage(spalteGuiImage[i],':Rusty/images/itens/logo.png')
     guiLabelSetColor (spalteGuiText[i],255,255,255)
 	setElementData(spalteGuiText[i],"markedMenuItem",false)
 end
 setElementData(spalteGuiText[id],"markedMenuItem",true)
 guiLabelSetColor(spalteGuiText[id],255,255,0)
---guiStaticImageLoadImage(spalteGuiImage[id],':stoneage/images/itens/logo_borda.png')
+--guiStaticImageLoadImage(spalteGuiImage[id],':Rusty/images/itens/logo_borda.png')
 end
 
 function PlayerScrollMenu (key,keyState,arg)
@@ -586,7 +586,7 @@ addEventHandler("disableMenu",getLocalPlayer(),disableMenu)
 
 function sound_fogo(x,y,z,state)
 if state == true then
-uSound = playSound3D( ':StoneAge/sounds/fire.mp3', x,y,z,true ) 
+uSound = playSound3D( ':Rusty/sounds/fire.mp3', x,y,z,true ) 
 setSoundMaxDistance( uSound, 100 )
 else
 if isElement(uSound) then stopSound(uSound) end
@@ -597,7 +597,7 @@ addEventHandler('sound_fogo',root,sound_fogo)
 
 function corpo_sound(x,y,z,state)
 if state == true then
-dead_s = playSound3D( ':StoneAge/sounds/corpo.ogg', x,y,z ,true) 
+dead_s = playSound3D( ':Rusty/sounds/corpo.ogg', x,y,z ,true) 
 setSoundMaxDistance( dead_s, 100 )
 else
 if isElement(dead_s) then stopSound(dead_s) end
@@ -607,42 +607,42 @@ addEvent('corpo_sound',true)
 addEventHandler('corpo_sound',root,corpo_sound)
 
 function sound_Backpack(x,y,z)
-local uSound = playSound3D( ':StoneAge/sounds/backpack.wav', x,y,z ) 
+local uSound = playSound3D( ':Rusty/sounds/backpack.wav', x,y,z ) 
 setSoundMaxDistance( uSound, 100 )
 end
 addEvent('sound_Backpack',true)
 addEventHandler('sound_Backpack',root,sound_Backpack)
 
 function sound_Medic(x,y,z)
-local uSound = playSound3D( ':StoneAge/sounds/bandagem.ogg', x,y,z ) 
+local uSound = playSound3D( ':Rusty/sounds/bandagem.ogg', x,y,z ) 
 setSoundMaxDistance( uSound, 100 )
 end
 addEvent('sound_Medic',true)
 addEventHandler('sound_Medic',root,sound_Medic)
 
 function sound_Comendo(stat,x,y,z)
-local uSound = playSound3D( ':StoneAge/sounds/comendo.ogg', x,y,z ) 
+local uSound = playSound3D( ':Rusty/sounds/comendo.ogg', x,y,z ) 
 setSoundMaxDistance( uSound, 100 )
 end
 addEvent('sound_Comendo',true)
 addEventHandler('sound_Comendo',root,sound_Comendo)
 
 function sound_Cozinhar(x,y,z)
-local uSound = playSound3D( ':StoneAge/sounds/cozinhando.ogg', x,y,z ) 
+local uSound = playSound3D( ':Rusty/sounds/cozinhando.ogg', x,y,z ) 
 setSoundMaxDistance( uSound, 100 )
 end
 addEvent('sound_Cozinhar',true)
 addEventHandler('sound_Cozinhar',root,sound_Cozinhar)
 
 function sound_Bebendo(stat,x,y,z)
-local uSound = playSound3D( ':StoneAge/sounds/bebendo.ogg', x,y,z ) 
+local uSound = playSound3D( ':Rusty/sounds/bebendo.ogg', x,y,z ) 
 setSoundMaxDistance( uSound, 100 )
 end
 addEvent('sound_Bebendo',true)
 addEventHandler('sound_Bebendo',root,sound_Bebendo)
 
 function equipWeaponSound(stat,x,y,z)
-local uSound = playSound3D( ':StoneAge/sounds/equip'..stat..'.wav', x,y,z ) 
+local uSound = playSound3D( ':Rusty/sounds/equip'..stat..'.wav', x,y,z ) 
 setSoundMaxDistance( uSound, 100 )
 end
 addEvent('equipWeaponSound',true)
@@ -651,35 +651,35 @@ addEventHandler('equipWeaponSound',root,equipWeaponSound)
 
 function motor_carro_som(stat,x,y,z)
 if isElement(carro_sound) then destroyElement(carro_sound) end
-carro_sound = playSound3D( ':StoneAge/sounds/'..stat..'.mp3', x,y,z ) 
+carro_sound = playSound3D( ':Rusty/sounds/'..stat..'.mp3', x,y,z ) 
 setSoundMaxDistance( carro_sound, 100 )
 end
 addEvent('motor_carro_som',true)
 addEventHandler('motor_carro_som',root,motor_carro_som)
 
 function dead_sound(x,y,z)
-local uSound = playSound3D( ':StoneAge/sounds/dead.ogg', x,y,z) 
+local uSound = playSound3D( ':Rusty/sounds/dead.ogg', x,y,z) 
 setSoundMaxDistance( uSound, 100 )
 end
 addEvent('dead_sound',true)
 addEventHandler('dead_sound',root,dead_sound)
 
 function picareta(x,y,z)
-local uSound = playSound3D( ':StoneAge/sounds/picaretada.mp3', x,y,z ) 
+local uSound = playSound3D( ':Rusty/sounds/picaretada.mp3', x,y,z ) 
 setSoundMaxDistance( uSound, 100)
 end
 addEvent('picareta',true)
 addEventHandler('picareta',root,picareta)
 
 function plantas(x,y,z)
-local uSound = playSound3D( ':StoneAge/sounds/plantas.mp3', x,y,z ) 
+local uSound = playSound3D( ':Rusty/sounds/plantas.mp3', x,y,z ) 
 setSoundMaxDistance( uSound, 100)
 end
 addEvent('plantas',true)
 addEventHandler('plantas',root,plantas)
 
 function machadada(x,y,z)
-local uSound = playSound3D( ':StoneAge/sounds/machadada.mp3', x,y,z ) 
+local uSound = playSound3D( ':Rusty/sounds/machadada.mp3', x,y,z ) 
 setSoundMaxDistance( uSound, 100)
 end
 addEvent('machadada',true)
@@ -935,8 +935,8 @@ function setNewbieInfo (show,head,text,element)
     newbiePosition = element
 end
 
-font = dxCreateFont(":stoneage/fonts/font.ttf",11)
-font_2 = dxCreateFont(":stoneage/fonts/font.ttf",8)
+font = dxCreateFont(":Rusty/fonts/font.ttf",11)
+font_2 = dxCreateFont(":Rusty/fonts/font.ttf",8)
 
 function mostrar_newbie()
     if not newbieShow or newbieShow == false then return end
