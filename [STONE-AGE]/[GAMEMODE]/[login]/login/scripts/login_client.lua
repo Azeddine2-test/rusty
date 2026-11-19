@@ -42,7 +42,7 @@ if sx < 1152 then
     scale = sx/1152
 end
 if sx < 1024 then
-    outputChatBox("Recomendamos que você pelo menos use 1024x768 como resolução!", 255, 0, 0)
+    outputChatBox("Pour une meilleure expérience, utilisez une résolution d’au moins 1024 × 768.", 255, 0, 0)
 end
 
 	infoTable = {}
@@ -50,7 +50,7 @@ end
 	fontsize_menu = 20
 	fontsize_registro = 15
 	fontsize_login = 15
-	termos = [[Informamos que o servidor não está completo e pode conter bugs, não nos resposabilizamos por perca de progresso.]]	
+	termos = [[Le serveur est en développement. Des bugs peuvent survenir et certaines progressions peuvent être perdues.]]	
 	
 function salvar_usuario_e_senha()
 	oldFile = xmlLoadFile("conta.xml")
@@ -81,9 +81,9 @@ confFile = xmlLoadFile("@conta.xml")
 end
 salvar_usuario_e_senha()
 
-    font_needhelp = guiCreateFont( ":login/fonts/needhelp.ttf", fontsize_menu*scale )
-    font_needhelp_registro = guiCreateFont( ":login/fonts/needhelp.ttf", fontsize_registro*scale )
-    font_needhelp_login = guiCreateFont( ":login/fonts/needhelp.ttf", fontsize_login*scale )
+    font_needhelp = "default-bold"
+    font_needhelp_registro = "default-bold-small"
+    font_needhelp_login = "default-bold-small"
 	
 	fundo_botoes_1 = guiCreateStaticImage(0.11, 0.44, 0.1, 0.25,":login/images/image_1.png", true)
 	fundo_botoes_2 = guiCreateStaticImage(0.215, 0.45, 0.037, 0.03,":login/images/image_1.png", true)
@@ -101,56 +101,59 @@ function setDisabled(element,valor)
 	guiSetAlpha(element,x)
 	setElementData(element,'disabled',valor)
 end
-	jogar_button = guiCreateLabel(0.12, 0.45, 0.065, 0.0275,"Conta", true)
+	jogar_button = guiCreateLabel(0.12, 0.45, 0.065, 0.0275,"Compte", true)
 	setElementData(jogar_button,'ready',false)
 
-	info_button = guiCreateLabel(0.12, 0.52, 0.062, 0.0275,"Personagem", true)
+	info_button = guiCreateLabel(0.12, 0.52, 0.062, 0.0275,"Personnage", true)
 	setDisabled(info_button,true)
-	credits_button = guiCreateLabel(0.12,0.59,0.072,0.0275,"Creditos", true)
-	exit_button = guiCreateLabel(0.12, 0.66, 0.021, 0.0275,"Sair", true)
-    login_button = guiCreateLabel(0.22, 0.45, 0.03, 0.03, "Login", true)
+	credits_button = guiCreateLabel(0.12,0.59,0.072,0.0275,"Crédits", true)
+	exit_button = guiCreateLabel(0.12, 0.66, 0.021, 0.0275,"Quitter", true)
+    login_button = guiCreateLabel(0.22, 0.45, 0.03, 0.03, "Connexion", true)
 	guiSetVisible(login_button,false)
-    registro_button = guiCreateLabel(0.27, 0.45, 0.04, 0.03, "Registro", true)
+    registro_button = guiCreateLabel(0.27, 0.45, 0.04, 0.03, "Inscription", true)
 	guiSetVisible(registro_button,false)
 	
-    imagem_do_registro = guiCreateStaticImage(0.36, 0.45, 0.22, 0.235, ":login/images/image_2.png", true)
+    imagem_do_registro = guiCreateStaticImage(0.36, 0.435, 0.28, 0.26, ":login/images/image_2.png", true)
 	guiSetVisible(imagem_do_registro,false)
-        label_pg_registro = guiCreateLabel(0.30, 0.03, 0.36, 0.12, "Pagina de registro", true, imagem_do_registro)
-        label_id_registro = guiCreateLabel(0.11, 0.17, 0.25, 0.10, "Usuario", true, imagem_do_registro)
+        label_pg_registro = guiCreateLabel(0.30, 0.03, 0.36, 0.12, "Créer un compte", true, imagem_do_registro)
+        label_id_registro = guiCreateLabel(0.11, 0.17, 0.25, 0.10, "Nom d’utilisateur", true, imagem_do_registro)
         edit_id_registro = guiCreateEdit(0.06, 0.28, 0.34, 0.15, "", true, imagem_do_registro)
-        label_senha_registro = guiCreateLabel(0.11, 0.475, 0.25, 0.10,  "Senha", true, imagem_do_registro)
+        label_senha_registro = guiCreateLabel(0.11, 0.475, 0.25, 0.10,  "Mot de passe", true, imagem_do_registro)
         edit_senha_registro = guiCreateEdit(0.06, 0.575, 0.34, 0.15, "", true, imagem_do_registro)
 		guiEditSetMasked(edit_senha_registro,true)
-        label_senha_registro_confirm = guiCreateLabel(0.54, 0.17, 0.43, 0.10, "Confirmacao de senha", true, imagem_do_registro)
+        label_senha_registro_confirm = guiCreateLabel(0.54, 0.17, 0.43, 0.10, "Confirmer le mot de passe", true, imagem_do_registro)
         edit_senha_registro_confirm = guiCreateEdit(0.57, 0.28, 0.34, 0.15, "", true, imagem_do_registro)
 		guiEditSetMasked(edit_senha_registro_confirm,true)
-        label_confirm_registro = guiCreateLabel(0.12, 0.84, 0.87, 0.10, "Eu, "..getPlayerName(localPlayer):gsub('#%x%x%x%x%x%x', '')..", confirmo que aceito os TERMOS", true, imagem_do_registro)
-        check_confirm_registro = guiCreateCheckBox(0.065, 0.84, 0.07, 0.10, "", false, true, imagem_do_registro)
-        button_salvar_registro = guiCreateButton(0.57, 0.515, 0.34, 0.23, "Registrar", true, imagem_do_registro)
-        label_ver_senha = guiCreateLabel(0.78, 0.02, 0.20, 0.12, "Ver senha", true, imagem_do_registro)
+        label_confirm_registro = guiCreateLabel(0.16, 0.84, 0.53, 0.10, "J’accepte le règlement du serveur.", true, imagem_do_registro)
+        check_confirm_registro = guiCreateCheckBox(0.055, 0.82, 0.10, 0.14, "", false, true, imagem_do_registro)
+        label_ouvrir_termes = guiCreateLabel(0.72, 0.84, 0.23, 0.10, "Lire le règlement", true, imagem_do_registro)
+        guiLabelSetColor(label_ouvrir_termes, 70, 175, 235)
+        guiSetEnabled(check_confirm_registro, true)
+        button_salvar_registro = guiCreateButton(0.57, 0.515, 0.34, 0.23, "Créer le compte", true, imagem_do_registro)
+        label_ver_senha = guiCreateLabel(0.78, 0.02, 0.20, 0.12, "Afficher", true, imagem_do_registro)
         check_ver_senha_registro = guiCreateCheckBox(0.73, 0.04, 0.07, 0.10, "", false, true,imagem_do_registro)  
 		label_info_register = guiCreateLabel(0.06, 0.725, 0.92, 0.12, "", true, imagem_do_registro)
 	    guiLabelSetHorizontalAlign(label_info_register, "left", false)
 		guiLabelSetVerticalAlign(label_info_register, "center")  
 		guiLabelSetColor(label_info_register,255,255,0)
 		
-	imagem_do_login = guiCreateStaticImage(0.36, 0.45, 0.20, 0.19, ":login/images/image_2.png", true)
+	imagem_do_login = guiCreateStaticImage(0.37, 0.45, 0.26, 0.21, ":login/images/image_2.png", true)
 	guiSetVisible(imagem_do_login,false)
-        label_pg_login = guiCreateLabel(0.22, 0.02, 0.40, 0.12, "Pagina de Login", true, imagem_do_login)
-        label_id_login = guiCreateLabel(0.11, 0.27, 0.25, 0.10, "Usuario", true, imagem_do_login)
+        label_pg_login = guiCreateLabel(0.22, 0.02, 0.40, 0.12, "Connexion", true, imagem_do_login)
+        label_id_login = guiCreateLabel(0.11, 0.27, 0.25, 0.10, "Nom d’utilisateur", true, imagem_do_login)
         edit_id_login = guiCreateEdit(0.06, 0.38, 0.34, 0.15,infoTable["account"], true, imagem_do_login)
-        label_senha_login = guiCreateLabel(0.11, 0.59, 0.25, 0.10, "Senha", true, imagem_do_login)
+        label_senha_login = guiCreateLabel(0.11, 0.59, 0.25, 0.10, "Mot de passe", true, imagem_do_login)
         edit_senha_login = guiCreateEdit(0.06, 0.69, 0.34, 0.15, infoTable["pass"], true, imagem_do_login)
 		guiEditSetMasked(edit_senha_login,true)
         label_info_login = guiCreateLabel(0.06, 0.85, 0.92, 0.12, "", true, imagem_do_login)
 		guiLabelSetHorizontalAlign(label_info_login, "left", false)
 		guiLabelSetVerticalAlign(label_info_login, "center")  
 		guiLabelSetColor(label_info_login,255,255,0)
-        button_entrar_login = guiCreateButton(0.56, 0.38, 0.38, 0.46, "Entrar", true, imagem_do_login)
-        label_ver_senha_login = guiCreateLabel(0.72, 0.02, 0.22, 0.12, "Ver senha", true, imagem_do_login)
+        button_entrar_login = guiCreateButton(0.56, 0.38, 0.38, 0.46, "Se connecter", true, imagem_do_login)
+        label_ver_senha_login = guiCreateLabel(0.72, 0.02, 0.22, 0.12, "Afficher", true, imagem_do_login)
         check_ver_senha_login = guiCreateCheckBox(0.67, 0.04, 0.07, 0.10, "", false, true, imagem_do_login) 
 		fundo_termos = guiCreateStaticImage(0.36, 0.69, 0.22, 0.11, ":login/images/image_1.png", true)
-        label_termos_pg = guiCreateLabel(0.35, 0.00, 0.30, 0.17, "Termos", true, fundo_termos)
+        label_termos_pg = guiCreateLabel(0.35, 0.00, 0.30, 0.17, "Règlement", true, fundo_termos)
 		guiSetVisible(fundo_termos,false)
         guiLabelSetHorizontalAlign(label_termos_pg, "center", false)
         guiLabelSetVerticalAlign(label_termos_pg, "center")
@@ -179,6 +182,7 @@ registro = {
 {label_senha_registro},
 {label_senha_registro_confirm},
 {label_ver_senha},
+{label_ouvrir_termes},
 }
 
 for i, data in ipairs (registro) do
@@ -191,7 +195,8 @@ end
 
 addEventHandler( "onClientGUIClick",root, function()
 if source == button_salvar_registro or source == check_confirm_registro or source == check_ver_senha_registro or source == label_confirm_registro then
-playSound(":login/sounds/button.mp3")
+local uiSound = playSound(":login/sounds/button.mp3")
+if uiSound then setSoundVolume(uiSound, 0.25) end
 else
 return
 end	
@@ -277,7 +282,7 @@ function click_labels()
 	if not getElementData(source,'disabled') then
 	showClothWindow()
 	else
-	outputChatBox('Você precisa estar logado!',255,0,0)
+	outputChatBox('Vous devez être connecté !',255,0,0)
 	destacarItem(jogar_button)
 	end
 	elseif source == credits_button then
@@ -298,7 +303,9 @@ function click_labels()
 	elseif source == button_salvar_registro then
 	click_salvar_registro()	
 	elseif source == label_confirm_registro then
-	mostrar_termos()
+        guiCheckBoxSetSelected(check_confirm_registro, not guiCheckBoxGetSelected(check_confirm_registro))
+    elseif source == label_ouvrir_termes then
+        mostrar_termos()
 	end	
 end
 addEventHandler("onClientGUIClick",root,click_labels)
@@ -329,7 +336,7 @@ end
 
 function click_jogar()
 if guiGetText(jogar_button) == "Jogar" and razao == "login" then 
-if not getElementData(jogar_button,'ready') then outputChatBox('Aguarde até o fim da animação!',255,0,0) return end
+if not getElementData(jogar_button,'ready') then outputChatBox('Veuillez patienter jusqu’à la fin de l’animation.',255,0,0) return end
 		local username = guiGetText(edit_id_login)
 		local password = guiGetText(edit_senha_login)
 triggerServerEvent("sendLoginToServer", getLocalPlayer(), username, password)
@@ -429,22 +436,22 @@ function click_entrar_login()
 			local password = guiGetText(edit_senha_login)	
 		for i, data in ipairs (contasbloqueadas) do
 			if (tostring(username) == data[1]) or (tostring(password) == data[1]) then
-			guiSetText(label_info_login,"Usuario ou senha bloqueado pelo sistema.")
+			guiSetText(label_info_login,"Ce nom d’utilisateur ou mot de passe est réservé.")
 			timer_10 = setTimer(function() guiSetText(label_info_login,"") end,3000,1)
 			return
 			end
 		end
 			if (tostring(username) == "") and (tostring(password) == "") then
-			guiSetText(label_info_login,"Insira o usuario e a senha")
+			guiSetText(label_info_login,"Saisissez votre nom d’utilisateur et votre mot de passe.")
 			timer_9 = setTimer(function() guiSetText(label_info_login,"") end,3000,1)
 			return
 			end
 			if (tostring(username) == "") then
-			guiSetText(label_info_login,"Insira o usuario")
+			guiSetText(label_info_login,"Saisissez votre nom d’utilisateur.")
 			timer_8 = setTimer(function() guiSetText(label_info_login,"") end,3000,1)
 			return
 			elseif (tostring(password) == "") then
-			guiSetText(label_info_login,"Insira a senha")
+			guiSetText(label_info_login,"Saisissez votre mot de passe.")
 			timer_7 = setTimer(function() guiSetText(label_info_login,"") end,3000,1)
 			return
 			else
@@ -461,39 +468,39 @@ if label_info_register then
 			local password_confirm = guiGetText(edit_senha_registro_confirm)
 		for i, data in ipairs (contasbloqueadas) do
 			if (tostring(username) == data[1]) or (tostring(password) == data[1]) then
-			guiSetText(label_info_register,"Usuario ou senha bloqueado pelo sistema.")
+			guiSetText(label_info_register,"Ce nom d’utilisateur ou mot de passe est réservé.")
 			timer_0 = setTimer(function() guiSetText(label_info_register,"") end,3000,1)
 			return
 			end
 		end
 			if (tostring(username) == "") and (tostring(password) == "") and (tostring(password_confirm) == "") then
-			guiSetText(label_info_register,"Insira o usuario e a senha")
+			guiSetText(label_info_register,"Saisissez votre nom d’utilisateur et votre mot de passe.")
 			setTimer(function() guiSetText(label_info_register,"") end,3000,1)
 			return
 			end
 			
 			if (tostring(username) == "") then
-			guiSetText(label_info_register,"Insira o usuario")
+			guiSetText(label_info_register,"Saisissez votre nom d’utilisateur.")
 			setTimer(function() guiSetText(label_info_register,"") end,3000,1)
 			return
 			
 			elseif (tostring(password) == "") then
-			guiSetText(label_info_register,"Insira a senha")
+			guiSetText(label_info_register,"Saisissez votre mot de passe.")
 			setTimer(function() guiSetText(label_info_register,"") end,3000,1)
 			return			
 			
 			elseif (tostring(password_confirm) == "") then
-			guiSetText(label_info_register,"Insira a confirmação de senha")	
+			guiSetText(label_info_register,"Confirmez votre mot de passe.")	
 			setTimer(function() guiSetText(label_info_register,"") end,3000,1)		
 			return
 			
 			elseif (tostring(password_confirm) ~= (password)) then
-			guiSetText(label_info_register,"As senhas não são iguais")	
+			guiSetText(label_info_register,"Les mots de passe ne correspondent pas.")	
 			setTimer(function() guiSetText(label_info_register,"") end,3000,1)
 			return
 			
 			elseif guiCheckBoxGetSelected(check_confirm_registro) == false then 
-			guiSetText(label_info_register,"Você precisa aceitar os termos.")	
+			guiSetText(label_info_register,"Vous devez accepter le règlement pour créer un compte.")	
 			setTimer(function() guiSetText(label_info_register,"") end,3000,1)
 			return
 			else
