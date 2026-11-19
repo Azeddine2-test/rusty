@@ -36,7 +36,7 @@
         <acl name="RPC"></acl>
         <object name="user.Console"></object>
         <object name="user.iDannz"></object>
-        <object name="resource.StoneAge"></object>
+        <object name="resource.Rusty"></object>
         <object name="resource.login"></object>
     </group>
     <group name="RPC">

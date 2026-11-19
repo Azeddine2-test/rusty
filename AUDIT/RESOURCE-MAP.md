@@ -4,7 +4,7 @@ Date : 2026-11-19
 
 ## Inventaire des meta.xml (36)
 
-- Gamemode principal : `[STONE-AGE]/[GAMEMODE]/StoneAge`
+- Gamemode principal : `[STONE-AGE]/[GAMEMODE]/Rusty`
 - Connexion / personnage : `[login]/login`, `[login]/cloth_model`
 - Plugins : `cameratool`, `guieditor`, `slothbot`, `spawns`
 - Addons : `addon_admin_painel`, `addon_agua`, `addon_ajuda`, `addon_anti_relog`, `addon_globalchat`, `addon_hit`, `addon_hud`, `addon_icones_radar`, `addon_radar`, `addon_radiacao`, `addon_radial_effect`, `addon_shader`, `addon_tab`, `addon_veiculo_hud`
@@ -15,7 +15,7 @@ Date : 2026-11-19
 
 ## Dépendances explicites observées dans les meta.xml
 
-- Le gamemode StoneAge déclare l'export serveur `addGang`.
+- Le gamemode Rusty déclare l'export serveur `addGang`.
 - Le plugin `slothbot` expose plusieurs fonctions de création et de contrôle des bots.
 - L'addon `addon_tab` expose l'API du scoreboard côté client et serveur.
 - La ressource admin expose `getPlayerCountry` et plusieurs fonctions HTTP.
