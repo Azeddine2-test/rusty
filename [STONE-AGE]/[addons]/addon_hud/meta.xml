@@ -1,7 +1,6 @@
 <meta>
 	<info author="iDannz" name="Login" type="script" version="1.0.0a" />
 	
-	<script src="scripts/server.lua" type="server"/>
 	<script src="scripts/client.lua" type="client"/>
 	<script src="scripts/armas.lua" type="client"/>
 

@@ -3,16 +3,16 @@
 	<script src="client.lua" type="client" />
 	<script src="Sounds.lua" type="client" />
 	
-	<file src="Sounds/primary/akm.wav" />
-	<file src="Sounds/primary/m16a4.wav" />
-	<file src="Sounds/primary/awm.wav" />
-	<file src="Sounds/primary/s1897.wav" />
-	<file src="Sounds/primary/s686.wav" />
-	<file src="Sounds/primary/kar98k.wav" />
-	<file src="Sounds/pistols/p1911.wav" />
-	<file src="Sounds/pistols/p92.wav" />
-	<file src="Sounds/pistols/pdw.wav" />
-	<file src="Sounds/pistols/mp5.wav" />
+	<file src="Sounds/Primary/akm.wav" />
+	<file src="Sounds/Primary/m16a4.wav" />
+	<file src="Sounds/Primary/awm.wav" />
+	<file src="Sounds/Primary/s1897.wav" />
+	<file src="Sounds/Primary/s686.wav" />
+	<file src="Sounds/Primary/kar98k.wav" />
+	<file src="Sounds/Pistols/p1911.wav" />
+	<file src="Sounds/Pistols/p92.wav" />
+	<file src="Sounds/Pistols/pdw.wav" />
+	<file src="Sounds/Pistols/mp5.wav" />
 
 	<file src="armas/m16a4.txd" />
 	<file src="armas/m16a4.dff" />
