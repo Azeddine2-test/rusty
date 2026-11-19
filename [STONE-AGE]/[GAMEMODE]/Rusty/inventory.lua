@@ -187,8 +187,8 @@ end)
         guiWindowSetMovable(window_info_inventory, false)
         guiWindowSetSizable(window_info_inventory, false)
         guiSetVisible(window_info_inventory,false)
-        fundo_image_info_inventory = guiCreateStaticImage(0.1, 0.25, 0.3, 0.67, ":StoneAge/images/box.png", true, window_info_inventory)
-        image_info_inventory = guiCreateStaticImage(0,0, 1, 1, ":StoneAge/images/box.png", true, fundo_image_info_inventory)
+        fundo_image_info_inventory = guiCreateStaticImage(0.1, 0.25, 0.3, 0.67, ":Rusty/images/box.png", true, window_info_inventory)
+        image_info_inventory = guiCreateStaticImage(0,0, 1, 1, ":Rusty/images/box.png", true, fundo_image_info_inventory)
         item_name_info_inventory = guiCreateLabel(0.47, 0.16, 0.51, 0.15, "Item Name", true, window_info_inventory)
         guiLabelSetHorizontalAlign(item_name_info_inventory, "center", false)
         guiLabelSetVerticalAlign(item_name_info_inventory, "center")
@@ -199,7 +199,7 @@ end)
         guiWindowSetMovable(window_centro, false)
         guiWindowSetSizable(window_centro, false)
         guiSetVisible(window_centro,false)
-        skin_player = guiCreateStaticImage(0.06, 0.22, 0.87, 0.62, ":StoneAge/images/skin.png", true, window_centro)
+        skin_player = guiCreateStaticImage(0.06, 0.22, 0.87, 0.62, ":Rusty/images/skin.png", true, window_centro)
         nick_label = guiCreateLabel(0.06, 0.12, 0.88, 0.05, "PlayerNick", true, window_centro)
         guiSetFont(nick_label, "default-bold-small")
         guiLabelSetHorizontalAlign(nick_label, "center", false)
@@ -212,7 +212,7 @@ end)
         guiSetFont(exp_label, "default-bold-small")
         guiLabelSetHorizontalAlign(exp_label, "center", false)
         guiLabelSetVerticalAlign(exp_label, "center")
-        barra_exp = guiCreateStaticImage(0.06, 0.84, 0.88, 0.02, ":StoneAge/images/barra/barra.png", true, window_centro)
+        barra_exp = guiCreateStaticImage(0.06, 0.84, 0.88, 0.02, ":Rusty/images/barra/barra.png", true, window_centro)
 
 		window_loot = guiCreateWindow(0.19, 0.25, 0.25, 0.50, "", true)
         guiWindowSetMovable(window_loot, false)
@@ -239,8 +239,8 @@ end)
         guiWindowSetSizable(window_info_loot, false)
         guiSetVisible(window_info_loot,false)
 
-        fundo_image_info_loot = guiCreateStaticImage(0.1, 0.25, 0.3, 0.67, ":StoneAge/images/box.png", true, window_info_loot)
-        image_info_loot = guiCreateStaticImage(0, 0,1, 1, ":StoneAge/images/box.png", true, fundo_image_info_loot)
+        fundo_image_info_loot = guiCreateStaticImage(0.1, 0.25, 0.3, 0.67, ":Rusty/images/box.png", true, window_info_loot)
+        image_info_loot = guiCreateStaticImage(0, 0,1, 1, ":Rusty/images/box.png", true, fundo_image_info_loot)
         item_name_info_loot = guiCreateLabel(0.47, 0.16, 0.51, 0.15, "Item Name", true, window_info_loot)
         guiLabelSetHorizontalAlign(item_name_info_loot, "center", false)
         guiLabelSetVerticalAlign(item_name_info_loot, "center")
@@ -450,7 +450,7 @@ barra =  'barra_90'
 elseif porcento_exp >= 100 then
 barra =  'barra_100'
 end
-guiStaticImageLoadImage(barra_exp,':StoneAge/images/barra/'..barra..'.png')
+guiStaticImageLoadImage(barra_exp,':Rusty/images/barra/'..barra..'.png')
 end
 
 function drawInfoInventory()
@@ -459,7 +459,7 @@ for i,data in ipairs (itens_info) do
 if data[1] == itemName then
 guiSetText(item_name_info_inventory,data[1])
 guiSetText(texto_info_inventory,data[3])
-guiStaticImageLoadImage (image_info_inventory,":stoneage/images/itens/"..data[2])
+guiStaticImageLoadImage (image_info_inventory,":Rusty/images/itens/"..data[2])
 end
 end
 if itemName ~= "" then
@@ -478,7 +478,7 @@ for i,data in ipairs (itens_info) do
 if data[1] == itemName then
 guiSetText(item_name_info_loot,data[1])
 guiSetText(texto_info_loot,data[3])
-guiStaticImageLoadImage (image_info_loot,":stoneage/images/itens/"..data[2])
+guiStaticImageLoadImage (image_info_loot,":Rusty/images/itens/"..data[2])
 end
 end
 if itemName ~= "" then
