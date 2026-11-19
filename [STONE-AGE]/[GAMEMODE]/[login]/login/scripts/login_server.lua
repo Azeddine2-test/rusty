@@ -18,7 +18,7 @@ addEvent("sendLoginToServer", true)
 addEventHandler("sendLoginToServer", root, tryToLoginPlayer)
 
 function kick_player (player)
-		kickPlayer ( player, 'Button Quit StoneAge', 'Até breve!' )
+		kickPlayer ( player, 'Button Quit StoneAge', 'Au revoir !' )
 end
 addEvent("kick_player", true)
 addEventHandler("kick_player", root, kick_player)
