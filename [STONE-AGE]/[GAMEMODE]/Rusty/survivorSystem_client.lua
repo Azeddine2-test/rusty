@@ -1000,10 +1000,11 @@ addEvent('sound_heart_beatin_C',true)
 addEventHandler('sound_heart_beatin_C',root,sound_heart_beatin_C)
 
 setTimer(function()
-if getElementData(getLocalPlayer(),"blood") <= 3000 then
-	triggerServerEvent("soundHeartBeating",getLocalPlayer())
-end
-end,1500,0)
+    local blood = tonumber(getElementData(localPlayer, "blood"))
+    if blood and blood <= 3000 then
+        triggerServerEvent("soundHeartBeating", localPlayer)
+    end
+end, 1500, 0)
 
 
 
