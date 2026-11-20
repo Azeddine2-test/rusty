@@ -1,5 +1,6 @@
 <meta>
-    <script src="lod-streamer.lua" type="client" cache="false" validate="false"></script>
+    <include resource="stoneage_settings" />
+<script src="lod-streamer.lua" type="client" cache="false" validate="false"></script>
     <oop>true</oop>
     <info type="map" author="iDz" version="1.0.0"></info>
     <map src="stoneage_muros.map" dimension="0"></map>
