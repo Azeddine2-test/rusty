@@ -69,7 +69,7 @@ local function loadPlayerData(player, account)
                 end
             end
             if value ~= nil and value ~= false then setElementData(player, dataName, value) end
-        elseif definition.initialValue ~= nil and getElementData(player, dataName) == false then
+        elseif definition.initialValue ~= nil and getElementData(player, dataName) == nil then
             local value = definition.initialValue
             if type(value) == "function" then value = value(player) end
             if value ~= nil then setElementData(player, dataName, value) end
