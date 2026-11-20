@@ -3,11 +3,24 @@ STREAMER_OBJECTS = {}
 
 CHECK_DIST = 1000
 
-addEventHandler('onClientResourceStart', root, function()
-    if not STREAMER.Timer then
-        STREAMER.Timer = setTimer(CheckForLODS, 500, 0)
+local settingsReady = false
+
+addEventHandler('onClientResourceStart', root, function(res)
+    local resourceName = getResourceName(res)
+    if resourceName == 'stoneage_settings' then
+        settingsReady = true
+        CheckForLODS()
+        return
     end
-    CheckForLODS()
+
+    if res == resourceRoot then
+        local settings = getResourceFromName('stoneage_settings')
+        settingsReady = settings and getResourceState(settings) == 'running' or false
+        if not STREAMER.Timer then
+            STREAMER.Timer = setTimer(CheckForLODS, 500, 0)
+        end
+        CheckForLODS()
+    end
 end)
 
 CheckForLODS = function(forced)
@@ -35,10 +48,12 @@ CheckForLODS = function(forced)
         end
     end
 
-    local settingsReady, fpsBoost = pcall(function()
-        return exports['stoneage_settings']:getConfig('FPSBoost', true)
-    end)
-    if (not settingsReady) or fpsBoost then
+    -- Do not call a server export until its resource has started on the client.
+    if not settingsReady then
+        return false
+    end
+    local fpsBoost = exports['stoneage_settings']:getConfig('FPSBoost', true)
+    if fpsBoost then
         return false
     end
 
