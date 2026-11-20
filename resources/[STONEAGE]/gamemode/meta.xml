@@ -9,7 +9,7 @@
     <script src="scripts/global/g.gameplayConfig.lua" type="shared" cache="false" />
     <script src="scripts/global/g.blueprints.lua" type="shared" cache="false" />
     <script src="scripts/global/g.objects.lua" type="shared" cache="false" />
-    <script src="scripts/global/g.inventory-functions.luac" type="shared" cache="false" />
+    <script src="scripts/global/g.inventory-functions.lua" type="shared" cache="false" />
     <script src="scripts/global/g.worldConfig.lua" type="shared" cache="false" />
     <script src="scripts/global/async.lua" type="shared" cache="false" />
     <script src="scripts/global/positions/spawns.player.lua" type="shared" cache="false" />
