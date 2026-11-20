@@ -193,6 +193,9 @@ end)
 
 register("inv:takeItemToKeybar", function(player, object, fromSlot, toSlot, fromKind)
     if not getContainer(player, object) or fromKind ~= "loot" then return end
+    if tonumber(getElementData(player, "equippedSlotID")) == tonumber(toSlot) then
+        onPlayerDisequipItem(toSlot, player)
+    end
     transfer(player, object, "loot", fromSlot, player, "keybar", toSlot)
 end)
 
@@ -205,6 +208,10 @@ register("inv:takeItemToEquippedItems", function(player, object, fromSlot, toSlo
 end)
 
 register("inv:moveItemOnKeyBar", function(player, fromSlot, toSlot)
+    if tonumber(getElementData(player, "equippedSlotID")) == tonumber(fromSlot)
+        or tonumber(getElementData(player, "equippedSlotID")) == tonumber(toSlot) then
+        onPlayerDisequipItem(getElementData(player, "equippedSlotID"), player)
+    end
     swapInventorySlots(player, "keybar", fromSlot, toSlot)
 end)
 
@@ -216,15 +223,12 @@ register("inv:removeItemFromKeyBar", function(player, fromSlot, toSlot, target, 
 end)
 
 register("inv:removeItemFromKeyBarAndPutOnEquipped", function(player, itemName, fromSlot, toSlot)
-    local order = getOrder(player, "keybar")
-    local entry = order[tonumber(fromSlot)]
+    local entry = getOrder(player, "keybar")[tonumber(fromSlot)]
     if not entry or entry.itemName ~= itemName or not wearables[getItemType(itemName)] then return end
-    local target = getOrder(player, "pedSide")
-    if target[tonumber(toSlot)] then return end
-    target[tonumber(toSlot)] = entry
-    order[tonumber(fromSlot)] = nil
-    putOrder(player, "keybar", order)
-    putOrder(player, "pedSide", target)
+    if tonumber(getElementData(player, "equippedSlotID")) == tonumber(fromSlot) then
+        onPlayerDisequipItem(fromSlot, player)
+    end
+    transfer(player, player, "keybar", fromSlot, player, "pedSide", toSlot)
 end)
 
 register("inv:moveItemOnEquippedItems", function(player, fromSlot, toSlot)
