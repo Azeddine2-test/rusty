@@ -69,7 +69,7 @@ local function transfer(player, fromElement, fromKind, fromSlot, toElement, toKi
     if toKind == "loot" and not getContainer(player, toElement) then return false end
 
     fromSlot, toSlot = tonumber(fromSlot), tonumber(toSlot)
-    if not fromSlot then return false end
+    if not fromSlot or fromSlot < 1 or fromSlot > getInventoryLimit(fromElement, fromKind) then return false end
     local fromOrder, toOrder = getOrder(fromElement, fromKind), getOrder(toElement, toKind)
     local sourceEntry = fromOrder[fromSlot]
     if type(sourceEntry) ~= "table" or type(sourceEntry.itemName) ~= "string" then return false end
@@ -78,7 +78,7 @@ local function transfer(player, fromElement, fromKind, fromSlot, toElement, toKi
     if sourceQuantity <= 0 then return false end
 
     if not toSlot then toSlot = freeSlot(toElement, toKind) end
-    if not toSlot then return false end
+    if not toSlot or toSlot < 1 or toSlot > getInventoryLimit(toElement, toKind) then return false end
     local destinationEntry = toOrder[toSlot]
     local crossElement = fromElement ~= toElement
 
