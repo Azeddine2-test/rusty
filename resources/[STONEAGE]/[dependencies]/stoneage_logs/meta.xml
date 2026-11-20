@@ -1,4 +1,8 @@
 <meta>
+    <aclrequest>
+        <right name="function.fetchRemote" access="true"/>
+    </aclrequest>
+
     <script src='s.main.lua' type='server'/>
     <script src='s.handleDiscord.lua' type='server'/>
     <script src='s.others.lua' type='server'/>

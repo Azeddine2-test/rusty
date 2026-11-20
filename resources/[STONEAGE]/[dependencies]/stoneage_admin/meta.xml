@@ -1,4 +1,18 @@
 <meta>
+    <aclrequest>
+        <right name="function.addBan" access="true"/>
+        <right name="function.getBans" access="true"/>
+        <right name="function.reloadBans" access="true"/>
+        <right name="function.removeBan" access="true"/>
+        <right name="function.setBanNick" access="true"/>
+        <right name="function.setBanReason" access="true"/>
+        <right name="function.setUnbanTime" access="true"/>
+        <right name="function.kickPlayer" access="true"/>
+        <right name="function.getServerPassword" access="true"/>
+        <right name="function.setServerPassword" access="true"/>
+        <right name="function.setServerConfigSetting" access="true"/>
+    </aclrequest>
+
     <script src="config.lua" type="shared" cache="false" />
     <script src="async.lua" type="shared" cache="false" />
     

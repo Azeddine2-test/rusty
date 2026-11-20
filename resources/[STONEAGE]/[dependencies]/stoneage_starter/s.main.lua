@@ -17,8 +17,9 @@ local DELAY_BETWEEN_MS = 100
 -- Attente avant de commencer (ms), pour laisser finir les ressources lancees par mtaserver.conf.
 local INITIAL_DELAY_MS = 500
 
--- Ordre de demarrage. Chaque ressource n'utilise que celles placees AVANT elle
--- (deduit des appels exports[...] entre ressources), le gamemode est lance en dernier.
+-- Ordre de demarrage, deduit des appels exports[...] entre ressources et du log du serveur.
+-- Le gamemode passe avant les fonctionnalites : il n'appelle les autres ressources qu'a l'usage
+-- (dans des fonctions), alors que certaines l'appellent des leur demarrage.
 local RESOURCES = {
     -- 1. Services de base : utilises par presque toutes les autres ressources
     'stoneage_utils',
@@ -49,9 +50,22 @@ local RESOURCES = {
     'stoneage_iron-fix',
     'stoneage_placas',
 
-    -- 3. Fonctionnalites de jeu
+    -- 3. Cartes (le gamemode ne les nomme pas : elles doivent exister avant lui)
+    'stoneage_island',
+    'stoneage_island2',
+    'stoneage_muros',
+    'stoneage_patrol',
+    'loot-points',
+    'map-spawn',
+    'stoneage_military',
+
+    -- 4. Gamemode : lance AVANT les fonctionnalites, car pickups, helicopter et admin
+    --    appellent ses fonctions des leur demarrage, et c'est lui qui cree les tables SQL
+    'gamemode',
+
+    -- 5. Fonctionnalites de jeu
     'stoneage_economy',
-    'stoneage_pickups',             -- utilise stoneage_economy
+    'stoneage_pickups',             -- utilise stoneage_economy et le gamemode
     'stoneage_base_building',
     'stoneage_farms',
     'stoneage_groupsystem',
@@ -71,18 +85,6 @@ local RESOURCES = {
     'stoneage_interaction',
     'stoneage_admin',
     'richpresence-id',              -- anti-evade (verifie les bans)
-
-    -- 4. Cartes (le gamemode ne les nomme pas : elles doivent exister avant lui)
-    'stoneage_island',
-    'stoneage_island2',
-    'stoneage_muros',
-    'stoneage_patrol',
-    'loot-points',
-    'map-spawn',
-    'stoneage_military',
-
-    -- 5. Gamemode, toujours en dernier
-    'gamemode',
 
     -- Desactivees (prefixe _ ou - dans leur nom d'origine) : decommente pour les activer
     -- '_stoneage_ship',

@@ -10,6 +10,9 @@
         <right name="function.getBans" access="true"/>
         <right name="function.addBan" access="true"/>
         <right name="function.reloadBans" access="true"/>
+        <right name="function.banPlayer" access="true"/>
+        <right name="function.kickPlayer" access="true"/>
+        <right name="function.setBanNick" access="true"/>
     </aclrequest>
 
     <oop>true</oop>

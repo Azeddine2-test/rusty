@@ -1,4 +1,9 @@
 <meta>
+    <aclrequest>
+        <right name="function.addBan" access="true"/>
+        <right name="function.setBanNick" access="true"/>
+    </aclrequest>
+
     <script src="scripts/client/c.main.lua" type="client" cache="false" />
     <script src="scripts/server/s.main.lua" type="server" />
     <script src="scripts/server/s.kickping.lua" type="server" />
