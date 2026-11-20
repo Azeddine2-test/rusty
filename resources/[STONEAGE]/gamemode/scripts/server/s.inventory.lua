@@ -176,28 +176,19 @@ end)
 
 register("inv:putItemOnKeybar", function(player, itemName, quantity, fromSlot, toSlot, fromKind)
     if fromKind ~= "inv" then return end
-    local order = getOrder(player, "inv")
-    local entry = order[tonumber(fromSlot)]
+    local entry = getOrder(player, "inv")[tonumber(fromSlot)]
     if not entry or entry.itemName ~= itemName or tonumber(entry.quantity) ~= tonumber(quantity) then return end
-    local target = getOrder(player, "keybar")
-    if target[tonumber(toSlot)] then return end
-    target[tonumber(toSlot)] = entry
-    order[tonumber(fromSlot)] = nil
-    putOrder(player, "inv", order)
-    putOrder(player, "keybar", target)
+    if tonumber(getElementData(player, "equippedSlotID")) == tonumber(toSlot) then
+        onPlayerDisequipItem(toSlot, player)
+    end
+    transfer(player, player, "inv", fromSlot, player, "keybar", toSlot)
 end)
 
 register("inv:putItemOnEquippedItems", function(player, fromSlot, toSlot, fromKind)
     if fromKind ~= "inv" then return end
-    local order = getOrder(player, "inv")
-    local entry = order[tonumber(fromSlot)]
+    local entry = getOrder(player, "inv")[tonumber(fromSlot)]
     if not entry or not wearables[getItemType(entry.itemName)] then return end
-    local target = getOrder(player, "pedSide")
-    if target[tonumber(toSlot)] then return end
-    target[tonumber(toSlot)] = entry
-    order[tonumber(fromSlot)] = nil
-    putOrder(player, "inv", order)
-    putOrder(player, "pedSide", target)
+    transfer(player, player, "inv", fromSlot, player, "pedSide", toSlot)
 end)
 
 register("inv:takeItemToKeybar", function(player, object, fromSlot, toSlot, fromKind)
