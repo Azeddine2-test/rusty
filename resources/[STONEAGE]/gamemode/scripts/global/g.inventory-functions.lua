@@ -59,7 +59,7 @@ end
 function setInventorySlot(element, inventoryType, slot, itemName, quantity)
     slot = tonumber(slot)
     quantity = tonumber(quantity)
-    if not isElement(element) or not INVENTORY_ORDER_KEYS[inventoryType] or not slot or slot < 1 then return false end
+    if not isElement(element) or not INVENTORY_ORDER_KEYS[inventoryType] or not slot or slot < 1 or slot > getInventoryLimit(element, inventoryType) then return false end
     local order = getInventoryOrder(element, inventoryType)
     if type(itemName) ~= "string" or not quantity or quantity <= 0 then
         order[slot] = nil
@@ -72,6 +72,8 @@ end
 function swapInventorySlots(element, inventoryType, firstSlot, secondSlot)
     firstSlot, secondSlot = tonumber(firstSlot), tonumber(secondSlot)
     if not isElement(element) or not INVENTORY_ORDER_KEYS[inventoryType] or not firstSlot or not secondSlot then return false end
+    local limit = getInventoryLimit(element, inventoryType)
+    if firstSlot < 1 or secondSlot < 1 or firstSlot > limit or secondSlot > limit then return false end
     if firstSlot == secondSlot then return true end
     local order = getInventoryOrder(element, inventoryType)
     order[firstSlot], order[secondSlot] = order[secondSlot], order[firstSlot]
@@ -85,14 +87,32 @@ function normalizeInventoryOrder(element, inventoryType)
     local current = getInventoryOrder(element, inventoryType)
     local compact = {}
     local limit = getInventoryLimit(element, inventoryType)
-    local slot = 1
+
     for oldSlot = 1, limit do
         local entry = current[oldSlot]
         if type(entry) == "table" and type(entry.itemName) == "string" then
-            local quantity = math.floor(tonumber(entry.quantity) or 0)
-            if quantity > 0 then
-                compact[slot] = { itemName = entry.itemName, quantity = quantity }
-                slot = slot + 1
+            local remaining = math.floor(tonumber(entry.quantity) or 0)
+            local maximum = getItemMaxStack(entry.itemName)
+            while remaining > 0 do
+                local merged = false
+                for slot = 1, #compact do
+                    local existing = compact[slot]
+                    if existing.itemName == entry.itemName and existing.quantity < maximum then
+                        local moved = math.min(remaining, maximum - existing.quantity)
+                        existing.quantity = existing.quantity + moved
+                        remaining = remaining - moved
+                        merged = true
+                        if remaining <= 0 then break end
+                    end
+                end
+                if remaining > 0 then
+                    if #compact >= limit then break end
+                    local moved = math.min(remaining, maximum)
+                    compact[#compact + 1] = { itemName = entry.itemName, quantity = moved }
+                    remaining = remaining - moved
+                elseif merged then
+                    break
+                end
             end
         end
     end
