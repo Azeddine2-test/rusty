@@ -1,5 +1,6 @@
 <meta>
-    <info author="iDannz" version="1.0" name="Rust GameMode" description="desc." type="gamemode" />
+    <include resource="stoneage_settings" />
+<info author="iDannz" version="1.0" name="Rust GameMode" description="desc." type="gamemode" />
     <min_mta_version server="1.5.6-9.18728" client="1.5.7-9.20447"></min_mta_version>
     
     <!-- SCRIPTS -->
