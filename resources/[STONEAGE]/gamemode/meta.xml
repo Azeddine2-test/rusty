@@ -1,5 +1,8 @@
 <meta>
     <!-- DEPENDENCIES: start these resources before loading the gamemode -->
+    <include resource="stoneage_ui" />
+    <include resource="stoneage_highlight" />
+    <include resource="stoneage_object_preview" />
     <include resource="stoneage_settings" />
     <include resource="stoneage_logs" />
     <include resource="stoneage_sql" />
