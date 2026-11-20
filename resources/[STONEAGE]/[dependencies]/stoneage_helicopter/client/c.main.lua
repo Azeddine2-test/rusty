@@ -24,7 +24,7 @@ addEventHandler('ReceiveHeliInfo', localPlayer, function(heli, stage)
             setWeaponFlags(Heli.Weapon, "shoot_if_out_of_range", true)
             setWeaponFlags(Heli.Weapon, "shoot_if_blocked", true)
             
-            setHelicopterRotorSpeed(Heli.Element, 1)
+            setVehicleRotorSpeed(Heli.Element, 1)
             
             Heli.Sound = playSound3D('assets/sound.mp3', x, y, z, true)
             attachElements(Heli.Sound, Heli.Element)
@@ -38,7 +38,7 @@ addEventHandler('ReceiveHeliInfo', localPlayer, function(heli, stage)
         
         elseif (stage == 'destroyed') then
             if isElement(Heli.Element) then
-                setHelicopterRotorSpeed(Heli.Element, 0)
+                setVehicleRotorSpeed(Heli.Element, 0)
             end
         
         end
@@ -66,7 +66,7 @@ end
 addEvent('ChangeHeliTarget', true)
 addEventHandler('ChangeHeliTarget', resourceRoot, function(target)
     if isElement(Heli.Element) and isElement(Heli.Weapon) then
-        setHelicopterRotorSpeed(Heli.Element, 1)
+        setVehicleRotorSpeed(Heli.Element, 1)
         if target then
             setWeaponTarget(Heli.Weapon, target)
             setWeaponState(Heli.Weapon, 'firing')
