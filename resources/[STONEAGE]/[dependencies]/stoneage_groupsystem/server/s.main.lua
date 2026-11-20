@@ -234,9 +234,11 @@ addEventHandler("SetMemberRole", root, function(groupName, targetAccount, role)
     local group = Groups[groupName]
     local allowed, actor = canManage(group, account)
     local target = group and group.Members and group.Members[targetAccount]
-    if source ~= player or not allowed or not target or actor.Role == "Sub" and role ~= "Member" then return end
-    if target.Role == "Leader" or target.Role == "Staff" or not ROLES[role] or role == "Leader" then return end
-    if actor.Role == "Staff" and role ~= "Member" and role ~= "Sub" then return end
+    if source ~= player or not allowed or not target or not ROLES[role] then return end
+    if target.Role == "Leader" then return end
+    if target.Role == "Staff" and actor.Role ~= "Staff" then return end
+    if actor.Role == "Sub" and not ((target.Role == "Member" and role == "Sub") or (target.Role == "Sub" and role == "Member")) then return end
+    if actor.Role == "Staff" and target.Role ~= "Staff" and role == "Leader" then return end
     target.Role = role
     saveGroup(group)
     for _, p in ipairs(getElementsByType("player")) do if accountOf(p) == account then sendGroupState(p) end end
