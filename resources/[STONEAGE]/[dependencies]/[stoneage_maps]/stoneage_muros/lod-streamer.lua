@@ -3,8 +3,10 @@ STREAMER_OBJECTS = {}
 
 CHECK_DIST = 1000
 
-addEventHandler('onClientResourceStart', root, function(res)
-    STREAMER.Timer = setTimer(CheckForLODS, 500, 0)
+addEventHandler('onClientResourceStart', root, function()
+    if not STREAMER.Timer then
+        STREAMER.Timer = setTimer(CheckForLODS, 500, 0)
+    end
     CheckForLODS()
 end)
 
@@ -33,7 +35,10 @@ CheckForLODS = function(forced)
         end
     end
 
-    if exports['stoneage_settings']:getConfig('FPSBoost', true) then
+    local settingsReady, fpsBoost = pcall(function()
+        return exports['stoneage_settings']:getConfig('FPSBoost', true)
+    end)
+    if (not settingsReady) or fpsBoost then
         return false
     end
 
