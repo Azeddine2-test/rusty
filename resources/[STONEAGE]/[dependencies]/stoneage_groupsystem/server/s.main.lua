@@ -300,7 +300,12 @@ end
 
 addEventHandler("onResourceStart", resourceRoot, function()
     loadGroups()
-    for _, player in ipairs(getElementsByType("player")) do\n        bindGroupKey(player)\n        local account = accountOf(player)\n        local group = account and getGroupForAccount(account)\n        if group then setElementData(player, "Group", group.Name) end\n    end
+    for _, player in ipairs(getElementsByType("player")) do
+        bindGroupKey(player)
+        local account = accountOf(player)
+        local group = account and getGroupForAccount(account)
+        if group then setElementData(player, "Group", group.Name) end
+    end
 end)
 addEventHandler("onPlayerJoin", root, function() bindGroupKey(source) end)
 addEventHandler("onElementDataChange", root, function(key, _, value)
