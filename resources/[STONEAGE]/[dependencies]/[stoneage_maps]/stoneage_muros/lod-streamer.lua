@@ -48,11 +48,18 @@ CheckForLODS = function(forced)
         end
     end
 
-    -- Do not call a server export until its resource has started on the client.
+    -- The client resource can start while its server counterpart is still stopped.
+    -- Protect the shared export and retry on the next streamer tick if it is unavailable.
     if not settingsReady then
         return false
     end
-    local fpsBoost = exports['stoneage_settings']:getConfig('FPSBoost', true)
+    local ok, fpsBoost = pcall(function()
+        return exports['stoneage_settings']:getConfig('FPSBoost', true)
+    end)
+    if not ok then
+        STREAMER.LastPos = nil
+        return false
+    end
     if fpsBoost then
         return false
     end
