@@ -141,8 +141,8 @@ function onPlayerEquipItem(slotID, player)
     local weapon = getPlayerDataSetting(itemName, "weaponSettings")
     if weapon and weapon.weapID then
         local ammo = 0
-        if weapon.ammo and weapon.ammo.name then
-            ammo = tonumber(getElementData(player, weapon.ammo.name)) or 0
+        if weapon.type == "melee" then
+            ammo = 1
         elseif getPlayerDataSetting(itemName, "ammo") then
             local ammoName = getPlayerDataSetting(itemName, "ammo").name
             ammo = tonumber(getElementData(player, ammoName)) or 0
