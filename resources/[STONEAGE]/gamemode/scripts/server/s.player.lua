@@ -232,6 +232,24 @@ local function consumeItem(player, itemName, slotID)
     return true
 end
 
+addEvent("removeDefenseItemOnDestroy", false)
+addEventHandler("removeDefenseItemOnDestroy", root, function(victim, itemName)
+    if not isElement(victim) or getElementType(victim) ~= "player" then return end
+    if itemName ~= "Helmet" and itemName ~= "Vest" then return end
+    local order = getElementData(victim, "pedSideOrder") or {}
+    for slot, entry in pairs(order) do
+        if type(entry) == "table" and entry.itemName == itemName then
+            order[slot] = nil
+            break
+        end
+    end
+    setElementData(victim, "pedSideOrder", order)
+    local quantity = math.max(0, (tonumber(getElementData(victim, itemName)) or 0) - 1)
+    if quantity > 0 then setElementData(victim, itemName, quantity) else removeElementData(victim, itemName) end
+    if itemName == "Helmet" then setElementData(victim, "Helmet_used", false) end
+    if itemName == "Vest" then setElementData(victim, "Vest_used", false) end
+end)
+
 loadEvent("rust:onPlayerEquipItem", root, function(slotID)
     if source == client then onPlayerEquipItem(slotID, client) end
 end)
