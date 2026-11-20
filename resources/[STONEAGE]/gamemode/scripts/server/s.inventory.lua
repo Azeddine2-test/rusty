@@ -219,6 +219,9 @@ register("inv:removeItemFromKeyBar", function(player, fromSlot, toSlot, target, 
     if fromKind ~= "keybar" or not isElement(target) then return end
     local targetKind = toKind == "loot" and "loot" or "inv"
     if targetKind == "loot" and not getContainer(player, target) then return end
+    if tonumber(getElementData(player, "equippedSlotID")) == tonumber(fromSlot) then
+        onPlayerDisequipItem(fromSlot, player)
+    end
     transfer(player, player, "keybar", fromSlot, target, targetKind, toSlot)
 end)
 
