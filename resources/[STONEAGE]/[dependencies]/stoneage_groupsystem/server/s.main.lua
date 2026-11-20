@@ -251,7 +251,7 @@ addEventHandler("KickPlayer", root, function(groupName, targetAccount)
     local allowed, actor = canManage(group, account)
     local target = group and group.Members and group.Members[targetAccount]
     if source ~= player or not allowed or not target or target.Role == "Leader" or target.Role == "Staff" then return end
-    if actor.Role == "Staff" and target.Role ~= "Member" then return end
+    if actor.Role == "Staff" and target.Role == "Leader" then return end
     removeMember(group, targetAccount)
     sendGroupState(player)
 end)
@@ -262,7 +262,7 @@ addEventHandler("AllowMemberToOpenDoor", root, function(groupName, targetAccount
     local group = Groups[groupName]
     local allowed = canManage(group, account)
     local target = group and group.Members and group.Members[targetAccount]
-    if source ~= player or not allowed or not target or target.Role == "Leader" then return end
+    if source ~= player or not allowed or not target then return end
     target.CanOpenDoors = allow == true
     saveGroup(group)
 end)
