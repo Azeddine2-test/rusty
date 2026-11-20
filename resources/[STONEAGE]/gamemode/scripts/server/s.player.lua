@@ -134,7 +134,7 @@ end
 function onPlayerEquipItem(slotID, player)
     if not isElement(player) or getElementType(player) ~= "player" then return false end
     local entry = getKeybarItem(player, slotID)
-    if not entry or type(entry.itemName) ~= "string" or itemCount == 0 then return false end
+    if not entry or type(entry.itemName) ~= "string" then return false end
     local itemName = entry.itemName
     if (tonumber(getElementData(player, itemName)) or 0) <= 0 then return false end
 
@@ -160,7 +160,7 @@ function onPlayerEquipItem(slotID, player)
 end
 
 local function consumeItem(player, itemName, slotID)
-    if not playerIsValid or not isElement(player) or getElementData(player, "isDead") then return false end
+    if not isElement(player) or getElementType(player) ~= "player" or not getElementData(player, "account") or getElementData(player, "isDead") then return false end
     if type(itemName) ~= "string" or (tonumber(getElementData(player, itemName)) or 0) <= 0 then return false end
     local settings = getPlayerDataSetting(itemName, "consumeSettings")
     if type(settings) ~= "table" then return false end
