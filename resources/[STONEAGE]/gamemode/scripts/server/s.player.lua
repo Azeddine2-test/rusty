@@ -4,6 +4,17 @@ local SQL = exports.stoneage_sql
 local loadingPlayerData = {}
 local savingPlayerData = {}
 
+-- Fallback effects for consumables whose balance data was absent from the recovered config.
+local DEFAULT_CONSUMPTION = {
+    ["Apple"] = { fome = 10 },
+    ["Corn"] = { fome = 15 },
+    ["Potato"] = { fome = 20 },
+    ["Pumpkin"] = { fome = 25 },
+    ["Meat Cooked"] = { fome = 40 },
+    ["Beans Can"] = { fome = 30 },
+    ["Water"] = { sede = 25 },
+}
+
 local function encodeAccountValue(value)
     if type(value) == "table" then return toJSON(value) end
     return value
@@ -162,7 +173,7 @@ end
 local function consumeItem(player, itemName, slotID)
     if not isElement(player) or getElementType(player) ~= "player" or not getElementData(player, "account") or getElementData(player, "isDead") then return false end
     if type(itemName) ~= "string" or (tonumber(getElementData(player, itemName)) or 0) <= 0 then return false end
-    local settings = getPlayerDataSetting(itemName, "consumeSettings")
+    local settings = getPlayerDataSetting(itemName, "consumeSettings") or DEFAULT_CONSUMPTION[itemName]
     if type(settings) ~= "table" then return false end
 
     for dataName, amount in pairs(settings) do
