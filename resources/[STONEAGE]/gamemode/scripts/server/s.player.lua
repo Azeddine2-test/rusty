@@ -149,6 +149,7 @@ function onPlayerEquipItem(slotID, player)
     if not entry or type(entry.itemName) ~= "string" then return false end
     local itemName = entry.itemName
     if (tonumber(getElementData(player, itemName)) or 0) <= 0 then return false end
+    setElementData(player, "equippedSlotID", tonumber(slotID))
 
     local weapon = getPlayerDataSetting(itemName, "weaponSettings")
     if weapon and weapon.weapID then
