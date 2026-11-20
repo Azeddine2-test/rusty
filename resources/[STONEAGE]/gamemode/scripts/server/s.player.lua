@@ -4,6 +4,36 @@ local SQL = exports.stoneage_sql
 local loadingPlayerData = {}
 local savingPlayerData = {}
 
+local function syncPedSide(player, oldOrder, newOrder)
+    if not isElement(player) then return end
+    oldOrder = type(oldOrder) == "table" and oldOrder or {}
+    newOrder = type(newOrder) == "table" and newOrder or {}
+
+    for _, entry in pairs(oldOrder) do
+        local itemName = type(entry) == "table" and entry.itemName
+        if itemName then
+            if getPlayerDataSetting(itemName, "clothSettings") then removeClothes(player, itemName) end
+            if type(detachDefenseFromBone) == "function" then detachDefenseFromBone(itemName, player) end
+        end
+    end
+
+    local helmet, vest = false, false
+    for _, entry in pairs(newOrder) do
+        local itemName = type(entry) == "table" and entry.itemName
+        if itemName then
+            if getPlayerDataSetting(itemName, "clothSettings") then applyClothes(player, itemName) end
+            if getItemType(itemName) == "defenseItem" and type(attachDefenseToBody) == "function" then
+                attachDefenseToBody(itemName, player)
+            end
+            if itemName == "Helmet" then helmet = true end
+            if itemName == "Vest" then vest = true end
+        end
+    end
+
+    setElementData(player, "Helmet_used", helmet)
+    setElementData(player, "Vest_used", vest)
+end
+
 -- Fallback effects for consumables whose balance data was absent from the recovered config.
 local DEFAULT_CONSUMPTION = {
     ["Apple"] = { fome = 10 },
@@ -88,6 +118,7 @@ local function loadPlayerData(player, account)
     end
 
     ClearAccountDataCache(account)
+    syncPedSide(player, {}, getElementData(player, "pedSideOrder"))
     loadingPlayerData[player] = nil
     triggerClientEvent(player, "rust:onClientPlayerLogin", player, account)
     if getElementData(player, "isDead") then
@@ -257,6 +288,7 @@ loadEvent("player:onSpawn", root, function(x, y, z, model)
     setElementData(player, "bleeding", 0)
     setElementData(player, "alivetime", 0)
     setElementHealth(player, 100)
+    syncPedSide(player, {}, getElementData(player, "pedSideOrder"))
     triggerClientEvent(player, "rust:onClientPlayerSpawn", player)
     savePlayerData(player)
 end)
@@ -275,8 +307,9 @@ loadEvent("onPlayerSpawnAtBed", root, function(bed)
     triggerEvent("player:onSpawn", player, x, y, z + 1, getElementModel(player))
 end)
 
-addEventHandler("onElementDataChange", root, function(key, _, value)
+addEventHandler("onElementDataChange", root, function(key, oldValue, value)
     if getElementType(source) ~= "player" then return end
+    if key == "pedSideOrder" then syncPedSide(source, oldValue, value) end
     if key == "account" and type(value) == "string" and value ~= "" then
         loadPlayerData(source, value)
         return
