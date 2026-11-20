@@ -154,7 +154,7 @@ register("inv:dropItem", function(player, fromSlot, toSlot, object, fromKind, to
     local entry = order[tonumber(fromSlot)]
     if not entry then return end
 
-    if isElement(object) and getContainer(player, object) and toKind == "loot" then
+    if isElement(object) and getContainer(player, object) then
         transfer(player, player, "inv", fromSlot, object, "loot", toSlot)
     else
         local x, y, z = getElementPosition(player)
