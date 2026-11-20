@@ -16,7 +16,7 @@ LoadScreen = {
         },
         [2] = {},
     },
-    header = 'Carregando arquivos',
+    header = 'Chargement des fichiers',
     info = false,
     hover = false,
     rot = 0,
@@ -130,7 +130,7 @@ drawLoadScreen = function()
         LoadScreen.hover = 'Cancel'
     end
     dxDrawRectangle(x + w, y, h * 1.15, h, color, true)
-    dxDrawText('CANCELAR', x + w, y, x + w + h * 1.15, y + h, tocolor(208, 91, 37, 150), 1, font, 'center', 'center', false, false, true)
+    dxDrawText('ANNULER', x + w, y, x + w + h * 1.15, y + h, tocolor(208, 91, 37, 150), 1, font, 'center', 'center', false, false, true)
 
     if LoadScreen.info then
         dxDrawText(LoadScreen.header, x, y, x + w - 10, y + h * 0.7, tocolor(191, 185, 175, 150), 1, LoadScreen.fonts['loading'], 'right', 'bottom',
