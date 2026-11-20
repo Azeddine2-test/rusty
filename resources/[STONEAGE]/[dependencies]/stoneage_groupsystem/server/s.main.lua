@@ -58,14 +58,14 @@ local function sendGroupState(player)
     local group = getGroupForAccount(account)
     if group then
         setElementData(player, "Group", group.Name)
-        triggerClientEvent(player, "ToggleGroupSystem", resourceRoot, true, group)
+        triggerClientEvent(player, "ToggleGroupSystem", player, true, group)
     else
         setElementData(player, "Group", false)
         local pending = {}
         for _, invite in ipairs(Invites[account] or {}) do
             if Groups[invite.Name] then pending[#pending + 1] = invite end
         end
-        triggerClientEvent(player, "ToggleGroupSystem", resourceRoot, true, false, pending)
+        triggerClientEvent(player, "ToggleGroupSystem", player, true, false, pending)
     end
 end
 
@@ -298,7 +298,7 @@ end
 
 addEventHandler("onResourceStart", resourceRoot, function()
     loadGroups()
-    for _, player in ipairs(getElementsByType("player")) do bindGroupKey(player) end
+    for _, player in ipairs(getElementsByType("player")) do\n        bindGroupKey(player)\n        local account = accountOf(player)\n        local group = account and getGroupForAccount(account)\n        if group then setElementData(player, "Group", group.Name) end\n    end
 end)
 addEventHandler("onPlayerJoin", root, function() bindGroupKey(source) end)
 addEventHandler("onElementDataChange", root, function(key, _, value)
