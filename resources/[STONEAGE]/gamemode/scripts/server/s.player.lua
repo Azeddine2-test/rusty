@@ -137,6 +137,7 @@ function onPlayerDisequipItem(slotID, player)
 
     if getElementData(player, "equippedItem") == itemName then
         removeElementData(player, "equippedItem")
+        removeElementData(player, "equippedSlotID")
     end
     triggerClientEvent(player, "rust:onClientPlayerDisequipItem", player, itemName)
     return true
@@ -159,7 +160,10 @@ function onPlayerEquipItem(slotID, player)
             ammo = tonumber(getElementData(player, ammoName)) or 0
         end
         giveWeapon(player, weapon.weapID, ammo, true)
-        if weapon.slotID then setPedWeaponSlot(player, weapon.slotID) end
+        if weapon.slotID then
+            setPedWeaponSlot(player, weapon.slotID)
+            setElementData(player, "equippedSlotID", tonumber(slotID))
+        end
     elseif getPlayerDataSetting(itemName, "clothSettings") then
         applyClothes(player, itemName)
     end
@@ -202,6 +206,21 @@ end)
 
 loadEvent("rust:onPlayerDisequipItem", root, function(slotID)
     if source == client then onPlayerDisequipItem(slotID, client) end
+end)
+
+loadEvent("rust:onAmmoChange", root, function(weaponID, ammoCount, slotID)
+    if source ~= client then return end
+    local itemName = getElementData(client, "equippedItem")
+    local weapon = itemName and getPlayerDataSetting(itemName, "weaponSettings")
+    local ammo = itemName and getPlayerDataSetting(itemName, "ammo")
+    if not weapon or not ammo or tonumber(weapon.weapID) ~= tonumber(weaponID)
+        or tonumber(weapon.slotID) ~= tonumber(slotID)
+        or tonumber(getElementData(client, "equippedSlotID")) ~= tonumber(slotID) then
+        return
+    end
+    local total = math.max(0, tonumber(getElementData(client, ammo.name)) or tonumber(ammoCount) or 0)
+    local clip = math.min(total, tonumber(ammo.magSize) or total)
+    setWeaponAmmo(client, tonumber(weaponID), total, clip)
 end)
 
 loadEvent("rust:onPlayerConsumeItem", root, function(itemName, slotID)
