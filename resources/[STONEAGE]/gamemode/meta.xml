@@ -1,5 +1,11 @@
 <meta>
+    <!-- DEPENDENCIES: start these resources before loading the gamemode -->
     <include resource="stoneage_settings" />
+    <include resource="stoneage_logs" />
+    <include resource="stoneage_sql" />
+    <include resource="stoneage_bone_attach" />
+    <include resource="stoneage_translations" />
+    <include resource="stoneage_utils" />
 <info author="iDannz" version="1.0" name="Rust GameMode" description="desc." type="gamemode" />
     <min_mta_version server="1.5.6-9.18728" client="1.5.7-9.20447"></min_mta_version>
     
