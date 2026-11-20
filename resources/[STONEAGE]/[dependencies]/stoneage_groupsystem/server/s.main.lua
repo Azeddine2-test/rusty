@@ -105,12 +105,12 @@ function GetGroup(name)
     return Groups[name] or false
 end
 
-function HasPermissionToOpenGroupDoor(player, groupName)
-    if not isElement(player) or getElementType(player) ~= "player" then return false end
-    local account = accountOf(player)
-    local group = (type(groupName) == "string" and Groups[groupName]) or getGroupForAccount(account)
+function HasPermissionToOpenGroupDoor(groupName, account)
+    -- The gamemode calls this export with (groupName, accountName).
+    if type(groupName) ~= "string" or type(account) ~= "string" then return false end
+    local group = Groups[groupName]
     local member = group and group.Members and group.Members[account]
-    return member ~= nil and (member.Role == "Leader" or member.Role == "Sub" or member.Role == "Staff" or member.CanOpenDoors == true)
+    return member ~= nil and member.CanOpenDoors == true
 end
 
 function RemoveSerialFromGroup(serial)
