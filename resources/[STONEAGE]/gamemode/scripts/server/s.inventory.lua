@@ -23,7 +23,9 @@ end
 local function getContainer(player, object)
     if not isElement(object) or getElementType(object) ~= "object" then return false end
     if not getElementData(object, "obName") or not getElementData(object, "maxSlots") then return false end
-    if getDistanceBetweenPoints3D(player, object) > 6 then return false end
+    local px, py, pz = getElementPosition(player)
+    local ox, oy, oz = getElementPosition(object)
+    if getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 6 then return false end
 
     local owner = getElementData(object, "owner")
     local account = getElementData(player, "account")
@@ -71,45 +73,48 @@ local function transfer(player, fromElement, fromKind, fromSlot, toElement, toKi
     local fromOrder, toOrder = getOrder(fromElement, fromKind), getOrder(toElement, toKind)
     local sourceEntry = fromOrder[fromSlot]
     if type(sourceEntry) ~= "table" or type(sourceEntry.itemName) ~= "string" then return false end
+    local sourceName = sourceEntry.itemName
+    local sourceQuantity = math.floor(tonumber(sourceEntry.quantity) or 0)
+    if sourceQuantity <= 0 then return false end
 
     if not toSlot then toSlot = freeSlot(toElement, toKind) end
     if not toSlot then return false end
-
     local destinationEntry = toOrder[toSlot]
-    if destinationEntry and destinationEntry.itemName == sourceEntry.itemName then
-        local maxStack = getItemMaxStack(sourceEntry.itemName)
+    local crossElement = fromElement ~= toElement
+
+    if destinationEntry and destinationEntry.itemName == sourceName then
+        local maxStack = getItemMaxStack(sourceName)
         local room = math.max(0, maxStack - (tonumber(destinationEntry.quantity) or 0))
-        local moved = math.min(room, tonumber(sourceEntry.quantity) or 0)
+        local moved = math.min(room, sourceQuantity)
         if moved <= 0 then return false end
-        destinationEntry.quantity = destinationEntry.quantity + moved
-        sourceEntry.quantity = sourceEntry.quantity - moved
+        destinationEntry.quantity = (tonumber(destinationEntry.quantity) or 0) + moved
+        sourceEntry.quantity = sourceQuantity - moved
         if sourceEntry.quantity <= 0 then fromOrder[fromSlot] = nil end
+        if crossElement then
+            changeItemCount(fromElement, sourceName, -moved)
+            changeItemCount(toElement, sourceName, moved)
+        end
     elseif destinationEntry then
+        local destinationName = destinationEntry.itemName
+        local destinationQuantity = math.floor(tonumber(destinationEntry.quantity) or 0)
         fromOrder[fromSlot], toOrder[toSlot] = destinationEntry, sourceEntry
+        if crossElement then
+            changeItemCount(fromElement, sourceName, -sourceQuantity)
+            changeItemCount(fromElement, destinationName, destinationQuantity)
+            changeItemCount(toElement, sourceName, sourceQuantity)
+            changeItemCount(toElement, destinationName, -destinationQuantity)
+        end
     else
         toOrder[toSlot] = sourceEntry
         fromOrder[fromSlot] = nil
+        if crossElement then
+            changeItemCount(fromElement, sourceName, -sourceQuantity)
+            changeItemCount(toElement, sourceName, sourceQuantity)
+        end
     end
 
     putOrder(fromElement, fromKind, fromOrder)
     if fromElement ~= toElement or fromKind ~= toKind then putOrder(toElement, toKind, toOrder) end
-
-    if fromElement ~= toElement then
-        local afterFrom = fromOrder[fromSlot]
-        local movedQuantity = (sourceEntry.quantity or 0)
-        if not destinationEntry then
-            movedQuantity = tonumber(sourceEntry.quantity) or 0
-        end
-        -- Counts are authoritative element data; derive the actual transfer from before/after orders.
-        local beforeFromCount = itemCount(fromElement, sourceEntry.itemName)
-        local beforeToCount = itemCount(toElement, sourceEntry.itemName)
-        local fromTotal = 0
-        for _, item in pairs(fromOrder) do if item.itemName == sourceEntry.itemName then fromTotal = fromTotal + item.quantity end end
-        local toTotal = 0
-        for _, item in pairs(toOrder) do if item.itemName == sourceEntry.itemName then toTotal = toTotal + item.quantity end end
-        if fromTotal < beforeFromCount then changeItemCount(fromElement, sourceEntry.itemName, fromTotal - beforeFromCount) end
-        if toTotal > beforeToCount then changeItemCount(toElement, sourceEntry.itemName, toTotal - beforeToCount) end
-    end
     return true
 end
 
