@@ -38,10 +38,16 @@ function Query(...)
     if db then
         local query = dbQuery(db, ...)
         local poll, rows = dbPoll(query, -1)
+        if type(poll) == 'table' then
+            return poll, rows
+        end
+
+        -- dbPoll peut renvoyer false en cas d'erreur SQL.
+        -- Ne jamais propager ce booléen aux ressources qui attendent une table.
         if poll == nil then
             dbFree(query)
-        else
-            return poll, rows
+        elseif poll == false then
+            LOGS:saveLog('error', ('Database query failed: %s'):format(tostring(rows)))
         end
     end
     return {}
