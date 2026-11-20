@@ -58,8 +58,17 @@ toggleCompass = function(state)
     end
 end
 
-addEventHandler('onClientResourceStart', resourceRoot, function()
-    if exports['stoneage_settings']:getConfig('Compasso', true) then
-        toggleCompass(true)
+local function applyCompassSetting()
+    local ready, enabled = pcall(function()
+        return exports['stoneage_settings']:getConfig('Compasso', true)
+    end)
+    if ready then
+        toggleCompass(enabled)
+    end
+end
+
+addEventHandler('onClientResourceStart', root, function(res)
+    if res == resourceRoot or getResourceName(res) == 'stoneage_settings' then
+        applyCompassSetting()
     end
 end)
