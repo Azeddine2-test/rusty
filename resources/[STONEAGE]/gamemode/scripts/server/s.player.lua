@@ -164,6 +164,7 @@ function onPlayerDisequipItem(slotID, player)
     if getPlayerDataSetting(itemName, "clothSettings") then
         removeClothes(player, itemName)
     end
+    if type(detachDefenseFromBone) == "function" then detachDefenseFromBone(itemName, player) end
     if type(detachItemFromBone) == "function" then detachItemFromBone(itemName, player) end
 
     if getElementData(player, "equippedItem") == itemName then
@@ -200,6 +201,9 @@ function onPlayerEquipItem(slotID, player)
         applyClothes(player, itemName)
     end
 
+    if getItemType(itemName) == "defenseItem" and type(attachDefenseToBody) == "function" then
+        attachDefenseToBody(itemName, player)
+    end
     if type(attachItemToBone) == "function" then attachItemToBone(itemName, player) end
     setElementData(player, "equippedItem", itemName)
     triggerClientEvent(player, "rust:onClientPlayerEquipItem", player, itemName)
