@@ -114,14 +114,8 @@ local function destroyFarm(object, giveDrops)
 
     local index = tonumber(getElementData(object, 'farmSpawnIndex'))
     local x, y, z = getElementPosition(object)
-    local remaining = giveDrops and getRemainingFarmItems(object) or {}
-
     FarmObjects[index] = nil
     destroyElement(object)
-
-    if #remaining > 0 then
-        exports['stoneage_pickups']:createSack(x, y, z, remaining, 'Farm')
-    end
     if index then
         scheduleFarmRespawn(index)
     end
@@ -153,7 +147,8 @@ local function onFarmHit(object, itemName)
     end
 
     local removeQuantity = math.max(1, randomBetween(hitSettings.removeQuantity))
-    local remaining = math.max(0, current - removeQuantity)
+    local harvested = math.min(current, removeQuantity)
+    local remaining = current - harvested
     if remaining > 0 then
         setElementData(object, itemName, remaining)
     else
@@ -161,6 +156,9 @@ local function onFarmHit(object, itemName)
     end
 
     local x, y, z = getElementPosition(object)
+    if harvested > 0 then
+        exports['stoneage_pickups']:createSack(x, y, z, {{itemName, harvested}}, 'Farm')
+    end
     local sound = hitSettings.sound
     if sound then
         local soundFile = sound == 'axe hit.mp3' and 'axe_hit.mp3' or 'pickaxe_hit.mp3'
