@@ -4,7 +4,7 @@
     <script src='client/c.home.lua' type='client' cache='false'/>
     <script src='client/c.myGroup.lua' type='client' cache='false'/>
 
-    <script src='server/s.main.luac' type='server'/>
+    <script src='server/s.main.lua' type='server'/>
 
     <script src='config.lua'/>
 
