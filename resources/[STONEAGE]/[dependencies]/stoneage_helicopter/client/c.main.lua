@@ -1,12 +1,15 @@
 Heli = {}
 
+-- Register server events before any client initialization can run.
+addEvent('ReceiveHeliInfo', true)
+addEvent('ChangeHeliTarget', true)
+
 local Init = function()
     engineSetModelLODDistance(425, 500)
     triggerServerEvent('CheckHelicopter', localPlayer)
 end
 addEventHandler('onClientResourceStart', resourceRoot, Init)
 
-addEvent('ReceiveHeliInfo', true)
 addEventHandler('ReceiveHeliInfo', localPlayer, function(heli, stage)
     ForgetHeli()
     
@@ -63,7 +66,6 @@ ForgetHeli = function()
     removeEventHandler('onClientRender', root, RenderHeliHealth)
 end
 
-addEvent('ChangeHeliTarget', true)
 addEventHandler('ChangeHeliTarget', resourceRoot, function(target)
     if isElement(Heli.Element) and isElement(Heli.Weapon) then
         setVehicleRotorSpeed(Heli.Element, 1)
