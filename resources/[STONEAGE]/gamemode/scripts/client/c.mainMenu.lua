@@ -214,8 +214,9 @@ local function createAuthInputs()
     local w, h = math.min(520, sW - 40), 410
     local x, y = (sW - w) / 2, (sH - h) / 2
     authUI.bounds = {x = x, y = y, w = w, h = h}
-    authUI.edits.username = guiCreateEdit(x + 48, y + 143, w - 96, 34, '', false)
-    authUI.edits.password = guiCreateEdit(x + 48, y + 213, w - 96, 34, '', false)
+    authUI.edits.username = guiCreateEdit(x + 48, y + 123, w - 96, 34, '', false)
+    authUI.edits.password = guiCreateEdit(x + 48, y + 193, w - 96, 34, '', false)
+    authUI.edits.confirmPassword = guiCreateEdit(x + 48, y + 263, w - 96, 34, '', false)
     for _, edit in pairs(authUI.edits) do
         guiSetFont(edit, 'default-bold-small')
         guiSetAlpha(edit, 1)
@@ -231,7 +232,10 @@ local function createAuthInputs()
     end
     guiEditSetMaxLength(authUI.edits.username, 20)
     guiEditSetMaxLength(authUI.edits.password, 64)
+    guiEditSetMaxLength(authUI.edits.confirmPassword, 64)
     guiEditSetMasked(authUI.edits.password, true)
+    guiEditSetMasked(authUI.edits.confirmPassword, true)
+    guiSetVisible(authUI.edits.confirmPassword, authUI.mode == 'register')
     guiBringToFront(authUI.edits.username)
     guiSetInputMode('no_binds_when_editing')
 end
@@ -270,26 +274,30 @@ local function drawAuth()
     dxDrawText(title, b.x + 20, b.y + 20, b.x + b.w - 20, b.y + 65,
         predefinedColor('menu:color2'), 1, font('futura:2'), 'center', 'center', false, false, false)
 
-    dxDrawText('IDENTIFIANT', b.x + 48, b.y + 112, b.x + b.w - 48, b.y + 140,
+    dxDrawText('IDENTIFIANT', b.x + 48, b.y + 92, b.x + b.w - 48, b.y + 120,
         predefinedColor('menu:color2'), 1, font('futura:2'), 'left', 'center', false, false, false)
-    dxDrawText('MOT DE PASSE', b.x + 48, b.y + 182, b.x + b.w - 48, b.y + 210,
+    dxDrawText('MOT DE PASSE', b.x + 48, b.y + 162, b.x + b.w - 48, b.y + 190,
         predefinedColor('menu:color2'), 1, font('futura:2'), 'left', 'center', false, false, false)
+    if authUI.mode == 'register' then
+        dxDrawText('CONFIRMER LE MOT DE PASSE', b.x + 48, b.y + 232, b.x + b.w - 48, b.y + 260,
+            predefinedColor('menu:color2'), 1, font('futura:2'), 'left', 'center', false, false, false)
+    end
 
     local mainText = authUI.busy and 'VEUILLEZ PATIENTER...' or
         (authUI.mode == 'register' and 'CRÉER MON COMPTE' or 'SE CONNECTER')
-    local mainY = b.y + 270
+    local mainY = b.y + (authUI.mode == 'register' and 335 or 285)
     dxDrawRectangle(b.x + 48, mainY, b.w - 96, 42, predefinedColor('menu:color2'), false)
     dxDrawText(mainText, b.x + 48, mainY, b.x + b.w - 48, mainY + 42,
         predefinedColor('menu:color1'), 1, font('futura:2'), 'center', 'center', false, false, false)
 
     local switchText = authUI.mode == 'register' and 'Déjà inscrit ? Se connecter' or 'Pas encore de compte ? Créer un compte'
-    dxDrawText(switchText, b.x + 35, b.y + 320, b.x + b.w - 35, b.y + 355,
+    dxDrawText(switchText, b.x + 35, b.y + 385, b.x + b.w - 35, b.y + 420,
         predefinedColor('menu:color2'), 1, font('futura'), 'center', 'center', false, false, false)
     dxDrawText('FERMER', b.x + b.w - 100, b.y + 12, b.x + b.w - 20, b.y + 42,
         predefinedColor('menu:color2'), 1, font('futura:2'), 'center', 'center', false, false, false)
 
     if authUI.message and authUI.message ~= '' then
-        dxDrawText(authUI.message, b.x + 25, b.y + 365, b.x + b.w - 25, b.y + 395,
+        dxDrawText(authUI.message, b.x + 25, b.y + 430, b.x + b.w - 25, b.y + 465,
             predefinedColor('menu:color2'), 1, font('futura'), 'center', 'center', true, false, false)
     end
 end
@@ -305,24 +313,33 @@ local function authClick(button, state, cx, cy)
         return
     end
 
-    local mainY = b.y + 270
+    local mainY = b.y + (authUI.mode == 'register' and 335 or 285)
     if cx >= b.x + 48 and cx <= b.x + b.w - 48 and cy >= mainY and cy <= mainY + 42 then
         local username = guiGetText(authUI.edits.username) or ''
         local password = guiGetText(authUI.edits.password) or ''
+        local confirmation = guiGetText(authUI.edits.confirmPassword) or ''
         if username == '' or password == '' then
-            authUI.message = 'Remplis les deux champs.'
+            authUI.message = 'Remplis les champs obligatoires.'
+            return
+        end
+        if authUI.mode == 'register' and password ~= confirmation then
+            authUI.message = 'Les deux mots de passe ne correspondent pas.'
             return
         end
         authUI.busy = true
         authUI.message = ''
-        triggerServerEvent('rust:auth:submit', localPlayer, authUI.mode, username, password)
+        triggerServerEvent('rust:auth:submit', localPlayer, authUI.mode, username, password, confirmation)
         return
     end
 
-    if cy >= b.y + 320 and cy <= b.y + 355 then
+    if cy >= b.y + 385 and cy <= b.y + 420 then
         authUI.mode = authUI.mode == 'login' and 'register' or 'login'
         authUI.message = ''
         if isElement(authUI.edits.password) then guiSetText(authUI.edits.password, '') end
+        if isElement(authUI.edits.confirmPassword) then
+            guiSetText(authUI.edits.confirmPassword, '')
+            guiSetVisible(authUI.edits.confirmPassword, authUI.mode == 'register')
+        end
     end
 end
 
