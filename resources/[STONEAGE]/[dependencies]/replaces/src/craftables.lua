@@ -15,3 +15,6 @@ assignReplace(2023, {file = 'objects/craftables/sandbags'})
 assignReplace(1917, {file = 'objects/craftables/mesa-pesquisa'})
 assignReplace(1918, {file = 'objects/craftables/recicladora'})
 assignReplace(1666, {file = 'objects/craftables/barricade'})
+
+-- Ancien ID SA:O du feu de camp, conservé pour les objets hérités.
+assignReplace(2264, {file = 'objects/craftables/fogueira-legacy', plain = {txd = 'files/imported/objetos/fogueira.txd', dff = 'files/imported/objetos/fogueira.dff', col = 'files/imported/objetos/fogueira.col'}})
