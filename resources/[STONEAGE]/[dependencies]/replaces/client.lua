@@ -39,21 +39,47 @@ local funcMethods = {
 local STRICT = false
 local failures = 0
 
--- Charge un fichier chiffre, sans jamais lever d'erreur. Renvoie true si le modele est applique.
-local function loadOne(method, fileName, modelID)
+-- Charge d'abord une ressource DFF/TXD/COL en clair si elle est declaree,
+-- sinon conserve la compatibilite avec les anciens fichiers chiffres.
+local function loadOne(method, fileName, modelID, plainPath)
     local content
-    if type(decrypt) == 'function' then
-        local ok, result = pcall(decrypt, ('files/%s.%s_encrypted'):format(fileName, method))
-        if ok then
-            content = result
+
+    if type(plainPath) == 'string' and fileExists(plainPath) then
+        local handle = fileOpen(plainPath, true)
+        if handle then
+            content = fileRead(handle, fileGetSize(handle))
+            fileClose(handle)
         end
     end
-    if content and funcMethods[method](content, modelID, fileName) then
+
+    if not content and type(decrypt) == 'function' then
+        local encryptedPath = ('files/%s.%s_encrypted'):format(fileName, method)
+        if fileExists(encryptedPath) then
+            local ok, result = pcall(decrypt, encryptedPath)
+            if ok then
+                content = result
+            else
+                outputDebugString(('[replaces] decrypt a echoue pour %s: %s'):format(encryptedPath, tostring(result)), 2)
+            end
+        end
+    end
+
+    if type(content) == 'string' and #content > 0 and funcMethods[method](content, modelID, fileName) then
         return true
     end
+
     failures = failures + 1
     outputDebugString(('[replaces] echec %s : %s (modele %s)'):format(method, tostring(fileName), tostring(modelID)), 3)
     return false
+end
+
+local function getPlainPath(replaceData, method)
+    if type(replaceData.plain) == 'table' then
+        return replaceData.plain[method]
+    elseif type(replaceData.plain) == 'string' then
+        return replaceData.plain .. '.' .. method
+    end
+    return nil
 end
 
 addEventHandler('onClientResourceStart', resourceRoot, function()
@@ -73,7 +99,7 @@ addEventHandler('onClientResourceStart', resourceRoot, function()
             if v.custom then
                 for method, fileName in pairs(v.custom) do
                     if fileName and funcMethods[method] then
-                        if (not loadOne(method, fileName, v.model)) and STRICT then
+                        if (not loadOne(method, fileName, v.model, getPlainPath(v, method))) and STRICT then
                             return triggerServerEvent('rust:customKick', localPlayer, ('Error loading model (%s - %s)'):format(method, fileName))
                         end
                     end
@@ -81,7 +107,7 @@ addEventHandler('onClientResourceStart', resourceRoot, function()
             end
             for d, method in ipairs({'txd', 'dff', 'col'}) do
                 if (not v.custom) or (v.custom[method] == nil) then
-                    if (not loadOne(method, v.file, v.model)) and STRICT then
+                    if (not loadOne(method, v.file, v.model, getPlainPath(v, method))) and STRICT then
                         return triggerServerEvent('rust:customKick', localPlayer, ('Error loading model (%s - %s)'):format(method, v.file))
                     end
                 end
