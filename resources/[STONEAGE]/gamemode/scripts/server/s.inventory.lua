@@ -439,7 +439,7 @@ function onPlayerEquipItem(slotID, player)
     -- Remove the previously held object/weapon before attaching the next hotbar item.
     local previousItem = getElementData(player, "equippedItem")
     if previousItem and type(onPlayerDisequipItem) == "function" then
-        onPlayerDisequipItem(getElementData(player, "equippedSlotID"), player)
+        onPlayerDisequipItem(getElementData(player, "equippedSlotID"), player, true)
     end
 
     local weapon = getPlayerDataSetting(itemName, "weaponSettings")
@@ -485,35 +485,43 @@ function onPlayerEquipItem(slotID, player)
 end
 -- Event is registered by s.player.lua, which validates the originating client.
 
-function onPlayerDisequipItem(_ARG_0_, _ARG_1_)
-  _ARG_1_ = _ARG_1_ or source
-  if type((getElementData(_ARG_1_, "keybarOrder"))) ~= "table" then
-    return false
-  end
-  if not (getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName) then
-    return false
-  end
-  if isWeapon(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName) then
-    local player = _ARG_1_
-    local itemName = getElementData(player, "keybarOrder")[_ARG_0_].itemName
-    setTimer(function()
-      if not isElement(player) then return end
-      takeAllWeapons(player)
-      detachItemFromBone(itemName, player)
-      attachWeaponToBody(itemName, player)
-    end, 180, 1)
-  else
-    detachItemFromBone(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, _ARG_1_)
-  end
-  if (getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName) == "Torch" then
-    setPedWalkingStyle(_ARG_1_, 0)
-  end
-  triggerClientEvent(_ARG_1_, "inv:disequipCurrentKeybarItem", _ARG_1_)
-  triggerClientEvent(root, "rust:onClientPlayerDisequipItem", _ARG_1_, getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, getElementData(_ARG_1_, "equippedSlotID"))
-  setElementData(_ARG_1_, "equippedItem", nil)
-  setElementData(_ARG_1_, "equippedSlotID", nil)
+function onPlayerDisequipItem(slotID, player, suppressClientUI)
+    player = player or source
+    if not isElement(player) or getElementType(player) ~= "player" then return false end
+
+    local keybar = getElementData(player, "keybarOrder")
+    local entry = type(keybar) == "table" and keybar[tonumber(slotID)]
+    local itemName = type(entry) == "table" and entry.itemName or getElementData(player, "equippedItem")
+    if type(itemName) ~= "string" then return false end
+
+    local weapon = getPlayerDataSetting(itemName, "weaponSettings")
+    if type(weapon) == "table" and tonumber(weapon.weapID) then
+        -- Remove only this item's weapon. Never clear a newly equipped weapon
+        -- from a delayed callback after the next hotbar selection.
+        takeWeapon(player, tonumber(weapon.weapID))
+        setPedWeaponSlot(player, 0)
+        if type(detachItemFromBone) == "function" then detachItemFromBone(itemName, player) end
+        if type(attachWeaponToBody) == "function" then attachWeaponToBody(itemName, player) end
+    else
+        if type(detachItemFromBone) == "function" then detachItemFromBone(itemName, player) end
+    end
+
+    if itemName == "Torch" then setPedWalkingStyle(player, 0) end
+    if getElementData(player, "equippedItem") == itemName then
+        removeElementData(player, "equippedItem")
+        removeElementData(player, "equippedSlotID")
+    end
+
+    if not suppressClientUI then
+        triggerClientEvent(player, "inv:disequipCurrentKeybarItem", player)
+    end
+    triggerClientEvent(root, "rust:onClientPlayerDisequipItem", player, itemName, slotID)
+    return true
 end
-loadEvent("rust:onPlayerDisequipItem", root, onPlayerDisequipItem)
+loadEvent("rust:onPlayerDisequipItem", root, function(slotID)
+    if source == client then onPlayerDisequipItem(slotID, client, true) end
+end)
+
 function playerUseDefenseItem(_ARG_0_, _ARG_1_)
   if not isElement(_ARG_0_) then
     return
