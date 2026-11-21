@@ -2,6 +2,29 @@ Dummys = {
     Sentry = createElement('Dummy', 'Sentry'),
 }
 
+local function hasObjectAccess(player, ob)
+    if not isElement(player) or not isElement(ob) then
+        return false
+    end
+    if isAdmin(player) then
+        return true
+    end
+
+    local account = getElementData(player, 'account')
+    local owner = getElementData(ob, 'owner')
+    if not account or not owner then
+        return false
+    end
+    if account == owner then
+        return true
+    end
+
+    local wardrobe = getElementData(ob, 'obName') == 'Wardrobe' and ob
+        or getElementByID(('wardrobe:%s'):format(owner))
+    local permissions = isElement(wardrobe) and getElementData(wardrobe, 'wardrobe:permissions')
+    return type(permissions) == 'table' and permissions[account] ~= nil
+end
+
 addEvent('onPlayerCraftObject', true)
 addEvent('onPlayerCraftItem', true)
 
@@ -258,7 +281,7 @@ loadEvent('craft:destroyObject', root, function(ob, logType, logMessage)
     local distance = getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz)
 
     if logType == 'object-destroy' then
-        if owner ~= getElementData(player, 'account') and not isAdmin(player) then
+        if not hasObjectAccess(player, ob) then
             return false
         end
         if distance > 8 then
@@ -326,7 +349,7 @@ function evolveObject(ob, newObjectName)
     end
 
     local owner = getElementData(ob, 'owner')
-    if owner ~= getElementData(player, 'account') and not isAdmin(player) then
+    if not hasObjectAccess(player, ob) then
         removeElementData(player, 'WaitingResponse')
         return false
     end
