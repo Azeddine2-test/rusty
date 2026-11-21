@@ -8,6 +8,27 @@ local function isAccountFlagEnabled(value)
     return value == true or tonumber(value) == 1
 end
 
+local function giveRespawnStarterKit(player)
+    if not isElement(player) or getElementType(player) ~= "player" then return false end
+
+    -- Stone is a valid inventory item in this gamemode, so it is the basic
+    -- harvesting tool. Keep the fallback for installations without that item.
+    local starterItems
+    if getPlayerDataSetting("Stone", "invSettings") then
+        starterItems = { "Stone", "Torch" }
+    else
+        starterItems = { "Pickaxe", "Hatchet", "Torch" }
+    end
+
+    for _, itemName in ipairs(starterItems) do
+        if getPlayerDataSetting(itemName, "invSettings") then
+            local quantity = math.max(0, tonumber(getElementData(player, itemName)) or 0)
+            setElementData(player, itemName, quantity + 1)
+        end
+    end
+    return true
+end
+
 local function applySavedCharacterClothes(player)
     if not isElement(player) then return false end
     local clothes = getElementData(player, "Clothes")
@@ -491,11 +512,8 @@ addEventHandler("rust:character:submit", root, function(skin, clothes)
     setElementData(player, "alivetime", 0)
     setElementHealth(player, 100)
 
-    if not isAccountFlagEnabled(getElementData(player, "starterKitGiven")) then
-        setElementData(player, "Stone", 1)
-        setElementData(player, "Torch", 1)
-        setAccountData(player, "starterKitGiven", true)
-    end
+    giveRespawnStarterKit(player)
+    setAccountData(player, "starterKitGiven", true)
 
     triggerClientEvent(player, "rust:onClientPlayerLogin", player, getElementData(player, "account"))
     triggerClientEvent(player, "rust:onClientPlayerSpawn", player)
@@ -533,6 +551,7 @@ loadEvent("player:onSpawn", root, function(x, y, z, model)
     setElementData(player, "bleeding", 0)
     setElementData(player, "alivetime", 0)
     setElementHealth(player, 100)
+    giveRespawnStarterKit(player)
     syncPedSide(player, {}, getElementData(player, "pedSideOrder"))
     triggerClientEvent(player, "rust:onClientPlayerSpawn", player)
     savePlayerData(player)
