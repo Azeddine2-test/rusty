@@ -428,14 +428,33 @@ loadEvent('craft:evolveObject', root, evolveObject)
 -- //------------------- EVOLVE OBJECT -------------------\\--
 
 -- //------------------- ADD PERMISSION TO WARDROBE -------------------\\--
-function addPermissionsToWardrobe(ob, player)
-    if player and isElement(player) and ob and isElement(ob) then
-        local serial = getElementData(player, 'account')
-        if serial then
-            local permissions = getElementData(ob, 'wardrobe:permissions') or {}
-            permissions[serial] = getPlayerName(player)
-            setElementData(ob, 'wardrobe:permissions', permissions)
-        end
+function addPermissionsToWardrobe(ob, targetPlayer)
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player then
+        return
+    end
+    if not isElement(ob) or getElementType(ob) ~= 'object' or getElementData(ob, 'obName') ~= 'Wardrobe' then
+        return
+    end
+    if not isElement(targetPlayer) or getElementType(targetPlayer) ~= 'player' or targetPlayer == player then
+        return
+    end
+    if getElementData(ob, 'owner') ~= getElementData(player, 'account') and not isAdmin(player) then
+        return
+    end
+    local px, py, pz = getElementPosition(player)
+    local ox, oy, oz = getElementPosition(ob)
+    if getElementDimension(player) ~= getElementDimension(ob)
+        or getElementInterior(player) ~= getElementInterior(ob)
+        or getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 6 then
+        return
+    end
+
+    local serial = getElementData(targetPlayer, 'account')
+    if serial then
+        local permissions = getElementData(ob, 'wardrobe:permissions') or {}
+        permissions[serial] = getPlayerName(targetPlayer)
+        setElementData(ob, 'wardrobe:permissions', permissions)
     end
 end
 loadEvent('wardrobe:addPermission', root, addPermissionsToWardrobe)
@@ -443,22 +462,40 @@ loadEvent('wardrobe:addPermission', root, addPermissionsToWardrobe)
 
 -- //------------------- REMOVE PERMISSION FROM WARDROBE -------------------\\--
 function removePermissionsFromWardrobe(ob, nick)
-    if nick and ob and isElement(ob) then
-        local permissions = getElementData(ob, 'wardrobe:permissions')
-        if permissions and type(permissions) == 'table' then
-            for serial, _nick in pairs(permissions) do
-                if nick == _nick then
-                    if serial ~= getElementData(source, 'account') then
-                        permissions[serial] = nil
-                    else
-                        exports['stoneage_notifications']:CreateNotification(source, translate(source, 'nao pode remover permissão propria'), 'info')
-                    end
-                    break
-                end
-            end
-        end
-        setElementData(ob, 'wardrobe:permissions', permissions)
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player then
+        return
     end
+    if type(nick) ~= 'string' or not isElement(ob) or getElementType(ob) ~= 'object'
+        or getElementData(ob, 'obName') ~= 'Wardrobe' then
+        return
+    end
+    if getElementData(ob, 'owner') ~= getElementData(player, 'account') and not isAdmin(player) then
+        return
+    end
+    local px, py, pz = getElementPosition(player)
+    local ox, oy, oz = getElementPosition(ob)
+    if getElementDimension(player) ~= getElementDimension(ob)
+        or getElementInterior(player) ~= getElementInterior(ob)
+        or getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 6 then
+        return
+    end
+
+    local permissions = getElementData(ob, 'wardrobe:permissions')
+    if type(permissions) ~= 'table' then
+        return
+    end
+    for serial, targetNick in pairs(permissions) do
+        if nick == targetNick then
+            if serial ~= getElementData(player, 'account') then
+                permissions[serial] = nil
+            else
+                exports['stoneage_notifications']:CreateNotification(player, translate(player, 'nao pode remover permissão propria'), 'info')
+            end
+            break
+        end
+    end
+    setElementData(ob, 'wardrobe:permissions', permissions)
 end
 loadEvent('wardrobe:removePermission', root, removePermissionsFromWardrobe)
 -- //------------------- REMOVE PERMISSION FROM WARDROBE -------------------\\--
