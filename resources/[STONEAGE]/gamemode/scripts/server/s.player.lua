@@ -551,6 +551,7 @@ end)
 
 addEventHandler("onPlayerQuit", root, function()
     authAttempts[source] = nil
+    authPending[source] = nil
 end)
 
 loadEvent("player:onDie", root, function(details)
