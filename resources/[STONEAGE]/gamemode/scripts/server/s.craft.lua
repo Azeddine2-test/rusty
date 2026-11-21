@@ -235,7 +235,51 @@ function destroyObject(ob, logType, logMessage)
         end
     end
 end
-loadEvent('craft:destroyObject', root, destroyObject)
+loadEvent('craft:destroyObject', root, function(ob, logType, logMessage)
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player then
+        return false
+    end
+    if not isElement(ob) or getElementType(ob) ~= 'object' or getElementData(player, 'isDead') then
+        return false
+    end
+
+    local owner = getElementData(ob, 'owner')
+    if not owner then
+        return false
+    end
+
+    local px, py, pz = getElementPosition(player)
+    local ox, oy, oz = getElementPosition(ob)
+    if getElementDimension(player) ~= getElementDimension(ob)
+        or getElementInterior(player) ~= getElementInterior(ob) then
+        return false
+    end
+    local distance = getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz)
+
+    if logType == 'object-destroy' then
+        if owner ~= getElementData(player, 'account') and not isAdmin(player) then
+            return false
+        end
+        if distance > 8 then
+            return false
+        end
+    elseif logType == 'raid' then
+        if (getElementData(ob, 'health') or 1) > 0 or distance > 250 then
+            return false
+        end
+    else
+        return false
+    end
+
+    if type(logMessage) ~= 'string' then
+        logMessage = nil
+    else
+        logMessage = logMessage:sub(1, 1000)
+    end
+
+    return destroyObject(ob, logType, logMessage)
+end)
 -- //------------------- DESTROY OBJECT -------------------\\--
 
 -- //------------------- CRAFTING ANIMATION -------------------\\--
