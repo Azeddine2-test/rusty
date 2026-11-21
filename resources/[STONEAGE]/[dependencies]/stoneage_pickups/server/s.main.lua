@@ -131,77 +131,97 @@ end
 
 -- //------------------- SELECT ITEMS TO SPAWN -------------------\\--
 function generateLootToGive(lootType)
-    local loots = {}
-    local possible = randomizeTable(possibleLoots[lootType])
+    local sourceLoot = possibleLoots and possibleLoots[lootType]
+    if type(sourceLoot) ~= "table" then return {} end
+    local possible = randomizeTable(sourceLoot)
 
-    if lootType == 'default-barrel' or lootType == 'defaul-box' then
-        for k, v in ipairs(Roupas) do
-            if math.random(100) <= 30 then
-                table.insert(possible, v)
-            end
+    if (lootType == "default-barrel" or lootType == "default-box") and type(Roupas) == "table" then
+        for _, clothing in ipairs(Roupas) do
+            if math.random(100) <= 30 then possible[#possible + 1] = clothing end
         end
     end
 
-    local maxLoot = exports['stoneage_settings']:getConfig('Limite de itens no mesmo spawn', 3)
+    local maxLoot = math.max(1, tonumber(exports["stoneage_settings"]:getConfig("Limite de itens no mesmo spawn", 3)) or 3)
+    local extraPercent = tonumber(exports["stoneage_settings"]:getConfig("Porcentagem extra de spawn de loot", 0)) or 0
+    local loots = {}
 
-    local extraPercent = exports['stoneage_settings']:getConfig('Porcentagem extra de spawn de loot', 0)
+    local function addLoot(itemName)
+        if type(itemName) ~= "string" or not isItemOfInventory(itemName) then return false end
+        local quantity = tonumber(exports["gamemode"]:getItemMaxSpawnQuantity(itemName)) or 0
+        if quantity <= 0 then return false end
+        if quantity > 1 then quantity = math.floor(math.random(math.max(1, math.floor(quantity / 2)), quantity)) end
+        if quantity <= 0 then return false end
+        loots[#loots + 1] = {itemName, quantity}
 
-    for k, v in ipairs(possible) do
-        local itemName, chance = unpack(v)
-        if itemName and chance then
-            if math.random(0, 100) <= (chance + extraPercent) then
-                local quantity = exports['gamemode']:getItemMaxSpawnQuantity(itemName) or 0
+        local ammo = exports["gamemode"]:getPlayerDataSetting(itemName, "ammo")
+        if type(ammo) == "table" and type(ammo.name) == "string" and isItemOfInventory(ammo.name) then
+            local ammoQuantity = tonumber(exports["gamemode"]:getItemMaxSpawnQuantity(ammo.name)) or 0
+            if ammoQuantity > 0 then loots[#loots + 1] = {ammo.name, ammoQuantity} end
+        end
+        return true
+    end
 
-                if (quantity > 1) then
-                    quantity = math.floor(math.random(quantity / 2, quantity))
-                end
+    for _, entry in ipairs(possible) do
+        local itemName, chance = entry[1], tonumber(entry[2])
+        if itemName and chance and math.random(100) <= math.min(100, chance + extraPercent) then
+            addLoot(itemName)
+            if #loots >= maxLoot then break end
+        end
+    end
 
-                table.insert(loots, {itemName, quantity})
-
-                local ammo = exports['gamemode']:getPlayerDataSetting(itemName, 'ammo')
-                if ammo then
-                    local quantity = exports['gamemode']:getItemMaxSpawnQuantity(ammo.name) or 0
-                    table.insert(loots, {ammo.name, quantity})
-                end
-
-                if (#loots >= maxLoot) then
-                    break
-                end
-            end
+    if #loots == 0 then
+        for _, entry in ipairs(possible) do
+            if addLoot(entry[1]) then break end
         end
     end
     return loots
 end
--- //------------------- SELECT ITEMS TO SPAWN -------------------\\--
--- //------------------- SACK CREATION -------------------\\--
+
 local timerSack = {}
 function createSack(x, y, z, items, sackName)
+    if type(items) ~= "table" or #items == 0 then return false end
     local ob = getNearSack(x, y, z)
-    if (not ob) then
+    if not isElement(ob) then
         ob = createObject(1575, x, y, z, 0, math.random(200, 320), 0)
+        if not isElement(ob) then return false end
         setObjectScale(ob, 1.5)
-        setElementData(ob, 'maxSlots', 21)
-        setElementData(ob, 'obName', sackName or 'Loot')
-        setElementData(ob, 'gearPickup', true)
-        addEventHandler('onElementDestroy', ob, removeTimerOnDestroy)
+        setElementData(ob, "maxSlots", 21)
+        setElementData(ob, "obName", sackName or "Loot")
+        setElementData(ob, "gearPickup", true)
+        addEventHandler("onElementDestroy", ob, removeTimerOnDestroy)
     end
 
-    if (not isElement(ob)) then
-        return false
+    local order = getElementData(ob, "invOrder")
+    if type(order) ~= "table" then order = {} end
+    local nextSlot = 1
+    while order[nextSlot] do nextSlot = nextSlot + 1 end
+
+    for _, item in ipairs(items) do
+        local itemName = item[1]
+        local quantity = math.floor(tonumber(item[2]) or 0)
+        if type(itemName) == "string" and quantity > 0 and isItemOfInventory(itemName) then
+            setElementData(ob, itemName, (tonumber(getElementData(ob, itemName)) or 0) + quantity)
+            local merged = false
+            for _, entry in pairs(order) do
+                if entry.itemName == itemName then
+                    entry.quantity = (tonumber(entry.quantity) or 0) + quantity
+                    merged = true
+                    break
+                end
+            end
+            if not merged and nextSlot <= 21 then
+                order[nextSlot] = {itemName = itemName, quantity = quantity}
+                nextSlot = nextSlot + 1
+            end
+        end
     end
 
-    for k, v in ipairs(items or {}) do
-        setElementData(ob, v[1], (getElementData(ob, v[1]) or 0) + v[2])
-    end
-
-    if timerSack[ob] and isTimer(timerSack[ob]) then
-        killTimer(timerSack[ob])
-    end
+    setElementData(ob, "invOrder", order)
+    if timerSack[ob] and isTimer(timerSack[ob]) then killTimer(timerSack[ob]) end
     timerSack[ob] = setTimer(destroySack, getTimeToDestroySack(), 1, ob)
     return ob
 end
-addEventHandler('pickups:createSack', root, createSack)
--- //------------------- SACK CREATION -------------------\\--
+addEventHandler("pickups:createSack", root, createSack)
 
 -- //------------------- SYNC SACK TO GROUND POSITION -------------------\\--
 function sendSackToGround(ob, x, y, z)
@@ -305,35 +325,37 @@ function setupRespawn(ob)
 end
 -- //------------------- RESPAWN LOOT POINT -------------------\\--
 -- //------------------- ON OPEN BARREL -------------------\\--
+local openingBarrels = {}
 function onOpenBarrel(ob)
+    local player = client or source
     if (client ~= source and source ~= resourceRoot) then
-        exports['stoneage_ac']:KickForCallingUnauthorizedEvent(client, eventName)
-        return
-    end
-
-    if not isElement(ob) then
-        return
-    end
-    local itemName = getElementData(ob, 'obName')
-    if itemName and possibleLoots[itemName] then
-        local loots = generateLootToGive(itemName)
-
-        local x, y, z = getElementPosition(ob)
-        triggerEvent('rust:play3DSound', source, 'barrel-destroy.mp3', x, y, z, 0.5, 50)
-
-        if (#loots > 0) then
-            createSack(x, y, z - 0.35, loots)
+        if isElement(client) and exports["stoneage_ac"] then
+            exports["stoneage_ac"]:KickForCallingUnauthorizedEvent(client, eventName)
         end
+        return
+    end
+    if not isElement(player) or getElementType(player) ~= "player" or not isElement(ob) then return end
+    if not getElementData(ob, "lootPickup") or openingBarrels[ob] then return end
 
-        local exp = math.floor(math.random(2, 7))
-        exports['stoneage_economy']:giveExp(source, exp)
+    local itemName = getElementData(ob, "obName")
+    if not itemName or not possibleLoots[itemName] then return end
+    local px, py, pz = getElementPosition(player)
+    local ox, oy, oz = getElementPosition(ob)
+    if getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 7 then return end
+
+    openingBarrels[ob] = true
+    local loots = generateLootToGive(itemName)
+    if #loots > 0 then createSack(ox, oy, oz - 0.35, loots, "Loot") end
+    triggerEvent("rust:play3DSound", player, "barrel-destroy.mp3", ox, oy, oz, 0.5, 50)
+    if exports["stoneage_economy"] then
+        exports["stoneage_economy"]:giveExp(player, math.random(2, 7))
     end
     setupRespawn(ob)
     destroyElement(ob)
 end
-addEvent('pickups:onOpenBarrel', true)
-addEventHandler('pickups:onOpenBarrel', root, onOpenBarrel)
--- //------------------- ON OPEN BARREL -------------------\\--
+addEvent("pickups:onOpenBarrel", true)
+addEventHandler("pickups:onOpenBarrel", root, onOpenBarrel)
+
 -- //------------------- UTILS -------------------\\--
 function getTimeToDestroySack()
     local settings = getSettings('timeToDestroySack')
