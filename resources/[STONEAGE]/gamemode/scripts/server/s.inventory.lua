@@ -422,7 +422,7 @@ function onPlayerEquipItem(slotID, player)
     triggerClientEvent(player, "rust:onClientPlayerEquipItem", player, itemName, slotID)
     return true
 end
-loadEvent("rust:onPlayerEquipItem", root, onPlayerEquipItem)
+-- Event is registered by s.player.lua, which validates the originating client.
 
 function onPlayerDisequipItem(_ARG_0_, _ARG_1_)
   _ARG_1_ = _ARG_1_ or source
