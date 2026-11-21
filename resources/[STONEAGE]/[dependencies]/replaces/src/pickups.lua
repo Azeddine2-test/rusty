@@ -8,9 +8,9 @@ assignReplace(1578, {file = 'objects/pickups/bandage', custom = {col = false}, p
 assignReplace(1579, {file = 'objects/pickups/morphine', custom = {col = false}, plain = {txd = 'files/imported/objetos/morfina.txd', dff = 'files/imported/objetos/morfina.dff'}})
 assignReplace(1580, {file = 'objects/pickups/blood_kit', custom = {col = false}, plain = {txd = 'files/imported/objetos/primeiros_socorros.txd', dff = 'files/imported/objetos/primeiros_socorros.dff'}})
 assignReplace(2891, {file = 'objects/pickups/medic_kit', custom = {col = false}, plain = {txd = 'files/imported/objetos/kit_medico.txd', dff = 'files/imported/objetos/kit_medico.dff'}})
-assignReplace(2254, {file = 'objects/pickups/helmet', custom = {col = false}})
+assignReplace(2254, {file = 'objects/pickups/helmet', custom = {col = false}, plain = {txd = 'files/imported/objetos/helmet.txd', dff = 'files/imported/objetos/helmet.dff'}})
 assignReplace(1922, {file = 'objects/pickups/vest', custom = {col = false}, plain = {txd = 'files/imported/objetos/colete.txd', dff = 'files/imported/objetos/colete.dff'}})
-assignReplace(1604, {file = 'objects/pickups/mask', custom = {col = false}})
+assignReplace(1604, {file = 'objects/pickups/mask', custom = {col = false}, plain = {txd = 'files/imported/objetos/mask.txd', dff = 'files/imported/objetos/mask.dff'}})
 assignReplace(1575, {file = 'objects/pickups/sack', custom = {col = false}})
 assignReplace(1974, {file = 'objects/pickups/abobrinha', custom = {col = false}})
 
