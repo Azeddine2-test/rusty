@@ -1,15 +1,15 @@
-UI = exports['stoneage_ui']
-TRANSLATION = exports['stoneage_translations']
-HIGHLIGHT = exports['stoneage_highlight']
-UTILS = exports['stoneage_utils']
-
--- //------------------- EVENTS -------------------\\--
+-- Register les evenements avant toute dependance/export pour qu'ils existent meme si l'UI demarre plus tard.
 addEvent('rust:onClientPlayerLogin', true)
 addEvent('rust:onClientPlayerDie', true)
 addEvent('rust:onClientPlayerSpawn', true)
 addEvent('rust:onClientPlayerEquipItem', true)
 addEvent('rust:onClientPlayerDisequipItem', true)
--- //------------------- EVENTS -------------------\\--
+
+UI = exports['stoneage_ui']
+TRANSLATION = exports['stoneage_translations']
+HIGHLIGHT = exports['stoneage_highlight']
+UTILS = exports['stoneage_utils']
+
 
 addEventHandler('onClientResourceStart', resourceRoot, function()
     if not getElementData(localPlayer, 'account') then
