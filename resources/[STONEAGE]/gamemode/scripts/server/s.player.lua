@@ -600,16 +600,7 @@ local function isValidPlayerSpawnPosition(x, y, z)
     return false
 end
 
-loadEvent("player:onSpawn", root, function(x, y, z, model)
-    local player = client or source
-    if not isElement(player) or getElementType(player) ~= "player"
-        or (isElement(client) and source ~= client) then return end
-    if not getElementData(player, "account") or not isAccountFlagEnabled(getElementData(player, "isDead")) then return end
-    x, y, z = tonumber(x), tonumber(y), tonumber(z)
-    if not x or not y or not z or x ~= x or y ~= y or z ~= z then return end
-    -- Client requests may use only one of the configured public respawn points.
-    -- Bed spawns are initiated by the server and therefore bypass this check.
-    if isElement(client) and not isValidPlayerSpawnPosition(x, y, z) then return end
+local function spawnPlayerAtPosition(player, x, y, z)
     local skin = 0
     setElementData(player, "Skin", skin)
     spawnPlayer(player, x, y, z, math.random(0, 359), skin, getElementInterior(player), getElementDimension(player))
@@ -624,6 +615,16 @@ loadEvent("player:onSpawn", root, function(x, y, z, model)
     syncPedSide(player, {}, getElementData(player, "pedSideOrder"))
     triggerClientEvent(player, "rust:onClientPlayerSpawn", player)
     savePlayerData(player)
+end
+
+loadEvent("player:onSpawn", root, function(x, y, z, model)
+    local player = client
+    if not isElement(player) or getElementType(player) ~= "player" or source ~= player then return end
+    if not getElementData(player, "account") or not isAccountFlagEnabled(getElementData(player, "isDead")) then return end
+    x, y, z = tonumber(x), tonumber(y), tonumber(z)
+    if not x or not y or not z or x ~= x or y ~= y or z ~= z then return end
+    if not isValidPlayerSpawnPosition(x, y, z) then return end
+    spawnPlayerAtPosition(player, x, y, z)
 end)
 
 loadEvent("onPlayerSpawnAtBed", root, function(bed)
@@ -639,7 +640,7 @@ loadEvent("onPlayerSpawnAtBed", root, function(bed)
         if not ownerGroup or ownerGroup ~= getElementData(player, "Group") then return end
     end
     local x, y, z = getElementPosition(bed)
-    triggerEvent("player:onSpawn", player, x, y, z + 1, getElementModel(player))
+    spawnPlayerAtPosition(player, x, y, z + 1)
 end)
 
 addEventHandler("onElementDataChange", root, function(key, oldValue, value)
