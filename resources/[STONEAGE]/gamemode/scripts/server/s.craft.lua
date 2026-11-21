@@ -1420,65 +1420,131 @@ addWaterToPocos = function()
 end
 setTimer(addWaterToPocos, 500, 1)
 
-loadEvent('Craft:CraftItem', root, function(itemName, category)
-    if (not isElement(client)) then
+local lastItemCraftRequest = {}
+
+local function isItemInBlueprintCategory(itemName, category)
+    if type(itemName) ~= 'string' or type(category) ~= 'string' then
         return false
     end
-
-    local custo = getPlayerDataSetting(itemName, 'craftingCusto') or getObjectDataSetting(itemName, 'craftingCusto')
-
-    if (type(custo) ~= 'table') then
-        return false
-    end
-
-    if playerDataTable[('%s:BLUEPRINT'):format(itemName)] and (not isAdmin(client)) then
-        local alreadyLearned = getElementData(client, 'learnedBlueprint') or {}
-        if (not alreadyLearned[('%s:BLUEPRINT'):format(itemName)]) then
-            local str = translate(client, 'voce nao aprendeu a craftar.', nil, itemName)
-            exports['stoneage_notifications']:CreateNotification(client, str, 'error')
-            return
-        end
-    end
-
-    if (not isAdmin(client)) then
-        for k, v in ipairs(custo) do
-            local cost = v[2]
-            if (v[1] == 'Level') and isVIP(client) then
-                cost = math.floor(cost * 0.75)
-            end
-            if (getElementData(client, v[1]) or 0) < cost then
-                local str = ('Você precisa de mais %s.'):format(translate(client, v[1], 'name'))
-                exports['stoneage_notifications']:CreateNotification(client, str, 'error')
-                return false
-            end
-        end
-    end
-
-    if (category == 'objects') then
-        triggerClientEvent(client, 'startCraftingObject', client, itemName)
-
-    else
-        local quantity = getReceiveOnCraftQuant(itemName)
-        setElementData(client, itemName, (getElementData(client, itemName) or 0) + quantity)
-
-        local str = ('Você acabou de craftar %s x%i.'):format(translate(client, itemName, 'name'), quantity)
-        exports['stoneage_notifications']:CreateNotification(client, str, 'success')
-
-        triggerEvent('onPlayerCraftItem', client, itemName, quantity)
-
-        exports['stoneage_logs']:saveLog('craft-item', ('%s acabou de craftar %s "%s".'):format(getPlayerName(client), quantity, itemName))
-
-        if (not isAdmin(client)) then
-            for k, v in ipairs(custo) do
-                if (v[1] ~= 'Level') then
-                    local cost = v[2]
-                    if (v[1] == 'Level') and isVIP(client) then
-                        cost = math.floor(cost * 0.75)
-                    end
-                    setElementData(client, v[1], (getElementData(client, v[1]) or 0) - cost)
+    for _, blueprintCategory in ipairs(blueprints or {}) do
+        if blueprintCategory.category == category then
+            for _, listedItem in ipairs(blueprintCategory.items or {}) do
+                if listedItem == itemName then
+                    return true
                 end
             end
+            return false
         end
-
     end
-end)
+    return false
+end
+
+local function isNearWorkbench(player)
+    local px, py, pz = getElementPosition(player)
+    for _, object in ipairs(getElementsByType('object', resourceRoot)) do
+        if isElement(object) and getElementData(object, 'obName') == 'Workbench'
+            and getElementDimension(object) == getElementDimension(player)
+            and getElementInterior(object) == getElementInterior(player) then
+            local x, y, z = getElementPosition(object)
+            if getDistanceBetweenPoints3D(px, py, pz, x, y, z) <= 5 then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+loadEvent('Craft:CraftItem', root, function(itemName, category)
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player
+        or getElementData(player, 'isDead') or not getElementData(player, 'account') then
+        return false
+    end
+
+    if not isItemInBlueprintCategory(itemName, category) then
+        return false
+    end
+
+    local now = getTickCount()
+    if lastItemCraftRequest[player] and now - lastItemCraftRequest[player] < 500 then
+        return false
+    end
+    lastItemCraftRequest[player] = now
+
+    -- These categories are deliberately disabled in the inventory unless the
+    -- player opened it at a Workbench. Enforce the same rule on the server.
+    if category == 'weapons' or category == 'ammunition'
+        or category == 'explosives' or category == 'misc2' then
+        if not isNearWorkbench(player) then
+            exports['stoneage_notifications']:CreateNotification(player,
+                translate(player, 'Você precisa estar perto de uma bancada.'), 'error')
+            return false
+        end
+    end
+
+    local custo = getPlayerDataSetting(itemName, 'craftingCusto')
+        or getObjectDataSetting(itemName, 'craftingCusto')
+    if type(custo) ~= 'table' then
+        return false
+    end
+
+    if playerDataTable[('%s:BLUEPRINT'):format(itemName)] and not isAdmin(player) then
+        local alreadyLearned = getElementData(player, 'learnedBlueprint') or {}
+        if type(alreadyLearned) ~= 'table' or not alreadyLearned[('%s:BLUEPRINT'):format(itemName)] then
+            local str = translate(player, 'voce nao aprendeu a craftar.', nil, itemName)
+            exports['stoneage_notifications']:CreateNotification(player, str, 'error')
+            return false
+        end
+    end
+
+    local staff = isAdmin(player)
+    local costsToCharge = {}
+    if not staff then
+        for _, entry in ipairs(custo) do
+            if type(entry) ~= 'table' or type(entry[1]) ~= 'string'
+                or type(entry[2]) ~= 'number' or entry[2] < 0 then
+                return false
+            end
+            local amount = entry[2]
+            if entry[1] == 'Level' and isVIP(player) then
+                amount = math.floor(amount * 0.75)
+            end
+            local available = tonumber(getElementData(player, entry[1])) or 0
+            if available < amount then
+                local str = ('Você precisa de mais %s.'):format(translate(player, entry[1], 'name'))
+                exports['stoneage_notifications']:CreateNotification(player, str, 'error')
+                return false
+            end
+            if entry[1] ~= 'Level' then
+                costsToCharge[#costsToCharge + 1] = { entry[1], amount }
+            end
+        end
+    end
+
+    if category == 'objects' then
+        -- Placement has a second server-side validation and charges the cost
+        -- only after the final position has been accepted.
+        triggerClientEvent(player, 'startCraftingObject', player, itemName)
+        return true
+    end
+
+    local quantity = tonumber(getReceiveOnCraftQuant(itemName)) or 1
+    if quantity < 1 or quantity ~= math.floor(quantity) or quantity > 1000 then
+        return false
+    end
+
+    -- Charge first, then grant the crafted item: no free item if a later
+    -- callback or client-side UI action interrupts the crafting flow.
+    for _, entry in ipairs(costsToCharge) do
+        local current = tonumber(getElementData(player, entry[1])) or 0
+        setElementData(player, entry[1], math.max(0, current - entry[2]))
+    end
+
+    setElementData(player, itemName, (tonumber(getElementData(player, itemName)) or 0) + quantity)
+    local str = ('Você acabou de craftar %s x%i.'):format(translate(player, itemName, 'name'), quantity)
+    exports['stoneage_notifications']:CreateNotification(player, str, 'success')
+    triggerEvent('onPlayerCraftItem', player, itemName, quantity)
+    exports['stoneage_logs']:saveLog('craft-item',
+        ('%s acabou de craftar %s "%s".'):format(getPlayerName(player), quantity, itemName))
+    return true
+end))
