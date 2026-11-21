@@ -66,7 +66,7 @@ playerDataTable = {
         },
     },
     ['Skin'] = {
-        initialValue = 7,
+        initialValue = 0,
         savableInDB = {
             ['Accounts'] = 'TEXT',
         },
@@ -392,6 +392,9 @@ playerDataTable = {
             ['shirt'] = 1,
             ['head'] = 0,
             ['pants'] = 7,
+            ['shoes'] = 0,
+            ['glasses'] = 0,
+            ['hat'] = 0,
         },
         savableInDB = {
             ['Accounts'] = 'TEXT'
