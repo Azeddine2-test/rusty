@@ -30,6 +30,74 @@ addEvent('onPlayerCraftItem', true)
 
 local lastCraftRequest = {}
 
+local function getCraftItemSlotQuantity(player, itemName)
+    local total = 0
+    local order = getElementData(player, 'invOrder')
+    if type(order) == 'table' then
+        for _, entry in pairs(order) do
+            if type(entry) == 'table' and entry.itemName == itemName then
+                total = total + math.max(0, math.floor(tonumber(entry.quantity) or 0))
+            end
+        end
+    end
+    return total
+end
+
+local function getCraftItemQuantity(player, itemName)
+    local slotQuantity = getCraftItemSlotQuantity(player, itemName)
+    if slotQuantity > 0 then return slotQuantity end
+    return math.max(0, math.floor(tonumber(getElementData(player, itemName)) or 0))
+end
+
+local function consumeCraftItemQuantity(player, itemName, amount)
+    amount = math.floor(tonumber(amount) or 0)
+    if amount <= 0 then return true end
+
+    local slotQuantity = getCraftItemSlotQuantity(player, itemName)
+    local available = slotQuantity > 0 and slotQuantity
+        or math.max(0, math.floor(tonumber(getElementData(player, itemName)) or 0))
+    if available < amount then return false end
+
+    if slotQuantity > 0 then
+        local slots = {}
+        local order = getElementData(player, 'invOrder')
+        for slot, entry in pairs(order or {}) do
+            if type(entry) == 'table' and entry.itemName == itemName then
+                slots[#slots + 1] = tonumber(slot)
+            end
+        end
+        table.sort(slots)
+
+        local remaining = amount
+        for _, slot in ipairs(slots) do
+            if remaining <= 0 then break end
+            local currentOrder = getElementData(player, 'invOrder')
+            local entry = type(currentOrder) == 'table' and currentOrder[slot]
+            if type(entry) == 'table' and entry.itemName == itemName then
+                local quantity = math.max(0, math.floor(tonumber(entry.quantity) or 0))
+                local take = math.min(quantity, remaining)
+                if take > 0 then
+                    local newQuantity = quantity - take
+                    if type(setPreference) == 'function' then
+                        setPreference(player, slot, itemName, newQuantity)
+                    else
+                        currentOrder[slot] = newQuantity > 0 and { itemName = itemName, quantity = newQuantity } or nil
+                        setElementData(player, 'invOrder', currentOrder)
+                    end
+                    triggerClientEvent(player, 'receiveMoveSync', player, 'inv', slot)
+                    remaining = remaining - take
+                end
+            end
+        end
+
+        if remaining > 0 then return false end
+        setElementData(player, itemName, getCraftItemSlotQuantity(player, itemName))
+    else
+        setElementData(player, itemName, available - amount)
+    end
+    return true
+end
+
 loadEvent('OnCraftObject', root, function(obName, pos)
     local player = client
     if not isElement(player) or getElementType(player) ~= 'player' or source ~= player then
@@ -75,6 +143,7 @@ loadEvent('OnCraftObject', root, function(obName, pos)
     end
 
     if not staff then
+        local costsToCharge = {}
         for _, entry in ipairs(custo) do
             if type(entry) ~= 'table' or type(entry[1]) ~= 'string' or type(entry[2]) ~= 'number' or entry[2] < 0 then
                 return false
@@ -83,17 +152,20 @@ loadEvent('OnCraftObject', root, function(obName, pos)
             if entry[1] == 'Level' and isVIP(player) then
                 cost = math.floor(cost * 0.75)
             end
-            if (getElementData(player, entry[1]) or 0) < cost then
+            if getCraftItemQuantity(player, entry[1]) < cost then
                 local str = exports['stoneage_translations']:translate(player, 'Você precisa de mais %s.', nil, exports['stoneage_translations']:translate(player, entry[1], 'name'))
                 exports['stoneage_notifications']:CreateNotification(player, str, 'info')
                 return false
             end
+            if entry[1] ~= 'Level' then
+                costsToCharge[#costsToCharge + 1] = { entry[1], cost }
+            end
         end
 
-        -- Charge only after every requirement has been validated.
-        for _, entry in ipairs(custo) do
-            if entry[1] ~= 'Level' then
-                setElementData(player, entry[1], (getElementData(player, entry[1]) or 0) - entry[2])
+        -- Déduit les quantités dans les cases et dans les compteurs serveur.
+        for _, entry in ipairs(costsToCharge) do
+            if not consumeCraftItemQuantity(player, entry[1], entry[2]) then
+                return false
             end
         end
     end
@@ -387,7 +459,7 @@ function evolveObject(ob, newObjectName)
             if entry[1] == 'Level' and isVIP(player) then
                 cost = math.floor(cost * 0.75)
             end
-            if (getElementData(player, entry[1]) or 0) < cost then
+            if getCraftItemQuantity(player, entry[1]) < cost then
                 local str = ('Você precisa de mais %s.'):format(translate(player, entry[1], 'name'))
                 exports['stoneage_notifications']:CreateNotification(player, str, 'error')
                 removeElementData(player, 'WaitingResponse')
@@ -405,7 +477,10 @@ function evolveObject(ob, newObjectName)
 
         for _, entry in ipairs(custo) do
             if entry[1] ~= 'Level' then
-                setElementData(player, entry[1], (getElementData(player, entry[1]) or 0) - entry[2])
+                if not consumeCraftItemQuantity(player, entry[1], entry[2]) then
+                    removeElementData(player, 'WaitingResponse')
+                    return false
+                end
             end
         end
     end
@@ -1509,7 +1584,7 @@ loadEvent('Craft:CraftItem', root, function(itemName, category)
             if entry[1] == 'Level' and isVIP(player) then
                 amount = math.floor(amount * 0.75)
             end
-            local available = tonumber(getElementData(player, entry[1])) or 0
+            local available = getCraftItemQuantity(player, entry[1])
             if available < amount then
                 local str = ('Você precisa de mais %s.'):format(translate(player, entry[1], 'name'))
                 exports['stoneage_notifications']:CreateNotification(player, str, 'error')
@@ -1536,8 +1611,9 @@ loadEvent('Craft:CraftItem', root, function(itemName, category)
     -- Charge first, then grant the crafted item: no free item if a later
     -- callback or client-side UI action interrupts the crafting flow.
     for _, entry in ipairs(costsToCharge) do
-        local current = tonumber(getElementData(player, entry[1])) or 0
-        setElementData(player, entry[1], math.max(0, current - entry[2]))
+        if not consumeCraftItemQuantity(player, entry[1], entry[2]) then
+            return false
+        end
     end
 
     setElementData(player, itemName, (tonumber(getElementData(player, itemName)) or 0) + quantity)
