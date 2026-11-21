@@ -192,6 +192,7 @@ function jumpTutorial(id)
 end
 
 function drawTutorialTexts()
+    dxDrawText('Appuyez sur ESPACE ou ÉCHAP pour passer le tutoriel', 0, sH - pixels(55), sW, sH - pixels(20), predefinedColor('menu:color2'), 1, font('futura:2'), 'center', 'center', false, false, true)
     local id = _tut.lastStep
     local arr = id and _tut.steps[id] and _tut.steps[id].msgs
     if arr then
