@@ -919,18 +919,18 @@ loadEvent('craft:startMovingObject', root, function(ob)
 end)
 
 loadEvent('craft:stopMovingObject', root, function(ob)
-    if not movingObjects[ob] or not movingObjects[source] then
+    if not isElement(client) or source ~= client or not movingObjects[ob] or not movingObjects[client] or movingObjects[ob] ~= client or movingObjects[client] ~= ob then
         return
     end
 
-    movingObjects[source] = nil
+    movingObjects[client] = nil
     movingObjects[ob] = nil
 
     if isElement(ob) then
         setElementCollisionsEnabled(ob, true)
     end
 
-    removeEventHandler('onPlayerQuit', source, restoreMovingObjectCollision)
+    removeEventHandler('onPlayerQuit', client, restoreMovingObjectCollision)
 end)
 
 function restoreMovingObjectCollision()
@@ -953,7 +953,7 @@ loadEvent('craft:saveObjectPosition', root, function(ob, x, y, z, rx, ry, rz)
     if not isElement(ob) or movingObjects[player] ~= ob or movingObjects[ob] ~= player then
         return
     end
-    if getElementData(ob, 'owner') ~= getElementData(player, 'account') and not isAdmin(player) then
+    if not hasObjectAccess(player, ob) then
         return
     end
 
