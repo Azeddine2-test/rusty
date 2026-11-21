@@ -33,6 +33,9 @@ farms = {
             items = {{'Wood', {60, 90}}, {'Apple', {1, 3}}},
         }},
         hitSettings = {
+            ['Hands'] = {
+                removeQuantity = {1, 2},
+            },
             ['Stone'] = {
                 removeQuantity = {1, 2},
             },
