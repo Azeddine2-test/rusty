@@ -2,31 +2,51 @@ local attachs = {}
 local weaponAttachments = {}
 local defenseAttachments = {}
 
+local function createAttachmentObject(model, ped, scale, x, y, z)
+    if not isElement(ped) then return false end
+    local px, py, pz = getElementPosition(ped)
+    local ob = createObject(model, px + x, py + y, pz + z)
+    if not isElement(ob) then return false end
+    setElementDimension(ob, getElementDimension(ped))
+    setElementInterior(ob, getElementInterior(ped))
+    setElementCollisionsEnabled(ob, false)
+    setElementAlpha(ob, 255)
+    setObjectScale(ob, tonumber(scale) or 1)
+    return ob
+end
+
 -- //------------------- ATTACH ITEM TO BONE -------------------\\--
 function attachItemToBone(itemName, ped)
-    if not isElement(ped) then
-        return
-    end
+    if not isElement(ped) then return false end
     local attachInfo = getPlayerDataSetting(itemName, 'attach')
-    if attachInfo then
-        detachItemFromBone(itemName, ped)
-        local px, py, pz = getElementPosition(ped)
-        local model = attachInfo.modelID
-        local bone = attachInfo.bone
-        local scale = attachInfo.scale
-        local x, y, z, rx, ry, rz = unpack(attachInfo.pos)
-        local ob = createObject(model, px + x, py + y, pz + z)
-        setElementCollisionsEnabled(ob, false)
-        setObjectScale(ob, scale)
+    if type(attachInfo) ~= 'table' or type(attachInfo.pos) ~= 'table' then return false end
 
-        if not attachs[ped] then
-            attachs[ped] = {}
-        end
-        attachs[ped][itemName] = ob
-
-        BONE_ATTACH:attachElementToBone(ob, ped, bone, x, y, z, rx, ry, rz)
-        setElementData(ped, 'rust:attachments', attachs[ped])
+    local model = tonumber(attachInfo.modelID)
+    local bone = tonumber(attachInfo.bone)
+    if not model or not bone or bone < 1 or bone > 20 then
+        outputDebugString(('[gamemode] Attachement main invalide pour %s (modèle=%s, os=%s)'):format(tostring(itemName), tostring(model), tostring(bone)), 2)
+        return false
     end
+
+    detachItemFromBone(itemName, ped)
+    local x, y, z, rx, ry, rz = unpack(attachInfo.pos)
+    local ob = createAttachmentObject(model, ped, attachInfo.scale, x, y, z)
+    if not ob then
+        outputDebugString(('[gamemode] Impossible de créer le modèle en main pour %s (modèle %s)'):format(tostring(itemName), tostring(model)), 2)
+        return false
+    end
+
+    local attached = BONE_ATTACH:attachElementToBone(ob, ped, bone, x, y, z, rx, ry, rz)
+    if not attached then
+        destroyElement(ob)
+        outputDebugString(('[gamemode] stoneage_bone_attach a refusé %s sur l’os %s'):format(tostring(itemName), tostring(bone)), 2)
+        return false
+    end
+
+    if not attachs[ped] then attachs[ped] = {} end
+    attachs[ped][itemName] = ob
+    setElementData(ped, 'rust:attachments', attachs[ped])
+    return true
 end
 -- //------------------- ATTACH ITEM TO BONE -------------------\\--
 
