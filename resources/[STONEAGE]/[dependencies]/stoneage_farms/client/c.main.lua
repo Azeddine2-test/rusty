@@ -62,8 +62,10 @@ addEventHandler('onClientResourceStart', resourceRoot, function()
 end)
 
 addEventHandler('onClientElementStreamIn', resourceRoot, function()
-    if (getElementType(source) == 'object') then
-        setObjectBreakable(source, false)
+    if getElementType(source) == 'object' then
+        -- Harvest nodes must remain damageable so onClientObjectDamage can
+        -- request a server-validated hit. Other farm-resource objects stay protected.
+        setObjectBreakable(source, getElementData(source, 'obName') == 'farmObject')
     end
 end)
 
