@@ -4,6 +4,10 @@ local SQL = exports.stoneage_sql
 local loadingPlayerData = {}
 local savingPlayerData = {}
 
+local function isAccountFlagEnabled(value)
+    return value == true or tonumber(value) == 1
+end
+
 local function applySavedCharacterClothes(player)
     if not isElement(player) then return false end
     local clothes = getElementData(player, "Clothes")
@@ -141,7 +145,7 @@ local function loadPlayerData(player, account)
     loadingPlayerData[player] = nil
 
     -- New accounts must finish character creation before entering the world.
-    if getElementData(player, "characterCreated") ~= true then
+    if not isAccountFlagEnabled(getElementData(player, "characterCreated")) then
         triggerClientEvent(player, "rust:character:open", player)
         return true
     end
@@ -487,7 +491,7 @@ addEventHandler("rust:character:submit", root, function(skin, clothes)
     setElementData(player, "alivetime", 0)
     setElementHealth(player, 100)
 
-    if getElementData(player, "starterKitGiven") ~= true then
+    if not isAccountFlagEnabled(getElementData(player, "starterKitGiven")) then
         setElementData(player, "Stone", 1)
         setElementData(player, "Torch", 1)
         setAccountData(player, "starterKitGiven", true)
