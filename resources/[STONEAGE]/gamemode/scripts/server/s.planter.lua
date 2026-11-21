@@ -60,91 +60,100 @@ end
 
 -- //------------------- ON PLAYER PLANT -------------------\\--
 loadEvent('planter:onPlayerPlant', root, function(ob, itemName)
-    if not isElement(ob) or not isElement(source) then
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player
+        or getElementData(player, 'isDead') then
+        return
+    end
+    if not isElement(ob) or getElementType(ob) ~= 'object' or getElementData(ob, 'obName') ~= 'Planter' then
+        return
+    end
+    local px, py, pz = getElementPosition(player)
+    local ox, oy, oz = getElementPosition(ob)
+    if getElementDimension(player) ~= getElementDimension(ob)
+        or getElementInterior(player) ~= getElementInterior(ob)
+        or getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 5 then
         return
     end
 
-    if (getElementData(source, 'equippedItem') ~= 'Shovel') then
-        return exports['stoneage_notifications']:CreateNotification(source, translate(source, 'Precisa ter %s em mãos', nil, translate(source, 'Shovel', 'name')), 'error')
+    if not settings.plantSettings[itemName] then
+        return
     end
-
-    if (getElementData(source, itemName) or 0) <= 0 then
+    if getElementData(player, 'equippedItem') ~= 'Shovel' then
+        return exports['stoneage_notifications']:CreateNotification(player, translate(player, 'Precisa ter %s em mãos', nil, translate(player, 'Shovel', 'name')), 'error')
+    end
+    if (getElementData(player, itemName) or 0) <= 0 then
         return
     end
 
-    local plantsHere = getElementData(ob, 'planter:plants')
-    if not plantsHere then
-        plantsHere = {}
-    end
-
+    local plantsHere = getElementData(ob, 'planter:plants') or {}
     local usedSlot = getFreeSlotForPlant(plantsHere)
-    if usedSlot then
-
-        local plant = createPlant(ob, usedSlot, itemName, 10)
-
-        table.insert(plantsHere, usedSlot, {
-            itemName = itemName,
-            progress = 10,
-        })
-
-        if not plants[ob] then
-            plants[ob] = {}
-        end
-
-        table.insert(plants[ob], usedSlot, plant)
-        setElementData(ob, 'planter:plants', plantsHere)
-
-        setTimer(function(ob, id)
-            updatePlantProgress(ob, id)
-        end, getGamePlayConfig('time to plants grow up'), 10, ob, usedSlot)
-
-        setElementData(source, itemName, (getElementData(source, itemName) or 0) - 1)
-        setPedAnimation(source, 'bomber', 'bom_plant', -1, false, false, false, false, 250, true)
-
-        addEventHandler('onElementDestroy', ob, function()
-            if plantTimers[source] then
-                if isTimer(plantTimers[source]) then
-                    killTimer(plantTimers[source])
-                end
-                plantTimers[source] = nil
-            end
-            if plants[source] then
-                plants[source] = nil
-            end
-        end)
+    if not usedSlot then
+        return
     end
+
+    local plant = createPlant(ob, usedSlot, itemName, 10)
+    if not isElement(plant) then
+        return
+    end
+
+    if not plants[ob] then
+        plants[ob] = {}
+    end
+    plants[ob][usedSlot] = plant
+    plantsHere[usedSlot] = {
+        itemName = itemName,
+        progress = 10,
+    }
+    setElementData(ob, 'planter:plants', plantsHere)
+
+    setTimer(function(planter, id)
+        updatePlantProgress(planter, id)
+    end, getGamePlayConfig('time to plants grow up'), 10, ob, usedSlot)
+
+    setElementData(player, itemName, (getElementData(player, itemName) or 0) - 1)
+    setPedAnimation(player, 'bomber', 'bom_plant', -1, false, false, false, false, 250, true)
 end)
--- //------------------- ON PLAYER PLANT -------------------\\--
 
 -- //------------------- ON PLAYER PICK PLANT -------------------\\--
 loadEvent('planter:onPlayerPickPlant', root, function(ob, plantName)
-    if not isElement(ob) or not isElement(source) then
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player
+        or getElementData(player, 'isDead') then
         return
     end
+    if not isElement(ob) or getElementType(ob) ~= 'object' or getElementData(ob, 'obName') ~= 'Planter' then
+        return
+    end
+    local px, py, pz = getElementPosition(player)
+    local ox, oy, oz = getElementPosition(ob)
+    if getElementDimension(player) ~= getElementDimension(ob)
+        or getElementInterior(player) ~= getElementInterior(ob)
+        or getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 5 then
+        return
+    end
+
     local plantsHere = getElementData(ob, 'planter:plants')
-    if not plantsHere then
+    if type(plantsHere) ~= 'table' or type(plantName) ~= 'string' then
         return
     end
-    for k, v in pairs(plantsHere) do
-        if v.itemName == plantName and v.progress == 100 then
-            if plants[ob] and plants[ob][k] and isElement(plants[ob][k]) then
-                destroyElement(plants[ob][k])
-
-                local receive = getPlantSetting(v.itemName, 'receive')
+    for slot, plantData in pairs(plantsHere) do
+        if plantData.itemName == plantName and plantData.progress == 100 then
+            if plants[ob] and isElement(plants[ob][slot]) then
+                local receive = getPlantSetting(plantData.itemName, 'receive')
                 if receive then
-                    setElementData(source, receive, (getElementData(source, receive) or 0) + 1)
+                    setElementData(player, receive, (getElementData(player, receive) or 0) + 1)
                 end
-
-                plantsHere[k] = nil
+                destroyElement(plants[ob][slot])
+                plants[ob][slot] = nil
+                plantsHere[slot] = nil
                 setElementData(ob, 'planter:plants', plantsHere)
-
-                setPedAnimation(source, 'bomber', 'bom_plant', -1, false, false, false, false, 250, true)
+                setPedAnimation(player, 'bomber', 'bom_plant', -1, false, false, false, false, 250, true)
                 break
             end
         end
     end
 end)
--- //------------------- ON PLAYER PICK PLANT -------------------\\--
 
 -- //------------------- UPDATE PROGRESS -------------------\\--
 function updatePlantProgress(ob, slot)
