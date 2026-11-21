@@ -361,7 +361,7 @@ end)
 local authAttempts = {}
 
 addEvent("rust:auth:submit", true)
-addEventHandler("rust:auth:submit", root, function(mode, username, password)
+addEventHandler("rust:auth:submit", root, function(mode, username, password, confirmation)
     local player = client
     if not isElement(player) or source ~= player then return end
     if type(mode) ~= "string" or type(username) ~= "string" or type(password) ~= "string" then return end
@@ -385,6 +385,10 @@ addEventHandler("rust:auth:submit", root, function(mode, username, password)
     end
     if #password < 6 or #password > 64 then
         triggerClientEvent(player, "rust:auth:result", player, false, "Le mot de passe doit contenir entre 6 et 64 caractères.")
+        return
+    end
+    if mode == "register" and (type(confirmation) ~= "string" or password ~= confirmation) then
+        triggerClientEvent(player, "rust:auth:result", player, false, "Les deux mots de passe ne correspondent pas.")
         return
     end
 
