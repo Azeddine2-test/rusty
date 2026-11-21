@@ -35,7 +35,30 @@ addEventHandler('Create:file', root, function(serial, ip)
     end
 end)
 
-local table = exports.gamemode:returnPrincTable()
+local itemSettings = {}
+
+local function refreshItemSettings()
+    local gamemode = getResourceFromName('gamemode')
+    if not gamemode or getResourceState(gamemode) ~= 'running' then
+        return false
+    end
+
+    local ok, result = pcall(function()
+        return exports.gamemode:returnPrincTable()
+    end)
+    if ok and type(result) == 'table' then
+        itemSettings = result
+        return true
+    end
+    return false
+end
+
+refreshItemSettings()
+addEventHandler('onClientResourceStart', root, function()
+    if source == getResourceFromName('gamemode') then
+        refreshItemSettings()
+    end
+end)
 
 local getItemHands = function(player)
     local itemTable = getElementData(player, 'rust:attachments')
@@ -70,14 +93,14 @@ addEventHandler('onClientPlayerWeaponFire', localPlayer, function(weapon)
         return 
     end
 
-    if (not table[inHands].weaponSettings) then
+    if (not itemSettings[inHands] or not itemSettings[inHands].weaponSettings) then
        
         triggerServerEvent('EQJ1UJ3U1MDU1MD81J7J1EM1D', resourceRoot, 'Weapon-cheat', false, content)
 
         return 
     end
 
-    if (weapon ~= table[inHands].weaponSettings.weapID) then
+    if (weapon ~= itemSettings[inHands].weaponSettings.weapID) then
 
         triggerServerEvent('EQJ1UJ3U1MDU1MD81J7J1EM1D', resourceRoot, 'Weapon-cheat', false, content)
 
