@@ -259,6 +259,9 @@ function onPlayerDisequipItem(slotID, player)
         takeWeapon(player, settings.weapID)
         setPedWeaponSlot(player, 0)
     end
+    if itemName == "Torch" then
+        setPedWalkingStyle(player, 0)
+    end
     if getPlayerDataSetting(itemName, "clothSettings") then
         removeClothes(player, itemName)
     end
