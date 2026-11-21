@@ -312,9 +312,26 @@ function onPlayerEquipItem(slotID, player)
     return true
 end
 
-local function consumeItem(player, itemName, slotID)
+local function consumeItem(player, itemName, slotID, fromKeybar)
     if not isElement(player) or getElementType(player) ~= "player" or not getElementData(player, "account") or getElementData(player, "isDead") then return false end
-    if type(itemName) ~= "string" or (tonumber(getElementData(player, itemName)) or 0) <= 0 then return false end
+    if type(itemName) ~= "string" or (getItemType(itemName) ~= "food" and getItemType(itemName) ~= "drink")
+        or (tonumber(getElementData(player, itemName)) or 0) <= 0 then return false end
+
+    slotID = tonumber(slotID)
+    if not slotID then return false end
+    slotID = math.floor(slotID)
+
+    local orderName = fromKeybar and "keybarOrder" or "invOrder"
+    local order = getElementData(player, orderName)
+    local entry = type(order) == "table" and order[slotID]
+    if type(entry) ~= "table" or entry.itemName ~= itemName or (tonumber(entry.quantity) or 0) <= 0 then
+        return false
+    end
+    if fromKeybar and (tonumber(getElementData(player, "equippedSlotID")) ~= slotID
+        or getElementData(player, "equippedItem") ~= itemName) then
+        return false
+    end
+
     local settings = getPlayerDataSetting(itemName, "consumeSettings") or DEFAULT_CONSUMPTION[itemName]
     if type(settings) ~= "table" then return false end
 
@@ -326,20 +343,30 @@ local function consumeItem(player, itemName, slotID)
         end
     end
 
+    if not fromKeybar and type(setPreference) == "function" then
+        setPreference(player, slotID, itemName, 1)
+    end
+
     local quantity = math.max(0, (tonumber(getElementData(player, itemName)) or 0) - 1)
     if quantity > 0 then setElementData(player, itemName, quantity) else removeElementData(player, itemName) end
+
+    if fromKeybar then
+        entry.quantity = entry.quantity - 1
+        if entry.quantity <= 0 then
+            onPlayerDisequipItem(slotID, player)
+            order[slotID] = nil
+        end
+        setElementData(player, "keybarOrder", order)
+    end
 
     -- Only bottled water returns an empty bottle. Food must never create bottles.
     if itemName == "Water" then
         setElementData(player, "Empty Bottle", (tonumber(getElementData(player, "Empty Bottle")) or 0) + 1)
     end
 
-    -- invOrder is synchronized by s.inventory.lua when the item element-data changes.
-    -- Do not decrement the slot a second time here.
     triggerClientEvent(player, "playItemSound", player, itemName)
     return true
 end
-
 addEvent("removeDefenseItemOnDestroy", false)
 addEventHandler("removeDefenseItemOnDestroy", root, function(victim, itemName)
     if not isElement(victim) or getElementType(victim) ~= "player" then return end
@@ -381,8 +408,8 @@ loadEvent("rust:onAmmoChange", root, function(weaponID, ammoCount, slotID)
     setWeaponAmmo(client, tonumber(weaponID), total, clip)
 end)
 
-loadEvent("rust:onPlayerConsumeItem", root, function(itemName, slotID)
-    if source == client then consumeItem(client, itemName, slotID) end
+loadEvent("rust:onPlayerConsumeItem", root, function(itemName, slotID, fromKeybar)
+    if source == client then consumeItem(client, itemName, slotID, fromKeybar == true) end
 end)
 
 loadEvent("player:onTryToLogin", root, function()
