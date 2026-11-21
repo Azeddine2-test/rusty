@@ -1,3 +1,9 @@
+local lastDamageRequest = {}
+
+addEventHandler('onPlayerQuit', root, function()
+    lastDamageRequest[source] = nil
+end)
+
 loadEvent('Damage:Apply', root, function(victim, bodypart, clientDamage, usedWeapon, hitx, hity, hitz)
     -- Never trust damage, weapon name, or hit position supplied by the client.
     if not isElement(client) or getElementType(client) ~= 'player' or source ~= client then
@@ -15,6 +21,12 @@ loadEvent('Damage:Apply', root, function(victim, bodypart, clientDamage, usedWea
     if getElementData(client, 'antiSpawnKill') or getElementData(victim, 'antiSpawnKill') then
         return false
     end
+
+    local now = getTickCount()
+    if lastDamageRequest[client] and now - lastDamageRequest[client] < 70 then
+        return false
+    end
+    lastDamageRequest[client] = now
 
     if getElementDimension(client) ~= getElementDimension(victim)
         or getElementInterior(client) ~= getElementInterior(victim) then
