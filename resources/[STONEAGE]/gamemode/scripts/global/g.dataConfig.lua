@@ -377,6 +377,16 @@ playerDataTable = {
             ['Accounts'] = 'INT'
         },
     },
+    -- Existing accounts are marked as already created; newly registered accounts
+    -- explicitly reset these two flags before their first login.
+    ['characterCreated'] = {
+        initialValue = true,
+        savableInDB = { ['Accounts'] = 'INT' },
+    },
+    ['starterKitGiven'] = {
+        initialValue = true,
+        savableInDB = { ['Accounts'] = 'INT' },
+    },
     ['Clothes'] = {
         initialValue = {
             ['shirt'] = 1,
