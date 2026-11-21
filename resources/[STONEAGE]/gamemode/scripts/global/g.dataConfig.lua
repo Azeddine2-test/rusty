@@ -1512,7 +1512,7 @@ playerDataTable = {
         attach = {
             modelID = 2998,
             scale = 1,
-            bone = 24,
+            bone = 12,
             pos = {0, 0, 0, 180, 87.5, 180},
         },
         attachBackward = {
@@ -1542,7 +1542,7 @@ playerDataTable = {
         attach = {
             modelID = 2999,
             scale = 1,
-            bone = 24,
+            bone = 12,
             pos = {0, 0, 0, 180, 87.5, 180},
         },
         attachBackward = {
