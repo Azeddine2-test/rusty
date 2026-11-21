@@ -620,13 +620,15 @@ addEventHandler("rust:clothes:save", root, function(requested)
         end
     end
 
-    setElementData(player, "Clothes", clothes)
-    for slotID, key in pairs(CLOTHING_SLOTS) do
-        setPedClothes(player, slotID, clothes[key])
-    end
+    local previousClothes = getElementData(player, "Clothes")
     if not setAccountData(player, "Clothes", clothes) then
+        setElementData(player, "Clothes", previousClothes or {})
+        applySavedCharacterClothes(player)
         triggerClientEvent(player, "rust:clothes:result", player, false, "Impossible d'enregistrer les vêtements.")
         return
+    end
+    for slotID, key in pairs(CLOTHING_SLOTS) do
+        setPedClothes(player, slotID, clothes[key])
     end
     triggerClientEvent(player, "rust:clothes:result", player, true, "Personnage enregistré.")
 end)
