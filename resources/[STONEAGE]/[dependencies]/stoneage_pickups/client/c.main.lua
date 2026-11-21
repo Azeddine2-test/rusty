@@ -26,17 +26,9 @@ function damagePickup(ob, damage, fromMenu)
     if isElement(ob) and not damaged[ob] then
         damaged[ob] = true
 
-        local health = getElementData(ob, 'health') or 0
-
-        setElementData(ob, 'health', health - damage)
-
         local x, y, z = getElementPosition(ob)
         triggerServerEvent('rust:play3DSound', localPlayer, (':stoneage_pickups/files/barrel-hit(%i).mp3'):format(math.random(4)), {x, y, z}, 0.5, 50)
-
-        if getElementData(ob, 'health') <= 0 then
-            setElementCollisionsEnabled(ob, false)
-            triggerServerEvent('pickups:onOpenBarrel', localPlayer, ob)
-        end
+        triggerServerEvent('pickups:damageBarrel', localPlayer, ob, damage)
 
         setTimer(function(ob)
             damaged[ob] = nil
