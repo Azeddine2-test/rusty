@@ -1441,7 +1441,7 @@ end
 
 local function isNearWorkbench(player)
     local px, py, pz = getElementPosition(player)
-    for _, object in ipairs(getElementsByType('object', resourceRoot)) do
+    for _, object in ipairs(getElementsByType('object', root)) do
         if isElement(object) and getElementData(object, 'obName') == 'Workbench'
             and getElementDimension(object) == getElementDimension(player)
             and getElementInterior(object) == getElementInterior(player) then
