@@ -370,6 +370,14 @@ function blockInventoryID(where, id, byMove, keepShowing)
         end
         if (not byMove) then
             waitingResponse[id] = true
+            -- Safety release: if the server rejects a request or a resource export
+            -- fails, the slot must never remain blocked forever.
+            setTimer(function(slotID, sourceType)
+                if waitingResponse[slotID] then
+                    waitingResponse[slotID] = nil
+                    receiveMoveSync(sourceType, slotID)
+                end
+            end, 2500, 1, id, where)
         end
     end
     if (where == 'inv') then
@@ -389,9 +397,14 @@ function receiveMoveSync(where, id, byMove)
     local arr = inv.gui.slots[where] and inv.gui.slots[where][id]
     if arr then
         local order = inv.order[where] and inv.order[where][id]
-        if order and (order.quantity or 0) > 0 then
+        if order and (tonumber(order.quantity) or 0) > 0 then
+            guiStaticImageLoadImage(arr.img, getItemIcon(order.itemName))
             guiSetVisible(arr.img, true)
             guiSetText(arr.quantity, order.quantity)
+        else
+            guiStaticImageLoadImage(arr.img, 'files/images/logo.png')
+            guiSetVisible(arr.img, false)
+            guiSetText(arr.quantity, '')
         end
     end
     if (id == inv.noAmmo) then
