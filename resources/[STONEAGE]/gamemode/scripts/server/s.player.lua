@@ -63,7 +63,7 @@ function setAccountData(accountOrPlayer, dataName, value)
     local definition = playerDataTable[dataName]
     if not definition or not definition.savableInDB or not definition.savableInDB.Accounts then return false end
 
-    local ok = SQL:Exec("UPDATE `Accounts` SET ?? = ? WHERE `Owner` = ?", dataName, encodeAccountValue(value), account)
+    local ok = SQL:Exec("UPDATE `Accounts` SET `??` = ? WHERE `Owner` = ?", dataName, encodeAccountValue(value), account)
     ClearAccountDataCache(account)
 
     if isElement(accountOrPlayer) then
@@ -106,7 +106,7 @@ local function loadPlayerData(player, account)
                 value = definition.initialValue
                 if type(value) == "function" then value = value(player) end
                 if value ~= nil then
-                    SQL:Exec("UPDATE `Accounts` SET ?? = ? WHERE `Owner` = ?", dataName, encodeAccountValue(value), account)
+                    SQL:Exec("UPDATE `Accounts` SET `??` = ? WHERE `Owner` = ?", dataName, encodeAccountValue(value), account)
                 end
             end
             if value ~= nil and value ~= false then setElementData(player, dataName, value) end
@@ -120,6 +120,31 @@ local function loadPlayerData(player, account)
     ClearAccountDataCache(account)
     syncPedSide(player, {}, getElementData(player, "pedSideOrder"))
     loadingPlayerData[player] = nil
+
+    -- Spawn the player at the saved position after a successful login.
+    -- Without this, the account loads but the player remains at the default sky camera.
+    if not getElementData(player, "isDead") then
+        local position = getElementData(player, "position")
+        if type(position) ~= "table" or not tonumber(position.x) or not tonumber(position.y) or not tonumber(position.z) then
+            local x, y, z = getRandomSpawnPos()
+            position = { x = x, y = y, z = z }
+            setElementData(player, "position", position)
+        end
+
+        local skin = tonumber(getElementData(player, "Skin")) or 0
+        local spawned = spawnPlayer(
+            player,
+            tonumber(position.x), tonumber(position.y), tonumber(position.z),
+            math.random(0, 359), skin,
+            getElementInterior(player), getElementDimension(player)
+        )
+        if spawned then
+            setCameraTarget(player, player)
+        else
+            outputDebugString("[STONEAGE] Impossible de faire apparaître " .. getPlayerName(player) .. " à sa position sauvegardée.", 2)
+        end
+    end
+
     triggerClientEvent(player, "rust:onClientPlayerLogin", player, account)
     if getElementData(player, "isDead") then
         triggerClientEvent(player, "rust:onClientPlayerDie", player, "Reconnect", false, getElementData(player, "alivetime") or 0)
@@ -136,7 +161,7 @@ local function savePlayerData(player)
     for dataName, definition in pairs(playerDataTable) do
         if definition.savableInDB and definition.savableInDB.Accounts then
             local value = getElementData(player, dataName)
-            SQL:Exec("UPDATE `Accounts` SET ?? = ? WHERE `Owner` = ?", dataName, encodeAccountValue(value), account)
+            SQL:Exec("UPDATE `Accounts` SET `??` = ? WHERE `Owner` = ?", dataName, encodeAccountValue(value), account)
         end
     end
     ClearAccountDataCache(account)
@@ -428,7 +453,7 @@ addEventHandler("onElementDataChange", root, function(key, oldValue, value)
     if definition and definition.savableInDB and definition.savableInDB.Accounts then
         local account = resolveAccount(source)
         if account and SQL then
-            SQL:Exec("UPDATE `Accounts` SET ?? = ? WHERE `Owner` = ?", key, encodeAccountValue(value), account)
+            SQL:Exec("UPDATE `Accounts` SET `??` = ? WHERE `Owner` = ?", key, encodeAccountValue(value), account)
             ClearAccountDataCache(account)
         end
     end
