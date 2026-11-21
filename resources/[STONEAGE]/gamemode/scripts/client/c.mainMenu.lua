@@ -67,36 +67,36 @@ end
 local function drawAuth()
     local b = authUI.bounds
     if not b or not b.x then return end
-    dxDrawRectangle(0, 0, sW, sH, tocolor(0, 0, 0, 155), true)
-    dxDrawRectangle(b.x, b.y, b.w, b.h, predefinedColor('menu:color1'), true)
-    dxDrawRectangleBorders(b.x, b.y, b.w, b.h, predefinedColor('menu:color2'), 3, true)
-    dxDrawRectangle(b.x, b.y, b.w, 5, predefinedColor('menu:color2'), true)
+    dxDrawRectangle(0, 0, sW, sH, tocolor(0, 0, 0, 155), false)
+    dxDrawRectangle(b.x, b.y, b.w, b.h, predefinedColor('menu:color1'), false)
+    dxDrawRectangleBorders(b.x, b.y, b.w, b.h, predefinedColor('menu:color2'), 3, false)
+    dxDrawRectangle(b.x, b.y, b.w, 5, predefinedColor('menu:color2'), false)
 
     local title = authUI.mode == 'register' and 'CRÉER UN COMPTE' or 'CONNEXION'
     dxDrawText(title, b.x + 20, b.y + 20, b.x + b.w - 20, b.y + 65,
-        predefinedColor('menu:color2'), 1, font('futura:2'), 'center', 'center', false, false, true)
+        predefinedColor('menu:color2'), 1, font('futura:2'), 'center', 'center', false, false, false)
 
     dxDrawText('IDENTIFIANT', b.x + 48, b.y + 112, b.x + b.w - 48, b.y + 140,
-        predefinedColor('menu:color2'), 1, font('futura:2'), 'left', 'center', false, false, true)
+        predefinedColor('menu:color2'), 1, font('futura:2'), 'left', 'center', false, false, false)
     dxDrawText('MOT DE PASSE', b.x + 48, b.y + 182, b.x + b.w - 48, b.y + 210,
-        predefinedColor('menu:color2'), 1, font('futura:2'), 'left', 'center', false, false, true)
+        predefinedColor('menu:color2'), 1, font('futura:2'), 'left', 'center', false, false, false)
 
     local mainText = authUI.busy and 'VEUILLEZ PATIENTER...' or
         (authUI.mode == 'register' and 'CRÉER MON COMPTE' or 'SE CONNECTER')
     local mainY = b.y + 270
-    dxDrawRectangle(b.x + 48, mainY, b.w - 96, 42, predefinedColor('menu:color2'), true)
+    dxDrawRectangle(b.x + 48, mainY, b.w - 96, 42, predefinedColor('menu:color2'), false)
     dxDrawText(mainText, b.x + 48, mainY, b.x + b.w - 48, mainY + 42,
-        predefinedColor('menu:color1'), 1, font('futura:2'), 'center', 'center', false, false, true)
+        predefinedColor('menu:color1'), 1, font('futura:2'), 'center', 'center', false, false, false)
 
     local switchText = authUI.mode == 'register' and 'Déjà inscrit ? Se connecter' or 'Pas encore de compte ? Créer un compte'
     dxDrawText(switchText, b.x + 35, b.y + 320, b.x + b.w - 35, b.y + 355,
-        predefinedColor('menu:color2'), 1, font('futura'), 'center', 'center', false, false, true)
+        predefinedColor('menu:color2'), 1, font('futura'), 'center', 'center', false, false, false)
     dxDrawText('FERMER', b.x + b.w - 100, b.y + 12, b.x + b.w - 20, b.y + 42,
-        predefinedColor('menu:color2'), 1, font('futura:2'), 'center', 'center', false, false, true)
+        predefinedColor('menu:color2'), 1, font('futura:2'), 'center', 'center', false, false, false)
 
     if authUI.message and authUI.message ~= '' then
         dxDrawText(authUI.message, b.x + 25, b.y + 365, b.x + b.w - 25, b.y + 395,
-            predefinedColor('menu:color2'), 1, font('futura'), 'center', 'center', true, false, true)
+            predefinedColor('menu:color2'), 1, font('futura'), 'center', 'center', true, false, false)
     end
 end
 
@@ -144,7 +144,7 @@ end)
 
 function toggleLogin(state)
     toggleMenu(true)
-    toggleTutorial(false)
+    toggleTutorial(true)
 end
 addEvent('toggleLogin', true)
 addEventHandler('toggleLogin', localPlayer, toggleLogin)
@@ -184,7 +184,9 @@ isMenuShowing = function()
 end
 
 addEventHandler('onClientResourceStart', resourceRoot, function()
-    -- toggleLogin(true)
+    if not getElementData(localPlayer, 'account') then
+        toggleTutorial(true)
+    end
 end)
 
 addEventHandler('rust:onClientPlayerLogin', localPlayer, function(accName)
