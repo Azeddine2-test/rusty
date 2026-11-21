@@ -169,6 +169,10 @@ local function loadPlayerData(player, account)
         end
     end
 
+    -- A fracture is a temporary physical state, never a permanent character attribute.
+    -- Ignore any legacy brokenbone value still stored in older Accounts rows.
+    setElementData(player, "brokenbone", false)
+
     ClearAccountDataCache(account)
     syncPedSide(player, {}, getElementData(player, "pedSideOrder"))
     loadingPlayerData[player] = nil
