@@ -1,9 +1,49 @@
 loadEvent('rust:customKick', root, function(customMsg)
-    kickPlayer(source, customMsg)
+    local player = client or source
+    if not isElement(player) or getElementType(player) ~= 'player' then
+        return
+    end
+    -- A client may request only its own disconnect. Server-side anti-cheat calls
+    -- use triggerEvent (client is nil) and may still disconnect the selected player.
+    if isElement(client) and source ~= client then
+        return
+    end
+    if type(customMsg) ~= 'string' then
+        customMsg = 'Disconnected'
+    end
+    kickPlayer(player, customMsg:sub(1, 120))
+end)
+
+local lastGrenadeLauncherExplosion = {}
+addEventHandler('onPlayerQuit', root, function()
+    lastGrenadeLauncherExplosion[source] = nil
 end)
 
 loadEvent('rust:createGreandeLauncherExplosion', root, function(x, y, z)
-    createExplosion(x, y, z, 12, source)
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player
+        or getElementData(player, 'isDead') or getElementData(player, 'equippedItem') ~= 'Grenade Launcher' then
+        return
+    end
+    if type(x) ~= 'number' or type(y) ~= 'number' or type(z) ~= 'number'
+        or x ~= x or y ~= y or z ~= z then
+        return
+    end
+    local weaponSettings = getPlayerDataSetting('Grenade Launcher', 'weaponSettings')
+    if type(weaponSettings) ~= 'table' or getPedWeapon(player) ~= weaponSettings.weapID then
+        return
+    end
+    local px, py, pz = getElementPosition(player)
+    local maxDistance = tonumber(weaponSettings.distance) or 0
+    if maxDistance <= 0 or getDistanceBetweenPoints3D(px, py, pz, x, y, z) > maxDistance then
+        return
+    end
+    local now = getTickCount()
+    if lastGrenadeLauncherExplosion[player] and now - lastGrenadeLauncherExplosion[player] < 400 then
+        return
+    end
+    lastGrenadeLauncherExplosion[player] = now
+    createExplosion(x, y, z, 12, player)
 end)
 
 -- //------------------- LEVEL UP SYSTEM -------------------\\--
