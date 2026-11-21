@@ -234,3 +234,17 @@ function drawTutorialTexts()
 end
 
 -- //------------------- TUTORIALS -------------------\\--
+
+
+-- tutorial:skip-handler
+-- Allow players to leave the introductory camera tour at any time.
+addEventHandler('onClientKey', root, function(key, pressed)
+    if not pressed or not _tut.running then
+        return
+    end
+
+    if key == 'space' or key == 'escape' then
+        toggleTutorial(false)
+        cancelEvent()
+    end
+end)
