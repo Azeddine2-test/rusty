@@ -15,6 +15,193 @@ local authUI = {
     bounds = {},
 }
 
+local characterUI = {
+    visible = false,
+    busy = false,
+    message = '',
+    skinIndex = 1,
+    shirtIndex = 1,
+    pantsIndex = 1,
+    skins = {0, 7, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25},
+    shirts = {},
+    pants = {},
+    previewPed = nil,
+    previewRender = nil,
+    bounds = {},
+}
+
+local function getValidClothes(slot, fallback)
+    local result = {}
+    if type(getClothesByTypeIndex) == 'function' then
+        for id = 0, 40 do
+            local texture, model = getClothesByTypeIndex(slot, id)
+            if texture and model then result[#result + 1] = id end
+        end
+    end
+    if #result == 0 then result = fallback end
+    return result
+end
+
+characterUI.shirts = getValidClothes(0, {1, 2, 4, 5, 10, 11, 17, 19})
+characterUI.pants = getValidClothes(2, {7, 8, 9, 10, 11})
+
+local function selectedCharacterClothes()
+    return {
+        shirt = characterUI.shirts[characterUI.shirtIndex] or 1,
+        head = 0,
+        pants = characterUI.pants[characterUI.pantsIndex] or 7,
+    }
+end
+
+local function destroyCharacterPreview()
+    if isElement(characterUI.previewRender) then
+        exports['stoneage_object_preview']:destroyObjectPreview(characterUI.previewRender)
+    end
+    if isElement(characterUI.previewPed) then destroyElement(characterUI.previewPed) end
+    characterUI.previewRender, characterUI.previewPed = nil, nil
+end
+
+local function refreshCharacterPreview()
+    if not characterUI.visible then return end
+    local skin = characterUI.skins[characterUI.skinIndex] or 0
+    local clothes = selectedCharacterClothes()
+    if not isElement(characterUI.previewPed) then
+        characterUI.previewPed = createPed(skin, 0, 0, -30)
+        if not isElement(characterUI.previewPed) then return end
+        setElementData(characterUI.previewPed, 'previewPed', true, false)
+    else
+        setElementModel(characterUI.previewPed, skin)
+    end
+    setPedClothes(characterUI.previewPed, 0, clothes.shirt)
+    setPedClothes(characterUI.previewPed, 1, clothes.head)
+    setPedClothes(characterUI.previewPed, 2, clothes.pants)
+
+    if not isElement(characterUI.previewRender) then
+        local b = characterUI.bounds
+        characterUI.previewRender = exports['stoneage_object_preview']:createObjectPreview(
+            characterUI.previewPed, 0, 0, 180,
+            b.x + 25, b.y + 105, b.w * 0.43, b.h - 145, false, true, true
+        )
+        if isElement(characterUI.previewRender) then
+            exports['stoneage_object_preview']:setDistanceSpread(characterUI.previewRender, 0)
+        end
+    end
+end
+
+local function closeCharacterCreator()
+    characterUI.visible = false
+    characterUI.busy = false
+    if characterUI.renderHandler then
+        removeEventHandler('onClientRender', root, characterUI.renderHandler)
+        characterUI.renderHandler = nil
+    end
+    if characterUI.clickHandler then
+        removeEventHandler('onClientClick', root, characterUI.clickHandler)
+        characterUI.clickHandler = nil
+    end
+    destroyCharacterPreview()
+    characterUI.bounds = {}
+end
+
+local function drawCharacterCreator()
+    local b = characterUI.bounds
+    if not b or not b.x then return end
+    dxDrawRectangle(0, 0, sW, sH, tocolor(0, 0, 0, 190), false)
+    dxDrawRectangle(b.x, b.y, b.w, b.h, predefinedColor('menu:color1'), false)
+    dxDrawRectangleBorders(b.x, b.y, b.w, b.h, predefinedColor('menu:color2'), 3, false)
+    dxDrawRectangle(b.x, b.y, b.w, 5, predefinedColor('menu:color2'), false)
+    dxDrawText('CRÉATION DU PERSONNAGE', b.x + 15, b.y + 18, b.x + b.w - 15, b.y + 62,
+        predefinedColor('menu:color2'), 1, font('futura:2'), 'center', 'center', false, false, false)
+    dxDrawText('Choisis ton apparence avant de rejoindre le monde.', b.x + 20, b.y + 65, b.x + b.w - 20, b.y + 95,
+        predefinedColor('menu:color2'), 1, font('futura'), 'center', 'center', false, false, false)
+
+    local panelX = b.x + b.w * 0.52
+    local panelW = b.w * 0.43
+    local rows = {
+        {label = 'SKIN', value = tostring(characterUI.skins[characterUI.skinIndex] or 0), y = b.y + 145},
+        {label = 'HAUT', value = tostring(selectedCharacterClothes().shirt), y = b.y + 225},
+        {label = 'PANTALON', value = tostring(selectedCharacterClothes().pants), y = b.y + 305},
+    }
+    for _, row in ipairs(rows) do
+        dxDrawText(row.label, panelX, row.y - 20, panelX + panelW, row.y,
+            predefinedColor('menu:color2'), 1, font('futura:2'), 'center', 'center', false, false, false)
+        dxDrawRectangle(panelX, row.y, panelW, 42, predefinedColor('menu:color2'), false)
+        dxDrawText(row.value, panelX + 42, row.y, panelX + panelW - 42, row.y + 42,
+            predefinedColor('menu:color1'), 1, font('futura:2'), 'center', 'center', false, false, false)
+        dxDrawText('<', panelX + 5, row.y, panelX + 42, row.y + 42,
+            predefinedColor('menu:color1'), 1, font('futura:2'), 'center', 'center', false, false, false)
+        dxDrawText('>', panelX + panelW - 42, row.y, panelX + panelW - 5, row.y + 42,
+            predefinedColor('menu:color1'), 1, font('futura:2'), 'center', 'center', false, false, false)
+    end
+
+    local confirmY = b.y + b.h - 72
+    dxDrawRectangle(panelX, confirmY, panelW, 48, predefinedColor('menu:color2'), false)
+    dxDrawText(characterUI.busy and 'ENREGISTREMENT...' or 'VALIDER ET JOUER',
+        panelX, confirmY, panelX + panelW, confirmY + 48,
+        predefinedColor('menu:color1'), 1, font('futura:2'), 'center', 'center', false, false, false)
+    if characterUI.message ~= '' then
+        dxDrawText(characterUI.message, b.x + 20, b.y + b.h - 112, b.x + b.w - 20, b.y + b.h - 82,
+            predefinedColor('menu:color2'), 1, font('futura'), 'center', 'center', true, false, false)
+    end
+end
+
+local function characterCreatorClick(button, state, cx, cy)
+    if not characterUI.visible or button ~= 'left' or state ~= 'down' or characterUI.busy then return end
+    local b = characterUI.bounds
+    local panelX, panelW = b.x + b.w * 0.52, b.w * 0.43
+    local rows = {b.y + 145, b.y + 225, b.y + 305}
+    for index, rowY in ipairs(rows) do
+        if cx >= panelX and cx <= panelX + panelW and cy >= rowY and cy <= rowY + 42 then
+            local direction = cx < panelX + 42 and -1 or (cx > panelX + panelW - 42 and 1 or 0)
+            if direction == 0 then return end
+            local key = index == 1 and 'skinIndex' or (index == 2 and 'shirtIndex' or 'pantsIndex')
+            local list = index == 1 and characterUI.skins or (index == 2 and characterUI.shirts or characterUI.pants)
+            characterUI[key] = ((characterUI[key] - 1 + direction) % #list) + 1
+            refreshCharacterPreview()
+            return
+        end
+    end
+
+    local confirmY = b.y + b.h - 72
+    if cx >= panelX and cx <= panelX + panelW and cy >= confirmY and cy <= confirmY + 48 then
+        characterUI.busy = true
+        characterUI.message = ''
+        triggerServerEvent('rust:character:submit', localPlayer,
+            characterUI.skins[characterUI.skinIndex], selectedCharacterClothes())
+    end
+end
+
+local function openCharacterCreator()
+    if characterUI.visible then return end
+    closeAuth()
+    characterUI.visible = true
+    characterUI.busy = false
+    characterUI.message = ''
+    characterUI.skinIndex = 1
+    characterUI.shirtIndex = 1
+    characterUI.pantsIndex = 1
+    local w, h = math.min(850, sW - 40), math.min(540, sH - 40)
+    characterUI.bounds = {x = (sW - w) / 2, y = (sH - h) / 2, w = w, h = h}
+    menu.scene = 'character'
+    toggleTutorial(false)
+    showCursor(true)
+    characterUI.renderHandler = drawCharacterCreator
+    characterUI.clickHandler = characterCreatorClick
+    addEventHandler('onClientRender', root, characterUI.renderHandler)
+    addEventHandler('onClientClick', root, characterUI.clickHandler)
+    refreshCharacterPreview()
+end
+
+addEvent('rust:character:open', true)
+addEventHandler('rust:character:open', localPlayer, openCharacterCreator)
+
+addEvent('rust:character:result', true)
+addEventHandler('rust:character:result', localPlayer, function(success, message)
+    characterUI.busy = false
+    characterUI.message = tostring(message or '')
+    if success then closeCharacterCreator() end
+end)
+
 local function destroyAuthInputs()
     for _, edit in pairs(authUI.edits) do
         if isElement(edit) then destroyElement(edit) end
@@ -197,6 +384,7 @@ addEventHandler('onClientResourceStart', resourceRoot, function()
 end)
 
 addEventHandler('rust:onClientPlayerLogin', localPlayer, function(accName)
+    if characterUI.visible then closeCharacterCreator() end
     toggleMenu(false)
 end)
 -- //------------------- TOGGLE -------------------\\--
