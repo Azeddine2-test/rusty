@@ -577,7 +577,8 @@ end)
 
 loadEvent("player:onDie", root, function(details)
     local player = client or source
-    if not isElement(player) or getElementType(player) ~= "player" or getElementData(player, "isDead") then return end
+    if not isElement(player) or getElementType(player) ~= "player"
+        or (isElement(client) and source ~= client) or getElementData(player, "isDead") then return end
     details = type(details) == "table" and details or {}
     setElementData(player, "isDead", true)
     setAccountData(player, "starterKitGiven", false)
@@ -588,12 +589,27 @@ loadEvent("player:onDie", root, function(details)
     savePlayerData(player)
 end)
 
+local function isValidPlayerSpawnPosition(x, y, z)
+    for _, positions in pairs(playerSpawns or {}) do
+        for _, position in ipairs(positions) do
+            if getDistanceBetweenPoints3D(x, y, z, position[1], position[2], position[3]) <= 5 then
+                return true
+            end
+        end
+    end
+    return false
+end
+
 loadEvent("player:onSpawn", root, function(x, y, z, model)
     local player = client or source
-    if not isElement(player) or getElementType(player) ~= "player" then return end
-    if not isAccountFlagEnabled(getElementData(player, "isDead")) then return end
+    if not isElement(player) or getElementType(player) ~= "player"
+        or (isElement(client) and source ~= client) then return end
+    if not getElementData(player, "account") or not isAccountFlagEnabled(getElementData(player, "isDead")) then return end
     x, y, z = tonumber(x), tonumber(y), tonumber(z)
-    if not x or not y or not z then return end
+    if not x or not y or not z or x ~= x or y ~= y or z ~= z then return end
+    -- Client requests may use only one of the configured public respawn points.
+    -- Bed spawns are initiated by the server and therefore bypass this check.
+    if isElement(client) and not isValidPlayerSpawnPosition(x, y, z) then return end
     local skin = 0
     setElementData(player, "Skin", skin)
     spawnPlayer(player, x, y, z, math.random(0, 359), skin, getElementInterior(player), getElementDimension(player))
@@ -611,8 +627,10 @@ loadEvent("player:onSpawn", root, function(x, y, z, model)
 end)
 
 loadEvent("onPlayerSpawnAtBed", root, function(bed)
-    local player = client or source
-    if not isElement(player) or not isElement(bed) or getElementData(bed, "obName") ~= "Cama" then return end
+    local player = client
+    if not isElement(player) or getElementType(player) ~= "player" or source ~= player
+        or not getElementData(player, "account") or not getElementData(player, "isDead")
+        or not isElement(bed) or getElementType(bed) ~= "object" or getElementData(bed, "obName") ~= "Cama" then return end
     local owner = getElementData(bed, "owner")
     local account = getElementData(player, "account")
     if owner ~= account then
