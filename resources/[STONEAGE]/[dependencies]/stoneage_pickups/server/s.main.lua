@@ -53,7 +53,7 @@ addEventHandler('onResourceStart', resourceRoot, function()
             createLootPoint(lootType, x, y, z, rx, ry, rz)
         end
     end, function()
-        if isElement(xml) then xmlUnloadFile(xml) end
+        xmlUnloadFile(xml)
     end)
 end)
 -- //------------------- LOAD LOOT POINTS ON START -------------------\\--
