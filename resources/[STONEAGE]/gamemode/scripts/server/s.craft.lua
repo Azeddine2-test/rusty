@@ -796,6 +796,7 @@ loadEvent('craft:collectWaterFromWell', root, function(ob)
         return NOTIFICATION:CreateNotification(player, translate(player, 'Agua insuficiente'), 'error')
     end
 
+    setElementData(ob, 'poço:water', waterLevel - 20)
     order[equippedID].itemName = 'Water'
     setElementData(player, 'keybarOrder', order)
     setPedAnimation(player, 'bomber', 'bom_plant', -1, false, false, false, false)
