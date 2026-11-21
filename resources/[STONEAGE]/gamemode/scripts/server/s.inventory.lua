@@ -508,61 +508,85 @@ function playerRemoveDefenseItem(_ARG_0_, _ARG_1_)
     detachDefenseFromBone(_ARG_1_, _ARG_0_)
   end
 end
-loadEvent("removeDefenseItemOnDestroy", root, function(_ARG_0_, _ARG_1_)
-  if not isElement(_ARG_0_) then
-    return false
-  end
-  if type((getElementData(_ARG_0_, "pedSideOrder"))) ~= "table" then
-    return false
-  end
-  for _FORV_6_, _FORV_7_ in pairs((getElementData(_ARG_0_, "pedSideOrder"))) do
-    if _FORV_7_.itemName == _ARG_1_ then
-      playerRemoveDefenseItem(_ARG_0_, _ARG_1_)
-      getElementData(_ARG_0_, "pedSideOrder")[_FORV_6_] = nil
-      setElementData(_ARG_0_, "pedSideOrder", (getElementData(_ARG_0_, "pedSideOrder")))
-      break
+-- Defense item destruction is handled by the server-only handler in s.player.lua.
+loadEvent("rust:onPlayerConsumeMedicament", root, function(target, itemName, slotID)
+    local player = client
+    if not isElement(player) or getElementType(player) ~= "player" or source ~= player
+        or getElementData(player, "isDead") or not getElementData(player, "account") then
+        return
     end
-  end
+    if not isElement(target) or getElementType(target) ~= "player" or getElementData(target, "isDead") then
+        return
+    end
+    local allowed = {
+        ["Morphine"] = true,
+        ["Bandage"] = true,
+        ["Blood Kit"] = true,
+        ["Frist Aid"] = true,
+    }
+    if not allowed[itemName] or getElementData(player, "equippedSlotID") ~= tonumber(slotID) then
+        return
+    end
+    slotID = tonumber(slotID)
+    local order = getElementData(player, "keybarOrder")
+    local entry = type(order) == "table" and order[slotID]
+    if type(entry) ~= "table" or entry.itemName ~= itemName or (tonumber(entry.quantity) or 0) <= 0
+        or (tonumber(getElementData(player, itemName)) or 0) <= 0 then
+        return
+    end
+
+    local px, py, pz = getElementPosition(player)
+    local tx, ty, tz = getElementPosition(target)
+    if getElementDimension(player) ~= getElementDimension(target)
+        or getElementInterior(player) ~= getElementInterior(target)
+        or getDistanceBetweenPoints3D(px, py, pz, tx, ty, tz) > 3 then
+        return
+    end
+
+    if itemName == "Morphine" then
+        removeElementData(target, "brokenbone")
+    elseif itemName == "Bandage" then
+        setElementData(target, "bleeding", 0)
+        setElementData(target, "blood", math.min(getPlayerDataSetting("blood", "max"), (getElementData(target, "blood") or 0) + math.random(300, 500)))
+    elseif itemName == "Blood Kit" then
+        setElementData(target, "blood", math.min(getPlayerDataSetting("blood", "max"), (getElementData(target, "blood") or 0) + math.random(5000, 6000)))
+    elseif itemName == "Frist Aid" then
+        setElementData(target, "blood", math.min(getPlayerDataSetting("blood", "max"), (getElementData(target, "blood") or 0) + math.random(3000, 4000)))
+        setElementData(target, "bleeding", 0)
+        removeElementData(target, "brokenbone")
+    end
+
+    entry.quantity = entry.quantity - 1
+    setElementData(player, itemName, math.max(0, (tonumber(getElementData(player, itemName)) or 0) - 1))
+    if entry.quantity <= 0 then
+        onPlayerDisequipItem(slotID, player)
+        order[slotID] = nil
+    end
+    setElementData(player, "keybarOrder", order)
+    setPedAnimation(player, "bomber", "bom_plant", -1, false, false, false, false)
 end)
-loadEvent("rust:onPlayerConsumeMedicament", root, function(_ARG_0_, _ARG_1_, _ARG_2_)
-  if not isElement(_ARG_0_) then
-    return
-  end
-  if not getElementData(source, "keybarOrder") or not getElementData(source, "keybarOrder")[_ARG_2_] then
-    return false
-  end
-  if (getElementData(source, "keybarOrder")[_ARG_2_].quantity or 0) <= 0 then
-    return false
-  end
-  if _ARG_1_ == "Morphine" then
-    removeElementData(_ARG_0_, "brokenbone")
-  elseif _ARG_1_ == "Bandage" then
-    setElementData(_ARG_0_, "bleeding", 0)
-    setElementData(_ARG_0_, "blood", (math.min(getPlayerDataSetting("blood", "max"), (getElementData(_ARG_0_, "blood") or 0) + math.random(300, 500))))
-  elseif _ARG_1_ == "Blood Kit" then
-    setElementData(_ARG_0_, "blood", (math.min(getPlayerDataSetting("blood", "max"), (getElementData(_ARG_0_, "blood") or 0) + math.random(5000, 6000))))
-  elseif _ARG_1_ == "Frist Aid" then
-    setElementData(_ARG_0_, "blood", (math.min(getPlayerDataSetting("blood", "max"), (getElementData(_ARG_0_, "blood") or 0) + math.random(3000, 4000))))
-    setElementData(_ARG_0_, "bleeding", 0)
-    removeElementData(_ARG_0_, "brokenbone")
-  end
-  getElementData(source, "keybarOrder")[_ARG_2_].quantity = getElementData(source, "keybarOrder")[_ARG_2_].quantity - 1
-  if getElementData(source, "keybarOrder")[_ARG_2_].quantity <= 0 then
-    onPlayerDisequipItem(_ARG_2_, source)
-    getElementData(source, "keybarOrder")[_ARG_2_] = nil
-  end
-  setElementData(source, "keybarOrder", (getElementData(source, "keybarOrder")))
-  setPedAnimation(source, "bomber", "bom_plant", -1, false, false, false, false)
-end)
-loadEvent("inv:fillBottle", root, function(_ARG_0_)
-  if not isElement(source) then
-    return
-  end
-  if not getElementData(source, "invOrder") or not getElementData(source, "invOrder")[_ARG_0_] then
-    return
-  end
-  setPreference(source, _ARG_0_, "Empty Bottle", 1)
-  setElementData(source, "Empty Bottle", (getElementData(source, "Empty Bottle") or 0) - 1)
-  setPreference(source, _ARG_0_, "Water", 1)
-  setElementData(source, "Water", (getElementData(source, "Water") or 0) + 1)
+
+loadEvent("inv:fillBottle", root, function(slotID)
+    local player = client
+    if not isElement(player) or getElementType(player) ~= "player" or source ~= player
+        or getElementData(player, "isDead") or not getElementData(player, "account")
+        or not isElementInWater(player) then
+        return
+    end
+    slotID = tonumber(slotID)
+    if not slotID then return end
+    slotID = math.floor(slotID)
+    if slotID < 1 or slotID > inventorySlotLimit(player) then return end
+
+    local order = getElementData(player, "invOrder")
+    local entry = type(order) == "table" and order[slotID]
+    if type(entry) ~= "table" or entry.itemName ~= "Empty Bottle" or (tonumber(entry.quantity) or 0) < 1
+        or (tonumber(getElementData(player, "Empty Bottle")) or 0) < 1 then
+        return
+    end
+
+    setPreference(player, slotID, "Empty Bottle", 1)
+    setElementData(player, "Empty Bottle", (getElementData(player, "Empty Bottle") or 0) - 1)
+    setPreference(player, slotID, "Water", 1)
+    setElementData(player, "Water", (getElementData(player, "Water") or 0) + 1)
 end)
