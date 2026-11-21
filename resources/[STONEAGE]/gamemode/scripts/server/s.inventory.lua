@@ -386,6 +386,12 @@ function onPlayerEquipItem(slotID, player)
     local itemName = entry.itemName
     if (tonumber(getElementData(player, itemName)) or 0) <= 0 then return false end
 
+    -- Remove the previously held object/weapon before attaching the next hotbar item.
+    local previousItem = getElementData(player, "equippedItem")
+    if previousItem and type(onPlayerDisequipItem) == "function" then
+        onPlayerDisequipItem(getElementData(player, "equippedSlotID"), player)
+    end
+
     local weapon = getPlayerDataSetting(itemName, "weaponSettings")
     local ammoSettings = getPlayerDataSetting(itemName, "ammo")
     if type(weapon) == "table" and tonumber(weapon.weapID) then
