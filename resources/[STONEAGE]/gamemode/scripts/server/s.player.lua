@@ -8,6 +8,22 @@ local function isAccountFlagEnabled(value)
     return value == true or tonumber(value) == 1
 end
 
+-- Chaque véritable respawn repart avec les jauges pleines.
+local function resetPlayerVitals(player)
+    if not isElement(player) or getElementType(player) ~= "player" then return false end
+    local hungerMax = tonumber(getPlayerDataSetting("fome", "max")) or 100
+    local thirstMax = tonumber(getPlayerDataSetting("sede", "max")) or 100
+    local bloodMax = tonumber(getPlayerDataSetting("blood", "max")) or 15000
+
+    setElementData(player, "fome", hungerMax)
+    setElementData(player, "sede", thirstMax)
+    setElementData(player, "blood", bloodMax)
+    setElementData(player, "bleeding", 0)
+    setElementData(player, "alivetime", 0)
+    setElementHealth(player, 100)
+    return true
+end
+
 local function giveRespawnStarterKit(player)
     if not isElement(player) or getElementType(player) ~= "player" then return false end
 
@@ -579,9 +595,11 @@ addEventHandler("rust:player:ensureSpawn", root, function()
         setElementData(player, "Skin", skin)
         if spawnPlayer(player, x, y, z, math.random(0, 359), skin, 0, 0) then
             setElementData(player, "isDead", false)
+            resetPlayerVitals(player)
             applySavedCharacterClothes(player)
             giveRespawnStarterKit(player)
             triggerClientEvent(player, "rust:onClientPlayerSpawn", player)
+            savePlayerData(player)
         end
     end
     setCameraTarget(player, player)
@@ -749,10 +767,7 @@ local function spawnPlayerAtPosition(player, x, y, z)
     applySavedCharacterClothes(player)
     setCameraTarget(player, player)
     setElementData(player, "isDead", false)
-    setElementData(player, "blood", getPlayerDataSetting("blood", "max") or 15000)
-    setElementData(player, "bleeding", 0)
-    setElementData(player, "alivetime", 0)
-    setElementHealth(player, 100)
+    resetPlayerVitals(player)
     giveRespawnStarterKit(player)
     syncPedSide(player, {}, getElementData(player, "pedSideOrder"))
     triggerClientEvent(player, "rust:onClientPlayerSpawn", player)
