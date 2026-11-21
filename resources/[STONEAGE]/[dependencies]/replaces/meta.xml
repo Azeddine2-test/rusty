@@ -445,4 +445,11 @@
     <file src="files/imported/armas/machado.dff" />
     <file src="files/imported/armas/picareta.txd" />
     <file src="files/imported/armas/picareta.dff" />
+    <!-- Modeles d'armes importes depuis Armas. -->
+    <file src="files/imported/armas/awm.dff" />
+    <file src="files/imported/armas/awm.txd" />
+    <file src="files/imported/armas/kar98k.dff" />
+    <file src="files/imported/armas/kar98k.txd" />
+    <file src="files/imported/armas/m16a4.dff" />
+    <file src="files/imported/armas/m16a4.txd" />
 </meta>
