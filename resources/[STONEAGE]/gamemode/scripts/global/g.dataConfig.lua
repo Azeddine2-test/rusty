@@ -397,11 +397,9 @@ playerDataTable = {
             ['Accounts'] = 'TEXT'
         },
     },
+    -- Temporary injury: deliberately not persisted between sessions.
     ['brokenbone'] = {
-        initialValue = nil,
-        savableInDB = {
-            ['Accounts'] = 'INT'
-        },
+        initialValue = false,
     },
     ['bleeding'] = {
         initialValue = 0,
