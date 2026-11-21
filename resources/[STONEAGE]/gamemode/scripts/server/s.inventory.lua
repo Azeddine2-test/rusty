@@ -128,6 +128,65 @@ function getPreference(element, itemName)
     return result
 end
 
+-- Transfer loot from a container into the player's real inventory.
+addEvent("inv:takeItem", true)
+addEventHandler("inv:takeItem", root, function(container, targetSlot, sourceSlot, sourceType, targetType)
+    local player = client
+    if not isElement(player) or source ~= player then return end
+    if sourceType ~= "loot" or (targetType ~= nil and targetType ~= "inv") then return end
+    if not isElement(container) or getElementType(container) ~= "object" then return end
+    if container == player or getElementData(container, "obName") == "farmObject" then return end
+
+    local px, py, pz = getElementPosition(player)
+    local ox, oy, oz = getElementPosition(container)
+    if getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 10 then return end
+
+    sourceSlot = tonumber(sourceSlot)
+    targetSlot = tonumber(targetSlot)
+    if not sourceSlot or sourceSlot < 1 then return end
+
+    local sourceOrder = getElementData(container, "invOrder")
+    if type(sourceOrder) ~= "table" then return end
+    local entry = sourceOrder[sourceSlot]
+    if type(entry) ~= "table" or type(entry.itemName) ~= "string" then return end
+
+    local itemName = entry.itemName
+    local quantity = math.floor(tonumber(entry.quantity) or 0)
+    local containerQuantity = math.floor(tonumber(getElementData(container, itemName)) or 0)
+    if quantity <= 0 or containerQuantity <= 0 then return end
+    quantity = math.min(quantity, containerQuantity)
+
+    local playerOrder = getElementData(player, "invOrder")
+    if type(playerOrder) ~= "table" then playerOrder = {} end
+    local maxSlots = math.max(1, tonumber(getElementData(player, "maxSlots")) or 28)
+    local maxStack = math.max(1, tonumber(getItemMaxStack(itemName)) or 1)
+    local capacity = 0
+    local usedSlots = 0
+    for _, item in pairs(playerOrder) do
+        if type(item) == "table" then
+            usedSlots = usedSlots + 1
+            if item.itemName == itemName then
+                capacity = capacity + math.max(0, maxStack - (tonumber(item.quantity) or 0))
+            end
+        end
+    end
+    capacity = capacity + math.max(0, maxSlots - usedSlots) * maxStack
+    if capacity < quantity then
+        triggerClientEvent(player, "receiveMoveSync", player, "loot", sourceSlot)
+        if targetSlot then triggerClientEvent(player, "receiveMoveSync", player, "inv", targetSlot) end
+        return
+    end
+
+    if targetSlot then setPreference(player, targetSlot, itemName, quantity) end
+    setPreference(container, sourceSlot, itemName, quantity)
+
+    setElementData(container, itemName, math.max(0, containerQuantity - quantity))
+    setElementData(player, itemName, (tonumber(getElementData(player, itemName)) or 0) + quantity)
+
+    triggerClientEvent(player, "receiveMoveSync", player, "loot", sourceSlot)
+    if targetSlot then triggerClientEvent(player, "receiveMoveSync", player, "inv", targetSlot) end
+end)
+
 function onPlayerEquipItem(_ARG_0_, _ARG_1_)
   _ARG_1_ = _ARG_1_ or source
   if not isElement(_ARG_1_) then
