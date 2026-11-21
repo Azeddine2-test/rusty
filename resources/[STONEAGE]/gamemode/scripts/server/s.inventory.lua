@@ -237,10 +237,13 @@ function onPlayerDisequipItem(_ARG_0_, _ARG_1_)
     return false
   end
   if isWeapon(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName) then
+    local player = _ARG_1_
+    local itemName = getElementData(player, "keybarOrder")[_ARG_0_].itemName
     setTimer(function()
-      takeAllWeapons(_UPVALUE0_)
-      detachItemFromBone(_UPVALUE1_, _UPVALUE0_)
-      attachWeaponToBody(_UPVALUE1_, _UPVALUE0_)
+      if not isElement(player) then return end
+      takeAllWeapons(player)
+      detachItemFromBone(itemName, player)
+      attachWeaponToBody(itemName, player)
     end, 180, 1)
   else
     detachItemFromBone(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, _ARG_1_)
