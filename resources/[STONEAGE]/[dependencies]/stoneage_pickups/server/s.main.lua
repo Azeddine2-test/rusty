@@ -146,7 +146,7 @@ function generateLootToGive(lootType)
     local loots = {}
 
     local function addLoot(itemName)
-        if type(itemName) ~= "string" or not isItemOfInventory(itemName) then return false end
+        if type(itemName) ~= "string" or not exports["gamemode"]:isItemOfInventory(itemName) then return false end
         local quantity = tonumber(exports["gamemode"]:getItemMaxSpawnQuantity(itemName)) or 0
         if quantity <= 0 then return false end
         if quantity > 1 then quantity = math.floor(math.random(math.max(1, math.floor(quantity / 2)), quantity)) end
@@ -154,7 +154,7 @@ function generateLootToGive(lootType)
         loots[#loots + 1] = {itemName, quantity}
 
         local ammo = exports["gamemode"]:getPlayerDataSetting(itemName, "ammo")
-        if type(ammo) == "table" and type(ammo.name) == "string" and isItemOfInventory(ammo.name) then
+        if type(ammo) == "table" and type(ammo.name) == "string" and exports["gamemode"]:isItemOfInventory(ammo.name) then
             local ammoQuantity = tonumber(exports["gamemode"]:getItemMaxSpawnQuantity(ammo.name)) or 0
             if ammoQuantity > 0 then loots[#loots + 1] = {ammo.name, ammoQuantity} end
         end
@@ -199,7 +199,7 @@ function createSack(x, y, z, items, sackName)
     for _, item in ipairs(items) do
         local itemName = item[1]
         local quantity = math.floor(tonumber(item[2]) or 0)
-        if type(itemName) == "string" and quantity > 0 and isItemOfInventory(itemName) then
+        if type(itemName) == "string" and quantity > 0 and exports["gamemode"]:isItemOfInventory(itemName) then
             setElementData(ob, itemName, (tonumber(getElementData(ob, itemName)) or 0) + quantity)
             local merged = false
             for _, entry in pairs(order) do
