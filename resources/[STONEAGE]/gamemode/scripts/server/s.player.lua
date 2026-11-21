@@ -431,7 +431,7 @@ addEvent("rust:character:submit", true)
 addEventHandler("rust:character:submit", root, function(skin, clothes)
     local player = client
     if not isElement(player) or source ~= player then return end
-    if getElementData(player, "characterCreated") == true then return end
+    if isAccountFlagEnabled(getElementData(player, "characterCreated")) then return end
 
     skin = tonumber(skin)
     local allowedSkins = {
