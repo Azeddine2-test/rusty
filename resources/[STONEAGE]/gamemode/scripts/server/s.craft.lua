@@ -1303,16 +1303,28 @@ addEventHandler('onElementDataChange', resourceRoot, function(key, old, new)
     end
 end)
 
+local resetableObjectTypes = {
+    ['baseItems'] = true, ['Wardrobe'] = true, ['Baú Pequeno'] = true, ['Baú Grande'] = true,
+    ['Water Barrel'] = true, ['Fornalha'] = true, ['Fogueira'] = true, ['Mesa de pesquisa'] = true,
+    ['Poço'] = true, ['Sandbags'] = true, ['Barricade'] = true, ['Placa'] = true, ['Planter'] = true,
+    ['Cama'] = true, ['Workbench'] = true, ['Fixed Torch'] = true, ['Sentry'] = true,
+}
+
 loadEvent('rust:resetItems', root, function(obType)
-    local myAccount = getElementData(source, 'account')
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player
+        or getElementData(player, 'isDead') or not resetableObjectTypes[obType] then
+        return
+    end
+    local myAccount = getElementData(player, 'account')
     if not myAccount then
         return
     end
     if takedDamage[myAccount] then
-        exports['stoneage_notifications']:CreateNotification(source, translate(source, 'tomou dano em pouco tempo'), 'error')
+        exports['stoneage_notifications']:CreateNotification(player, translate(player, 'tomou dano em pouco tempo'), 'error')
         return
     end
-    local playerName = getPlayerName(source)
+    local playerName = getPlayerName(player)
     for _, ob in ipairs(getElementsByType('object', resourceRoot)) do
         if isElement(ob) then
             if (getElementData(ob, 'owner') == myAccount) then
@@ -1324,10 +1336,20 @@ loadEvent('rust:resetItems', root, function(obType)
             end
         end
     end
-    setElementData(source, obType, 0)
+    setElementData(player, obType, 0)
 end)
 
 RequestObjectInfo = function(ob)
+    if not isElement(client) or source ~= client or not isElement(ob) then
+        return
+    end
+    local px, py, pz = getElementPosition(client)
+    local ox, oy, oz = getElementPosition(ob)
+    if getElementDimension(client) ~= getElementDimension(ob)
+        or getElementInterior(client) ~= getElementInterior(ob)
+        or getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 6 then
+        return
+    end
     if isElement(ob) then
         local infos = {{'Data de criação', getElementData(ob, 'creationTime')}}
 
