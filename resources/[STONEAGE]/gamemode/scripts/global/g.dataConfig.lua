@@ -1500,8 +1500,8 @@ playerDataTable = {
         attachBackward = {
             modelID = 2998,
             scale = 1,
-            bone = 13,
-            pos = {-0.05, 0.05, 0.35, 5, 180, 90},
+            bone = 3,
+            pos = {0.15, 0.18, 0.2, 0, 55, 180},
         },
         receiveOnCraft = 1,
     },
@@ -1530,8 +1530,8 @@ playerDataTable = {
         attachBackward = {
             modelID = 2999,
             scale = 1,
-            bone = 13,
-            pos = {-0.05, 0.05, 0.35, 5, 180, 90},
+            bone = 3,
+            pos = {0.15, 0.18, 0.2, 0, 55, 180},
         },
         receiveOnCraft = 1,
     },
