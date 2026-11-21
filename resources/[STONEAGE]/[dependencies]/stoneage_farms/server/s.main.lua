@@ -132,7 +132,8 @@ addEventHandler("farm:onHitObject", root, function(object, itemName)
     local farmType = getElementData(object, "farmType")
     local config = farms[farmType]
     local equippedItem = getElementData(player, "equippedItem")
-    local hitSettings = config and config.hitSettings and config.hitSettings[equippedItem]
+    -- Sans outil équipé, le joueur frappe avec ses mains (autorisé sur les arbres uniquement via config).
+    local hitSettings = config and config.hitSettings and config.hitSettings[equippedItem or "Hands"]
     if not hitSettings or type(hitSettings.removeQuantity) ~= "table" then return end
 
     local available = math.floor(tonumber(getElementData(object, itemName)) or 0)
