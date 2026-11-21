@@ -6,32 +6,22 @@ local menu = {
     showing = false,
 }
 
-local skinUI = {
-    skins = {7, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25},
-    index = 1,
-    bounds = {},
-}
-
-local function openSkinSelector()
-    local current = tonumber(getElementModel(localPlayer)) or 7
-    skinUI.index = 1
-    for index, skin in ipairs(skinUI.skins) do
-        if skin == current then skinUI.index = index break end
-    end
-    local w, h = math.min(460, sW - 40), 230
-    skinUI.bounds = {x = (sW - w) / 2, y = menu.headerHeight + 45, w = w, h = h}
-    menu.scene = 'skin'
-end
-
 local clothesUI = {
-    slots = { { id = 0, key = "shirt", label = "HAUT" }, { id = 1, key = "head", label = "TÊTE" }, { id = 2, key = "pants", label = "PANTALON" } },
+    slots = {
+        { id = 0, key = "shirt", label = "HAUT" },
+        { id = 1, key = "head", label = "VISAGE / TEINT" },
+        { id = 2, key = "pants", label = "PANTALON" },
+        { id = 3, key = "shoes", label = "CHAUSSURES" },
+        { id = 15, key = "glasses", label = "LUNETTES" },
+        { id = 16, key = "hat", label = "CHAPEAU" },
+    },
     choices = {},
     selected = {},
     bounds = {},
 }
 
 local function openClothesSelector()
-    local saved = getElementData(localPlayer, "Clothes") or { shirt = 1, head = 0, pants = 7 }
+    local saved = getElementData(localPlayer, "Clothes") or { shirt = 1, head = 0, pants = 7, shoes = 0, glasses = 0, hat = 0 }
     for _, slot in ipairs(clothesUI.slots) do
         local choices = {}
         if type(getClothesByTypeIndex) == "function" then
@@ -48,7 +38,7 @@ local function openClothesSelector()
             if value == current then clothesUI.selected[slot.key] = i break end
         end
     end
-    local w, h = math.min(520, sW - 40), 320
+    local w, h = math.min(560, sW - 40), 430
     clothesUI.bounds = { x = (sW - w) / 2, y = menu.headerHeight + 35, w = w, h = h }
     menu.scene = "clothes"
 end
@@ -62,7 +52,7 @@ local function drawClothesSelector()
     dxDrawText("PERSONNALISER LES VÊTEMENTS", b.x + 12, b.y + 12, b.x + b.w - 12, b.y + 48,
         predefinedColor("menu:color2"), 1, font("futura:2"), "center", "center", false, false, true)
     for row, slot in ipairs(clothesUI.slots) do
-        local y = b.y + 65 + (row - 1) * 55
+        local y = b.y + 65 + (row - 1) * 47
         local choices = clothesUI.choices[slot.key] or { 0 }
         local selected = clothesUI.selected[slot.key] or 1
         dxDrawText(slot.label, b.x + 25, y, b.x + 145, y + 38, predefinedColor("menu:color2"), 1, font("futura:2"), "left", "center", false, false, true)
@@ -80,7 +70,7 @@ local function handleClothesSelectorClick(x, y)
     local b = clothesUI.bounds
     if not b or not b.x then return true end
     for row, slot in ipairs(clothesUI.slots) do
-        local rowY = b.y + 65 + (row - 1) * 55
+        local rowY = b.y + 65 + (row - 1) * 47
         if y >= rowY and y <= rowY + 38 then
             local choices = clothesUI.choices[slot.key] or { 0 }
             local selected = clothesUI.selected[slot.key] or 1
@@ -106,55 +96,6 @@ local function handleClothesSelectorClick(x, y)
         return true
     end
     if x < b.x or x > b.x + b.w or y < b.y or y > b.y + b.h then menu.scene = nil end
-    return true
-end
-
-local function drawSkinSelector()
-    local b = skinUI.bounds
-    if not b or not b.x then return end
-    local skin = skinUI.skins[skinUI.index] or 7
-    dxDrawRectangle(b.x, b.y, b.w, b.h, predefinedColor('menu:color1'), true)
-    dxDrawRectangleBorders(b.x, b.y, b.w, b.h, predefinedColor('menu:color2'), 3, true)
-    dxDrawRectangle(b.x, b.y, b.w, 5, predefinedColor('menu:color2'), true)
-    dxDrawText('CHANGER DE SKIN', b.x + 15, b.y + 15, b.x + b.w - 15, b.y + 55,
-        predefinedColor('menu:color2'), 1, font('futura:2'), 'center', 'center', false, false, true)
-    dxDrawText('<', b.x + 35, b.y + 75, b.x + 95, b.y + 135,
-        predefinedColor('menu:color2'), 2, font('futura:2'), 'center', 'center', false, false, true)
-    dxDrawText('Skin ID : ' .. tostring(skin), b.x + 95, b.y + 75, b.x + b.w - 95, b.y + 135,
-        predefinedColor('menu:color2'), 1.3, font('futura:2'), 'center', 'center', false, false, true)
-    dxDrawText('>', b.x + b.w - 95, b.y + 75, b.x + b.w - 35, b.y + 135,
-        predefinedColor('menu:color2'), 2, font('futura:2'), 'center', 'center', false, false, true)
-    dxDrawRectangle(b.x + 35, b.y + b.h - 60, b.w * 0.42, 38, predefinedColor('menu:color2'), true)
-    dxDrawText('APPLIQUER', b.x + 35, b.y + b.h - 60, b.x + 35 + b.w * 0.42, b.y + b.h - 22,
-        predefinedColor('menu:color1'), 1, font('futura:2'), 'center', 'center', false, false, true)
-    dxDrawRectangle(b.x + b.w * 0.55, b.y + b.h - 60, b.w * 0.37, 38, predefinedColor('menu:color2'), true)
-    dxDrawText('FERMER', b.x + b.w * 0.55, b.y + b.h - 60, b.x + b.w * 0.92, b.y + b.h - 22,
-        predefinedColor('menu:color1'), 1, font('futura:2'), 'center', 'center', false, false, true)
-end
-
-local function handleSkinSelectorClick(x, y)
-    local b = skinUI.bounds
-    if not b or not b.x then return true end
-    if y >= b.y + 75 and y <= b.y + 135 then
-        if x >= b.x + 35 and x <= b.x + 95 then
-            skinUI.index = ((skinUI.index - 2) % #skinUI.skins) + 1
-        elseif x >= b.x + b.w - 95 and x <= b.x + b.w - 35 then
-            skinUI.index = (skinUI.index % #skinUI.skins) + 1
-        end
-        return true
-    end
-    if y >= b.y + b.h - 60 and y <= b.y + b.h - 22 then
-        if x >= b.x + 35 and x <= b.x + 35 + b.w * 0.42 then
-            triggerServerEvent('rust:skin:change', localPlayer, skinUI.skins[skinUI.index])
-            menu.scene = nil
-        elseif x >= b.x + b.w * 0.55 and x <= b.x + b.w * 0.92 then
-            menu.scene = nil
-        end
-        return true
-    end
-    if x < b.x or x > b.x + b.w or y < b.y or y > b.y + b.h then
-        menu.scene = nil
-    end
     return true
 end
 
@@ -388,9 +329,6 @@ local menuItems = {
         label = 'JOGAR',
         icon = 'ui/play.png',
     }, {
-        label = 'SKIN',
-        icon = 'ui/settings.png',
-    }, {
         label = 'VÊTEMENTS',
         icon = 'ui/settings.png',
     }},
@@ -426,7 +364,7 @@ function drawMenu()
         if type(arr) == 'table' then
             menuItems[align].cache = 0
             for k, v in ipairs(arr) do
-                if v.label ~= 'SKIN' or getElementData(localPlayer, 'account') then
+                if v.label ~= 'VÊTEMENTS' or getElementData(localPlayer, 'account') then
                     menu.drawButton(align, v.label, v.icon)
                 end
             end
@@ -441,8 +379,6 @@ function drawMenu()
 
     if menu.scene == 'regras' then
         drawRegras()
-    elseif menu.scene == 'skin' then
-        drawSkinSelector()
     elseif menu.scene == 'clothes' then
         drawClothesSelector()
     end
@@ -520,10 +456,6 @@ addEventHandler('onClientClick', root, authClick)
 
 function menu.onClick(btn, state, x, y)
     if authUI.visible then return end
-    if btn == 'left' and state == 'down' and menu.scene == 'skin' then
-        handleSkinSelectorClick(x, y)
-        return
-    end
     if btn == 'left' and state == 'down' and menu.scene == 'clothes' then
         handleClothesSelectorClick(x, y)
         return
@@ -543,8 +475,6 @@ function menu.onClick(btn, state, x, y)
             else
                 openAuth()
             end
-        elseif selected == 'SKIN' then
-            if getElementData(localPlayer, 'account') then openSkinSelector() end
         elseif selected == 'VÊTEMENTS' then
             if getElementData(localPlayer, 'account') then openClothesSelector() end
         elseif selected == 'REGRAS' then
