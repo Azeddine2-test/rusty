@@ -518,9 +518,7 @@ function onPlayerDisequipItem(slotID, player, suppressClientUI)
     triggerClientEvent(root, "rust:onClientPlayerDisequipItem", player, itemName, slotID)
     return true
 end
-loadEvent("rust:onPlayerDisequipItem", root, function(slotID)
-    if source == client then onPlayerDisequipItem(slotID, client, true) end
-end)
+-- The remote disequip event is registered once in s.player.lua.
 
 function playerUseDefenseItem(_ARG_0_, _ARG_1_)
   if not isElement(_ARG_0_) then
