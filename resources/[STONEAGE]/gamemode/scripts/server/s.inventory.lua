@@ -1,47 +1,132 @@
-addEventHandler("onElementDataChange", root, function(_ARG_0_, _ARG_1_, _ARG_2_)
-  if IS_STILL_LOADING[source] then
-    return false
-  end
-  if getElementType(source) == "player" and getElementData(source, "account") or getElementType(source) == "object" or getElementType(source) == "vehicle" then
-    if getElementType(source) == "object" and getElementData(source, "obName") == "farmObject" then
-      return
+-- Rebuilt inventory synchronization: item element-data changes must update
+-- the slot order used by the client inventory and loot UI.
+IS_STILL_LOADING = IS_STILL_LOADING or {}
+local inventoryPreferences = {}
+
+local function inventorySlotLimit(element)
+    local limit = tonumber(getElementData(element, "maxSlots")) or 0
+    if limit <= 0 then limit = getElementType(element) == "player" and 28 or 21 end
+    return math.max(1, math.floor(limit))
+end
+
+local function inventoryStackLimit(itemName)
+    local limit = tonumber(getItemMaxStack(itemName)) or 0
+    if limit <= 0 then
+        local settings = getPlayerDataSetting(itemName, "invSettings")
+        limit = type(settings) == "table" and tonumber(settings.maxStack) or 1
     end
-    if isItemOfInventory(_ARG_0_) then
-      if not tonumber(_ARG_1_) then
-        _ARG_1_ = false
-      end
-      _ARG_2_ = tonumber(_ARG_2_)
-      if _ARG_2_ then
-        if _ARG_2_ > (_ARG_1_ or 0) then
-          _UPVALUE0_(source, _ARG_0_, _ARG_2_ - (_ARG_1_ or 0))
-        elseif _ARG_1_ and _ARG_2_ < (_ARG_1_ or 0) then
-          _UPVALUE1_(source, _ARG_0_, (_ARG_1_ or 0) - _ARG_2_)
+    return math.max(1, math.floor(limit))
+end
+
+local function updateInventoryOrder(element, itemName, oldValue, newValue)
+    local oldCount = math.max(0, tonumber(oldValue) or 0)
+    local newCount = math.max(0, tonumber(newValue) or 0)
+    local delta = newCount - oldCount
+    if delta == 0 then return end
+
+    local order = getElementData(element, "invOrder")
+    if type(order) ~= "table" then order = {} end
+    local preference = inventoryPreferences[element] and inventoryPreferences[element][itemName]
+
+    if delta > 0 then
+        local remaining = delta
+        local stackLimit = inventoryStackLimit(itemName)
+        if preference and tonumber(preference.id) then
+            local slot = math.floor(tonumber(preference.id))
+            local entry = order[slot]
+            if entry and entry.itemName == itemName then
+                local wanted = math.min(remaining, tonumber(preference.quantity) or remaining)
+                local moved = math.min(wanted, math.max(0, stackLimit - (tonumber(entry.quantity) or 0)))
+                entry.quantity = (tonumber(entry.quantity) or 0) + moved
+                remaining = remaining - moved
+            elseif not entry and slot >= 1 and slot <= inventorySlotLimit(element) then
+                local moved = math.min(remaining, tonumber(preference.quantity) or remaining, stackLimit)
+                if moved > 0 then
+                    order[slot] = {itemName = itemName, quantity = moved}
+                    remaining = remaining - moved
+                end
+            end
         end
-      elseif tonumber(_ARG_1_) then
-        _UPVALUE1_(source, _ARG_0_, tonumber(_ARG_1_))
-      end
+        for slot, entry in pairs(order) do
+            if remaining <= 0 then break end
+            if type(entry) == "table" and entry.itemName == itemName then
+                local moved = math.min(remaining, math.max(0, stackLimit - (tonumber(entry.quantity) or 0)))
+                entry.quantity = (tonumber(entry.quantity) or 0) + moved
+                remaining = remaining - moved
+            end
+        end
+        local maxSlots = inventorySlotLimit(element)
+        for slot = 1, maxSlots do
+            if remaining <= 0 then break end
+            if not order[slot] then
+                local moved = math.min(remaining, stackLimit)
+                order[slot] = {itemName = itemName, quantity = moved}
+                remaining = remaining - moved
+            end
+        end
+    else
+        local remaining = -delta
+        if preference and tonumber(preference.id) then
+            local slot = math.floor(tonumber(preference.id))
+            local entry = order[slot]
+            if entry and entry.itemName == itemName then
+                local wanted = math.min(remaining, tonumber(preference.quantity) or remaining)
+                local moved = math.min(wanted, tonumber(entry.quantity) or 0)
+                entry.quantity = (tonumber(entry.quantity) or 0) - moved
+                remaining = remaining - moved
+                if entry.quantity <= 0 then order[slot] = nil end
+            end
+        end
+        for slot, entry in pairs(order) do
+            if remaining <= 0 then break end
+            if type(entry) == "table" and entry.itemName == itemName then
+                local moved = math.min(remaining, tonumber(entry.quantity) or 0)
+                entry.quantity = (tonumber(entry.quantity) or 0) - moved
+                remaining = remaining - moved
+                if entry.quantity <= 0 then order[slot] = nil end
+            end
+        end
     end
-  end
+
+    if inventoryPreferences[element] then
+        inventoryPreferences[element][itemName] = nil
+        if not next(inventoryPreferences[element]) then inventoryPreferences[element] = nil end
+    end
+    setElementData(element, "invOrder", order)
+end
+
+addEventHandler("onElementDataChange", root, function(dataName, oldValue, newValue)
+    if IS_STILL_LOADING[source] then return end
+    local elementType = getElementType(source)
+    if elementType ~= "player" and elementType ~= "object" and elementType ~= "vehicle" then return end
+    if elementType == "player" and not getElementData(source, "account") then return end
+    if elementType == "object" and getElementData(source, "obName") == "farmObject" then return end
+    if not isItemOfInventory(dataName) then return end
+    updateInventoryOrder(source, dataName, oldValue, newValue)
 end)
-function setPreference(_ARG_0_, _ARG_1_, _ARG_2_, _ARG_3_)
-  if not _ARG_1_ then
-    return
-  end
-  if not _UPVALUE0_[_ARG_0_] then
-    _UPVALUE0_[_ARG_0_] = {}
-  end
-  _UPVALUE0_[_ARG_0_][_ARG_2_] = {id = _ARG_1_, quantity = _ARG_3_}
+
+function setPreference(element, slotID, itemName, quantity)
+    if not isElement(element) or type(itemName) ~= "string" then return false end
+    slotID = tonumber(slotID)
+    quantity = tonumber(quantity)
+    if not slotID or slotID < 1 or not quantity or quantity <= 0 then return false end
+    inventoryPreferences[element] = inventoryPreferences[element] or {}
+    inventoryPreferences[element][itemName] = {
+        id = math.floor(slotID),
+        quantity = math.floor(quantity),
+    }
+    return true
 end
-function getPreference(_ARG_0_, _ARG_1_)
-  if _UPVALUE0_[_ARG_0_] and _UPVALUE0_[_ARG_0_][_ARG_1_] then
-    _UPVALUE0_[_ARG_0_][_ARG_1_] = nil
-    if table.size(_UPVALUE0_[_ARG_0_]) == 0 then
-      _UPVALUE0_[_ARG_0_] = nil
-    end
-    return _UPVALUE0_[_ARG_0_] and _UPVALUE0_[_ARG_0_][_ARG_1_]
-  end
-  return {}
+
+function getPreference(element, itemName)
+    local preferences = inventoryPreferences[element]
+    if not preferences or not preferences[itemName] then return {} end
+    local result = preferences[itemName]
+    preferences[itemName] = nil
+    if not next(preferences) then inventoryPreferences[element] = nil end
+    return result
 end
+
 function onPlayerEquipItem(_ARG_0_, _ARG_1_)
   _ARG_1_ = _ARG_1_ or source
   if not isElement(_ARG_1_) then
