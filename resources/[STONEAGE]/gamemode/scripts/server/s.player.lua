@@ -658,6 +658,51 @@ addEventHandler("onPlayerQuit", root, function()
     authPending[source] = nil
 end)
 
+-- Drop the complete carried inventory into a Rust-style loot bag on death.
+-- The inventory data table is authoritative; keybar and worn slots are only views.
+local function dropPlayerInventoryOnDeath(player)
+    if not isElement(player) or getElementType(player) ~= "player" then return false end
+
+    local items = {}
+    for itemName, definition in pairs(playerDataTable or {}) do
+        if type(definition) == "table" and type(definition.invSettings) == "table"
+            and definition.keepWhenDie ~= true then
+            local quantity = math.floor(tonumber(getElementData(player, itemName)) or 0)
+            if quantity > 0 then
+                items[#items + 1] = { itemName, quantity }
+            end
+        end
+    end
+
+    if #items == 0 then
+        setElementData(player, "invOrder", {})
+        setElementData(player, "keybarOrder", {})
+        setElementData(player, "pedSideOrder", {})
+        return true
+    end
+
+    local x, y, z = getElementPosition(player)
+    local ok, sack = pcall(function()
+        return exports.stoneage_pickups:createSack(x, y, z - 0.75, items, "Loot", 28)
+    end)
+    if not ok or not isElement(sack) then
+        outputDebugString("[STONEAGE] Impossible de créer le sac de mort de " .. getPlayerName(player)
+            .. " ; inventaire conservé pour éviter sa perte.", 1)
+        return false
+    end
+
+    setElementInterior(sack, getElementInterior(player))
+    setElementDimension(sack, getElementDimension(player))
+
+    for _, entry in ipairs(items) do
+        setElementData(player, entry[1], 0)
+    end
+    setElementData(player, "invOrder", {})
+    setElementData(player, "keybarOrder", {})
+    setElementData(player, "pedSideOrder", {})
+    return true
+end
+
 loadEvent("player:onDie", root, function(details)
     local player = client or source
     if not isElement(player) or getElementType(player) ~= "player"
@@ -667,6 +712,7 @@ loadEvent("player:onDie", root, function(details)
     setAccountData(player, "starterKitGiven", false)
     setElementData(player, "blood", 0)
     onPlayerDisequipItem(false, player)
+    dropPlayerInventoryOnDeath(player)
     local alivetime = tonumber(getElementData(player, "alivetime")) or 0
     triggerClientEvent(player, "rust:onClientPlayerDie", player, details.reason or "Unknown", details.weapon, alivetime)
     savePlayerData(player)
