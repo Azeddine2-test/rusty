@@ -40,20 +40,36 @@ end
 local function applySavedCharacterClothes(player)
     if not isElement(player) then return false end
     local clothes = getElementData(player, "Clothes")
-    if type(clothes) ~= "table" then return false end
+    if type(clothes) ~= "table" then
+        clothes = { shirt = 1, hairBeard = 0, pants = 7, shoes = 0, glasses = 0, hat = 0 }
+    end
+
+    -- Migrate the previous misleading "head" field to the real slot name.
+    if clothes.hairBeard == nil and clothes.head ~= nil then
+        clothes.hairBeard = clothes.head
+        clothes.head = nil
+        setElementData(player, "Clothes", clothes)
+        if type(setAccountData) == "function" then setAccountData(player, "Clothes", clothes) end
+    end
 
     local slots = {
-        { 0, tonumber(clothes.shirt) },
-        { 1, tonumber(clothes.head) },
-        { 2, tonumber(clothes.pants) },
-        { 3, tonumber(clothes.shoes) },
-        { 15, tonumber(clothes.glasses) },
-        { 16, tonumber(clothes.hat) },
+        { 0, "shirt" },
+        { 1, "hairBeard" },
+        { 2, "pants" },
+        { 3, "shoes" },
+        { 15, "glasses" },
+        { 16, "hat" },
     }
     for _, entry in ipairs(slots) do
-        if entry[2] and type(getClothesByTypeIndex) == "function" then
-            local texture, model = getClothesByTypeIndex(entry[1], entry[2])
-            if texture and model then setPedClothes(player, entry[1], entry[2]) end
+        local value = clothes[entry[2]]
+        if value == false or value == nil then
+            setPedClothes(player, entry[1], false)
+        else
+            local clothingID = tonumber(value)
+            if clothingID and clothingID == math.floor(clothingID) then
+                local texture, model = getClothesByTypeIndex(entry[1], clothingID)
+                if texture and model then setPedClothes(player, entry[1], clothingID) end
+            end
         end
     end
     return true
@@ -561,40 +577,74 @@ addEventHandler("rust:player:ensureSpawn", root, function()
     setElementFrozen(player, false)
 end)
 
--- Real clothing customization: shirt, headwear and pants are saved per character.
+-- Clothing previews are client-only. The server persists only an explicit Save.
+local CLOTHING_SLOTS = {
+    [0] = "shirt",
+    [1] = "hairBeard",
+    [2] = "pants",
+    [3] = "shoes",
+    [15] = "glasses",
+    [16] = "hat",
+}
+
+local function validateClothingChoice(slotID, value)
+    if value == false then return true end
+    local clothingID = tonumber(value)
+    if not clothingID or clothingID ~= math.floor(clothingID) or clothingID < 0 or clothingID > 300 then
+        return false
+    end
+    local texture, model = getClothesByTypeIndex(slotID, clothingID)
+    return texture ~= false and texture ~= nil and model ~= false and model ~= nil
+end
+
+addEvent("rust:clothes:save", true)
+addEventHandler("rust:clothes:save", root, function(requested)
+    local player = client
+    if not isElement(player) or source ~= player or not getElementData(player, "account")
+        or getElementData(player, "isDead") or getElementModel(player) ~= 0 or type(requested) ~= "table" then
+        return
+    end
+
+    local clothes = {}
+    for slotID, key in pairs(CLOTHING_SLOTS) do
+        local value = requested[key]
+        if value == nil then value = false end
+        if not validateClothingChoice(slotID, value) then
+            triggerClientEvent(player, "rust:clothes:result", player, false, "Choix de vêtement invalide.")
+            return
+        end
+        clothes[key] = value == false and false or math.floor(tonumber(value))
+    end
+
+    setElementData(player, "Clothes", clothes)
+    for slotID, key in pairs(CLOTHING_SLOTS) do
+        setPedClothes(player, slotID, clothes[key])
+    end
+    if not setAccountData(player, "Clothes", clothes) then
+        triggerClientEvent(player, "rust:clothes:result", player, false, "Impossible d'enregistrer les vêtements.")
+        return
+    end
+    triggerClientEvent(player, "rust:clothes:result", player, true, "Personnage enregistré.")
+end)
+
+-- Backward compatibility for older UI scripts.
 addEvent("rust:clothes:change", true)
 addEventHandler("rust:clothes:change", root, function(clothingSlot, clothingID)
     local player = client
-    if not isElement(player) or source ~= player or not getElementData(player, "account") or getElementData(player, "isDead") then return end
-    if getElementModel(player) ~= 0 then setElementModel(player, 0) end
-
     clothingSlot = tonumber(clothingSlot)
-    clothingID = tonumber(clothingID)
-    local allowedSlots = {
-        [0] = "shirt", [1] = "head", [2] = "pants", [3] = "shoes",
-        [15] = "glasses", [16] = "hat",
-    }
-    if not clothingSlot or not allowedSlots[clothingSlot] or not clothingID
-        or clothingID < 0 or clothingID > 300 or clothingID ~= math.floor(clothingID) then
-        triggerClientEvent(player, "rust:clothes:result", player, false, "Vêtement invalide.")
+    local key = CLOTHING_SLOTS[clothingSlot]
+    if not isElement(player) or source ~= player or not key or not getElementData(player, "account")
+        or getElementData(player, "isDead") or not validateClothingChoice(clothingSlot, clothingID) then
         return
     end
-
-    local texture, model = getClothesByTypeIndex(clothingSlot, clothingID)
-    if not texture or not model then
-        triggerClientEvent(player, "rust:clothes:result", player, false, "Ce vêtement n'existe pas.")
-        return
-    end
-
-    local clothes = getElementData(player, "Clothes")
-    if type(clothes) ~= "table" then
-        clothes = { shirt = 1, head = 0, pants = 7, shoes = 0, glasses = 0, hat = 0 }
-    end
-    clothes[allowedSlots[clothingSlot]] = clothingID
+    local clothes = getElementData(player, "Clothes") or {}
+    if key == "hairBeard" and clothes.hairBeard == nil then clothes.hairBeard = clothes.head end
+    clothes[key] = clothingID
+    clothes.head = nil
     setElementData(player, "Clothes", clothes)
     setPedClothes(player, clothingSlot, clothingID)
     setAccountData(player, "Clothes", clothes)
-    triggerClientEvent(player, "rust:clothes:result", player, true, "Vêtement appliqué et sauvegardé.")
+    triggerClientEvent(player, "rust:clothes:result", player, true, "Vêtement enregistré.")
 end)
 
 addEventHandler("onPlayerQuit", root, function()
