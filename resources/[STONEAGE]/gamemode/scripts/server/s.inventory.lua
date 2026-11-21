@@ -95,8 +95,9 @@ local function updateInventoryOrder(element, itemName, oldValue, newValue)
     setElementData(element, "invOrder", order)
 end
 
-addEventHandler("onElementDataChange", root, function(dataName, oldValue, newValue)
+addEventHandler("onElementDataChange", root, function(dataName, oldValue)
     if IS_STILL_LOADING[source] then return end
+    local newValue = getElementData(source, dataName)
     local elementType = getElementType(source)
     if elementType ~= "player" and elementType ~= "object" and elementType ~= "vehicle" then return end
     if elementType == "player" and not getElementData(source, "account") then return end
