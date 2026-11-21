@@ -199,12 +199,17 @@ function createSack(x, y, z, items, sackName, requestedMaxSlots)
         ob = createObject(1575, x, y, z, 0, math.random(200, 320), 0)
         if not isElement(ob) then return false end
         setObjectScale(ob, 1.5)
-        setElementData(ob, "maxSlots", slotLimit)
-    elseif requestedMaxSlots then
-        setElementData(ob, "maxSlots", math.max(slotLimit, tonumber(getElementData(ob, "maxSlots")) or 21))
-        setElementData(ob, "obName", sackName or "Loot")
-        setElementData(ob, "gearPickup", true)
+    end
+
+    -- Les métadonnées d'ouverture doivent être définies aussi sur un sac neuf.
+    -- Sans gearPickup, l'interface d'inventaire ne détecte pas le sac et sa roue reste cachée.
+    local currentSlots = tonumber(getElementData(ob, "maxSlots")) or 21
+    setElementData(ob, "maxSlots", math.max(slotLimit, currentSlots))
+    setElementData(ob, "obName", sackName or "Loot")
+    setElementData(ob, "gearPickup", true)
+    if not getElementData(ob, "sackDestroyHandler") then
         addEventHandler("onElementDestroy", ob, removeTimerOnDestroy)
+        setElementData(ob, "sackDestroyHandler", true, false)
     end
 
     local order = getElementData(ob, "invOrder")
@@ -381,7 +386,8 @@ addEventHandler('pickups:damageBarrel', root, function(ob, requestedDamage)
 
     local equippedItem = getElementData(player, 'equippedItem')
     local validTools = { Stone = true, Hatchet = true, Pickaxe = true, Chainsaw = true, JackHammer = true }
-    if not validTools[equippedItem] then return end
+    -- Les coups à mains nues sont autorisés sur les barils, comme dans Rust.
+    if equippedItem and not validTools[equippedItem] then return end
 
     local now = getTickCount()
     barrelDamageCooldown[player] = barrelDamageCooldown[player] or {}
