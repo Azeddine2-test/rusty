@@ -1,3 +1,10 @@
+-- Register les evenements avant toute dependance/export pour qu'ils existent meme si l'UI demarre plus tard.
+addEvent('rust:onClientPlayerLogin', true)
+addEvent('rust:onClientPlayerDie', true)
+addEvent('rust:onClientPlayerSpawn', true)
+addEvent('rust:onClientPlayerEquipItem', true)
+addEvent('rust:onClientPlayerDisequipItem', true)
+
 inv = {
     size = {
         x = 7,
@@ -139,6 +146,11 @@ addEventHandler('onClientKey', root, function(key, state)
 end)
 
 function toggleInventory(state, options)
+    -- Les evenements reseau peuvent arriver avant la creation de l'interface.
+    if not inv.gui or not inv.gui.bg or not inv.gui.topBar or not inv.gui.topBar.bg then
+        return false
+    end
+
     if state then
         if activeUI then
             return false
@@ -213,7 +225,9 @@ bindKey('tab', 'down', function()
 end)
 
 addEventHandler('rust:onClientPlayerDie', localPlayer, function()
-    toggleInventory(false)
+    if inv.gui and inv.gui.bg and inv.gui.topBar and inv.gui.topBar.bg then
+        toggleInventory(false)
+    end
 end)
 
 addEventHandler('onClientRender', root, function()
