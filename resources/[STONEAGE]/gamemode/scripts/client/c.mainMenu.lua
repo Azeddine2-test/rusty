@@ -31,9 +31,16 @@ local function createAuthInputs()
     authUI.edits.password = guiCreateEdit(x + 48, y + 213, w - 96, 34, '', false)
     for _, edit in pairs(authUI.edits) do
         guiSetFont(edit, 'default-bold-small')
-        guiSetAlpha(edit, 0.94)
+        guiSetAlpha(edit, 1)
+        -- Fond blanc et texte noir dans tous les états du champ.
         guiSetProperty(edit, 'NormalTextColour', 'FF000000')
+        guiSetProperty(edit, 'HoverTextColour', 'FF000000')
+        guiSetProperty(edit, 'SelectedTextColour', 'FF000000')
         guiSetProperty(edit, 'NormalBackgroundColour', 'FFFFFFFF')
+        guiSetProperty(edit, 'HoverBackgroundColour', 'FFFFFFFF')
+        guiSetProperty(edit, 'PushedBackgroundColour', 'FFFFFFFF')
+        guiSetProperty(edit, 'FocusedBackgroundColour', 'FFFFFFFF')
+        guiSetProperty(edit, 'DisabledBackgroundColour', 'FFFFFFFF')
     end
     guiEditSetMaxLength(authUI.edits.username, 20)
     guiEditSetMaxLength(authUI.edits.password, 64)
