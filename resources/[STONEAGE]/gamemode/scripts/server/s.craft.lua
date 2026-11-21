@@ -502,7 +502,18 @@ loadEvent('wardrobe:removePermission', root, removePermissionsFromWardrobe)
 
 -- //------------------- CHECK IF ITS A FRIENDLY DOOR -------------------\\--
 function isFriendlyDoor(ob, player)
-    if ob and isElement(ob) and player and isElement(player) then
+    if ob and isElement(ob) and getElementType(ob) == 'object'
+        and player and isElement(player) and getElementType(player) == 'player' then
+        if getElementData(player, 'isDead') then
+            return false
+        end
+        local px, py, pz = getElementPosition(player)
+        local ox, oy, oz = getElementPosition(ob)
+        if getElementDimension(player) ~= getElementDimension(ob)
+            or getElementInterior(player) ~= getElementInterior(ob)
+            or getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 4 then
+            return false
+        end
         if isAdmin(player) then
             return true
         end
@@ -689,13 +700,25 @@ end
 
 -- //------------------- ON BEAT DOOR -------------------\\--
 loadEvent('craft:beatDoor', root, function(ob)
-    if not isElement(ob) then
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player
+        or getElementData(player, 'isDead') then
         return
     end
-    setElementFrozen(source, false)
-    setPedAnimation(source, 'BASEBALL', 'Bat_M', -1, true, false, false, false)
+    if not isElement(ob) or getElementType(ob) ~= 'object' then
+        return
+    end
+    local px, py, pz = getElementPosition(player)
+    local ox, oy, oz = getElementPosition(ob)
+    if getElementDimension(player) ~= getElementDimension(ob)
+        or getElementInterior(player) ~= getElementInterior(ob)
+        or getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 4 then
+        return
+    end
+    setElementFrozen(player, false)
+    setPedAnimation(player, 'BASEBALL', 'Bat_M', -1, true, false, false, false)
     local x, y, z = getElementPosition(ob)
-    triggerEvent('rust:play3DSound', source, ':gamemode/files/sounds/door.mp3', {x, y, z})
+    triggerEvent('rust:play3DSound', player, ':gamemode/files/sounds/door.mp3', {x, y, z})
 
     setTimer(function(ped)
         if not isElement(ped) then
@@ -703,7 +726,7 @@ loadEvent('craft:beatDoor', root, function(ob)
         end
         setElementFrozen(ped, false)
         setPedAnimation(ped)
-    end, 2700, 1, source)
+    end, 2700, 1, player)
 end)
 -- //------------------- ON BEAT DOOR -------------------\\--
 
@@ -734,12 +757,12 @@ loadEvent('craft:collectWaterFromWell', root, function(ob)
 
     local equippedID = getElementData(player, 'equippedSlotID')
     if not equippedID then
-        return NOTIFICATION:CreateNotification(source, translate(source, 'Precisa ter %s em mãos', nil, translate(source, 'Empty Bottle', 'name')), 'error')
+        return NOTIFICATION:CreateNotification(player, translate(player, 'Precisa ter %s em mãos', nil, translate(player, 'Empty Bottle', 'name')), 'error')
     end
 
     local order = getElementData(player, 'keybarOrder')
     if not order or not order[equippedID] or order[equippedID].itemName ~= 'Empty Bottle' then
-        return NOTIFICATION:CreateNotification(player, translate(source, 'Precisa ter %s em mãos', nil, translate(source, 'Empty Bottle', 'name')), 'error')
+        return NOTIFICATION:CreateNotification(player, translate(player, 'Precisa ter %s em mãos', nil, translate(player, 'Empty Bottle', 'name')), 'error')
     end
 
     if waterLevel <= 20 then
@@ -949,13 +972,22 @@ local windowModelStates = {
 }
 
 loadEvent('craft:abrirJanela', root, function(ob)
-    if not isElement(ob) then
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player
+        or getElementData(player, 'isDead') or not isElement(ob) or getElementType(ob) ~= 'object' then
+        return
+    end
+    local px, py, pz = getElementPosition(player)
+    local ox, oy, oz = getElementPosition(ob)
+    if getElementDimension(player) ~= getElementDimension(ob)
+        or getElementInterior(player) ~= getElementInterior(ob)
+        or getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 4 then
         return
     end
 
     local newModel = windowModelStates[getElementModel(ob)]
     if newModel then
-        setPedAnimation(source, 'crib', 'crib_use_switch', -1, false, false, false, false)
+        setPedAnimation(player, 'crib', 'crib_use_switch', -1, false, false, false, false)
         setTimer(function(ob, newModel)
             if isElement(ob) then
                 setElementModel(ob, newModel)
