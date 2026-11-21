@@ -1123,16 +1123,30 @@ canRepair = function(acc, player)
 end
 
 loadEvent('craft:repairAllObjects', root, function(ob)
-    local owner = isElement(ob) and getElementData(ob, 'owner')
-    if owner then
-        if not canRepair(owner, source) then
-            playSoundFrontEnd(source, 14)
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player
+        or getElementData(player, 'isDead') then
+        return
+    end
+    if not isElement(ob) or getElementType(ob) ~= 'object' or getElementData(ob, 'obName') ~= 'Wardrobe' then
+        return
+    end
+    local owner = getElementData(ob, 'owner')
+    if owner and (owner == getElementData(player, 'account') or isAdmin(player)) then
+        local px, py, pz = getElementPosition(player)
+        local ox, oy, oz = getElementPosition(ob)
+        if getElementDimension(player) ~= getElementDimension(ob)
+            or getElementInterior(player) ~= getElementInterior(ob)
+            or getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 6 then
+            return
+        end
+        if not canRepair(owner, player) then
+            playSoundFrontEnd(player, 14)
             return
         end
         repairCache[owner] = getTickCount()
 
-        local player = source
-        exports['stoneage_notifications']:CreateNotification(source, translate(source, 'iniciando reparo'), 'info')
+        exports['stoneage_notifications']:CreateNotification(player, translate(player, 'iniciando reparo'), 'info')
 
         Async:foreach(getElementsByType('object', resourceRoot), function(ob)
             if isElement(ob) then
@@ -1173,27 +1187,49 @@ end
 
 local fireTimer = {}
 loadEvent('craft:toggleFire', root, function(ob, state, equippedID)
-    if not isElement(ob) then
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player
+        or getElementData(player, 'isDead') or type(state) ~= 'boolean' then
+        return
+    end
+    if not isElement(ob) or getElementType(ob) ~= 'object' then
+        return
+    end
+    local obName = getElementData(ob, 'obName')
+    if obName ~= 'Fogueira' and obName ~= 'Fornalha' then
+        return
+    end
+    local px, py, pz = getElementPosition(player)
+    local ox, oy, oz = getElementPosition(ob)
+    if getElementDimension(player) ~= getElementDimension(ob)
+        or getElementInterior(player) ~= getElementInterior(ob)
+        or getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 4 then
         return
     end
 
     if state then
-        local order = getElementData(source, 'keybarOrder')
+        if getElementData(ob, 'fire') then
+            return
+        end
+        if getElementData(player, 'equippedSlotID') ~= equippedID then
+            return
+        end
+        local order = getElementData(player, 'keybarOrder')
         if (not order) or (not order[equippedID]) or (order[equippedID].itemName ~= 'Fosforo') then
-            exports['stoneage_notifications']:CreateNotification(source, translate(source, 'Precisa ter %s em mãos', nil, translate(source, 'Fosforo', 'name')), 'error')
+            exports['stoneage_notifications']:CreateNotification(player, translate(player, 'Precisa ter %s em mãos', nil, translate(source, 'Fosforo', 'name')), 'error')
             return
         end
 
         order[equippedID].quantity = order[equippedID].quantity - 1
         if order[equippedID].quantity <= 0 then
             order[equippedID] = nil
-            onPlayerDisequipItem(equippedID, source)
-            triggerClientEvent(source, 'inv:disequipCurrentKeybarItem', source)
+            onPlayerDisequipItem(equippedID, player)
+            triggerClientEvent(player, 'inv:disequipCurrentKeybarItem', player)
         end
-        setElementData(source, 'keybarOrder', order)
+        setElementData(player, 'keybarOrder', order)
     end
 
-    setPedAnimation(source, 'bomber', 'bom_plant', -1, false, false, false, false)
+    setPedAnimation(player, 'bomber', 'bom_plant', -1, false, false, false, false)
     setElementData(ob, 'fire', state)
 
     if isTimer(fireTimer[ob]) then
@@ -1212,25 +1248,36 @@ loadEvent('craft:toggleFire', root, function(ob, state, equippedID)
 end)
 
 loadEvent('craft:assarItem', root, function(ob, equippedID, itemName)
-    if not isElement(ob) then
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player
+        or getElementData(player, 'isDead') then
+        return
+    end
+    if not isElement(ob) or getElementType(ob) ~= 'object'
+        or getElementData(ob, 'obName') ~= 'Fogueira' or not getElementData(ob, 'fire') then
+        return
+    end
+    local px, py, pz = getElementPosition(player)
+    local ox, oy, oz = getElementPosition(ob)
+    if getElementDimension(player) ~= getElementDimension(ob)
+        or getElementInterior(player) ~= getElementInterior(ob)
+        or getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 4 then
+        return
+    end
+    if getElementData(player, 'equippedSlotID') ~= equippedID or itemName ~= 'Meat Cooked' then
         return
     end
 
-    local order = getElementData(source, 'keybarOrder')
-
-    if not order or not order[equippedID] then
+    local order = getElementData(player, 'keybarOrder')
+    if not order or not order[equippedID] or order[equippedID].itemName ~= 'Raw Meat' then
         return
     end
 
-    order[equippedID].itemName = itemName
-
-    onPlayerDisequipItem(equippedID, source)
-
-    triggerClientEvent(source, 'inv:disequipCurrentKeybarItem', source)
-
-    setElementData(source, 'keybarOrder', order)
-
-    setPedAnimation(source, 'bomber', 'bom_plant', -1, false, false, false, false)
+    order[equippedID].itemName = 'Meat Cooked'
+    onPlayerDisequipItem(equippedID, player)
+    triggerClientEvent(player, 'inv:disequipCurrentKeybarItem', player)
+    setElementData(player, 'keybarOrder', order)
+    setPedAnimation(player, 'bomber', 'bom_plant', -1, false, false, false, false)
 end)
 
 local takedDamage = {}
