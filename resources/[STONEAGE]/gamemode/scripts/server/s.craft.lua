@@ -49,6 +49,26 @@ local function getCraftItemQuantity(player, itemName)
     return math.max(0, math.floor(tonumber(getElementData(player, itemName)) or 0))
 end
 
+local function writeCraftInventorySlot(player, slot, itemName, quantity)
+    local currentOrder = getElementData(player, 'invOrder')
+    local updatedOrder = {}
+    if type(currentOrder) == 'table' then
+        for key, entry in pairs(currentOrder) do
+            if type(entry) == 'table' then
+                updatedOrder[key] = { itemName = entry.itemName, quantity = tonumber(entry.quantity) or 0 }
+            else
+                updatedOrder[key] = entry
+            end
+        end
+    end
+    if quantity > 0 then
+        updatedOrder[slot] = { itemName = itemName, quantity = quantity }
+    else
+        updatedOrder[slot] = nil
+    end
+    setElementData(player, 'invOrder', updatedOrder)
+end
+
 local function consumeCraftItemQuantity(player, itemName, amount)
     amount = math.floor(tonumber(amount) or 0)
     if amount <= 0 then return true end
@@ -78,13 +98,8 @@ local function consumeCraftItemQuantity(player, itemName, amount)
                 local take = math.min(quantity, remaining)
                 if take > 0 then
                     local newQuantity = quantity - take
-                    if type(setPreference) == 'function' then
-                        setPreference(player, slot, itemName, newQuantity)
-                    else
-                        currentOrder[slot] = newQuantity > 0 and { itemName = itemName, quantity = newQuantity } or nil
-                        setElementData(player, 'invOrder', currentOrder)
-                    end
-                    triggerClientEvent(player, 'receiveMoveSync', player, 'inv', slot)
+                    writeCraftInventorySlot(player, slot, itemName, newQuantity)
+                    triggerClientEvent(player, 'receiveMoveSync', player, 'inv', tonumber(slot) or slot)
                     remaining = remaining - take
                 end
             end
@@ -450,6 +465,7 @@ function evolveObject(ob, newObjectName)
             removeElementData(player, 'WaitingResponse')
             return false
         end
+        local costsToCharge = {}
         for _, entry in ipairs(custo) do
             if type(entry) ~= 'table' or type(entry[1]) ~= 'string' or type(entry[2]) ~= 'number' or entry[2] < 0 then
                 removeElementData(player, 'WaitingResponse')
@@ -465,9 +481,12 @@ function evolveObject(ob, newObjectName)
                 removeElementData(player, 'WaitingResponse')
                 return false
             end
+            if entry[1] ~= 'Level' then
+                costsToCharge[#costsToCharge + 1] = { entry[1], cost }
+            end
         end
 
-        local limit = getObjectLimit(newObjectName, player)
+        local limit = getObjectLimit(newObjectName, player);
         if limit and (getElementData(player, newObjectName) or 0) + 1 > limit then
             local str = translate(player, 'Atingiu limite de %s', nil, translate(player, newObjectName, 'name'))
             exports['stoneage_notifications']:CreateNotification(player, str, 'error')
@@ -475,12 +494,10 @@ function evolveObject(ob, newObjectName)
             return false
         end
 
-        for _, entry in ipairs(custo) do
-            if entry[1] ~= 'Level' then
-                if not consumeCraftItemQuantity(player, entry[1], entry[2]) then
-                    removeElementData(player, 'WaitingResponse')
-                    return false
-                end
+        for _, entry in ipairs(costsToCharge) do
+            if not consumeCraftItemQuantity(player, entry[1], entry[2]) then
+                removeElementData(player, 'WaitingResponse')
+                return false
             end
         end
     end
