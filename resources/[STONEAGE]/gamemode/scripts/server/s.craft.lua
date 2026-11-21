@@ -709,47 +709,76 @@ end)
 
 -- //------------------- COLLECT WATER FROM WELL -------------------\\--
 loadEvent('craft:collectWaterFromWell', root, function(ob)
-    local waterLevel = isElement(ob) and getElementData(ob, 'poço:water')
-    if not waterLevel then
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player
+        or getElementData(player, 'isDead') then
+        return
+    end
+    if not isElement(ob) or getElementType(ob) ~= 'object' or getElementData(ob, 'obName') ~= 'Poço' then
+        return
+    end
+    local px, py, pz = getElementPosition(player)
+    local ox, oy, oz = getElementPosition(ob)
+    if getElementDimension(player) ~= getElementDimension(ob)
+        or getElementInterior(player) ~= getElementInterior(ob)
+        or getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 5 then
+        return
+    end
+
+    local waterLevel = getElementData(ob, 'poço:water')
+    if type(waterLevel) ~= 'number' then
         return
     end
 
     local NOTIFICATION = exports['stoneage_notifications']
 
-    local equippedID = isElement(source) and getElementData(source, 'equippedSlotID')
+    local equippedID = getElementData(player, 'equippedSlotID')
     if not equippedID then
         return NOTIFICATION:CreateNotification(source, translate(source, 'Precisa ter %s em mãos', nil, translate(source, 'Empty Bottle', 'name')), 'error')
     end
 
-    local order = getElementData(source, 'keybarOrder')
+    local order = getElementData(player, 'keybarOrder')
     if not order or not order[equippedID] or order[equippedID].itemName ~= 'Empty Bottle' then
-        return NOTIFICATION:CreateNotification(source, translate(source, 'Precisa ter %s em mãos', nil, translate(source, 'Empty Bottle', 'name')), 'error')
+        return NOTIFICATION:CreateNotification(player, translate(source, 'Precisa ter %s em mãos', nil, translate(source, 'Empty Bottle', 'name')), 'error')
     end
 
     if waterLevel <= 20 then
-        return NOTIFICATION:CreateNotification(source, translate(source, 'Agua insuficiente'), 'error')
+        return NOTIFICATION:CreateNotification(player, translate(player, 'Agua insuficiente'), 'error')
     end
 
     order[equippedID].itemName = 'Water'
-    setElementData(source, 'keybarOrder', order)
-    setPedAnimation(source, 'bomber', 'bom_plant', -1, false, false, false, false)
-    onPlayerDisequipItem(equippedID, source)
-    triggerClientEvent(source, 'playerUseItem', source, 'Water', equippedID)
+    setElementData(player, 'keybarOrder', order)
+    setPedAnimation(player, 'bomber', 'bom_plant', -1, false, false, false, false)
+    onPlayerDisequipItem(equippedID, player)
+    triggerClientEvent(player, 'playerUseItem', player, 'Water', equippedID)
 end)
 -- //------------------- COLLECT WATER FROM WELL -------------------\\--
 
 -- //------------------- EXPLOSIVE SYSTEM -------------------\\--
 loadEvent('craft:plantExplosive', root, function(explosiveName, x, y, z)
-    if not isElement(source) then
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player
+        or getElementData(player, 'isDead') then
+        return
+    end
+    if explosiveName ~= 'C4' and explosiveName ~= 'Satchel' then
+        return
+    end
+    if type(x) ~= 'number' or type(y) ~= 'number' or type(z) ~= 'number'
+        or x ~= x or y ~= y or z ~= z then
+        return
+    end
+    local px, py, pz = getElementPosition(player)
+    if getDistanceBetweenPoints3D(px, py, pz, x, y, z) > 5 then
         return
     end
 
-    local equippedID = isElement(source) and getElementData(source, 'equippedSlotID')
+    local equippedID = getElementData(player, 'equippedSlotID')
     if not equippedID then
         return
     end
 
-    local order = getElementData(source, 'keybarOrder')
+    local order = getElementData(player, 'keybarOrder')
     if not order or not order[equippedID] or order[equippedID].itemName ~= explosiveName then
         return
     end
@@ -762,16 +791,20 @@ loadEvent('craft:plantExplosive', root, function(explosiveName, x, y, z)
     order[equippedID].quantity = order[equippedID].quantity - 1
     if order[equippedID].quantity <= 0 then
         order[equippedID] = nil
-        onPlayerDisequipItem(equippedID, source)
-        triggerClientEvent(source, 'inv:disequipCurrentKeybarItem', source)
+        onPlayerDisequipItem(equippedID, player)
+        triggerClientEvent(player, 'inv:disequipCurrentKeybarItem', player)
     end
 
-    setElementData(source, 'keybarOrder', order)
+    setElementData(player, 'keybarOrder', order)
 
     local modelID = attachSettings.modelID
-    local px, py = getElementPosition(source)
     local rot = findRotation(px, py, x, y)
     local ob = createObject(modelID, x, y, z, 0, 0, rot)
+    if not ob then
+        return
+    end
+    setElementDimension(ob, getElementDimension(player))
+    setElementInterior(ob, getElementInterior(player))
     setElementFrozen(ob, true)
     setElementData(ob, 'plantedExplosive', true)
 
@@ -791,10 +824,10 @@ loadEvent('craft:plantExplosive', root, function(explosiveName, x, y, z)
         if explosionID then
             createExplosion(x, y, z, explosionID, player)
         end
-    end, 8000, 1, source, explosiveName, ob, x, y, z)
+    end, 8000, 1, player, explosiveName, ob, x, y, z)
     -- end, 2800, 1, source, explosiveName, ob, x, y, z)
 
-    setPedAnimation(source, 'bomber', 'bom_plant', -1, false, false, false, false)
+    setPedAnimation(player, 'bomber', 'bom_plant', -1, false, false, false, false)
 end)
 -- //------------------- EXPLOSIVE SYSTEM -------------------\\--
 
