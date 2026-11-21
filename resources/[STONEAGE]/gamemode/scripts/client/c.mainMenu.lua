@@ -32,8 +32,8 @@ local function createAuthInputs()
     for _, edit in pairs(authUI.edits) do
         guiSetFont(edit, 'default-bold-small')
         guiSetAlpha(edit, 0.94)
-        guiSetProperty(edit, 'NormalTextColour', 'FFFFFFFF')
-        guiSetProperty(edit, 'NormalBackgroundColour', 'FF202020')
+        guiSetProperty(edit, 'NormalTextColour', 'FF000000')
+        guiSetProperty(edit, 'NormalBackgroundColour', 'FFFFFFFF')
     end
     guiEditSetMaxLength(authUI.edits.username, 20)
     guiEditSetMaxLength(authUI.edits.password, 64)
