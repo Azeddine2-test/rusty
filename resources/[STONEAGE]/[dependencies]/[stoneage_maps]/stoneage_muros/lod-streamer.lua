@@ -3,9 +3,24 @@ STREAMER_OBJECTS = {}
 
 CHECK_DIST = 1000
 
+local settingsReady = false
+
 addEventHandler('onClientResourceStart', root, function(res)
-    STREAMER.Timer = setTimer(CheckForLODS, 500, 0)
-    CheckForLODS()
+    local resourceName = getResourceName(res)
+    if resourceName == 'stoneage_settings' then
+        settingsReady = true
+        CheckForLODS()
+        return
+    end
+
+    if res == resourceRoot then
+        local settings = getResourceFromName('stoneage_settings')
+        settingsReady = settings and getResourceState(settings) == 'running' or false
+        if not STREAMER.Timer then
+            STREAMER.Timer = setTimer(CheckForLODS, 500, 0)
+        end
+        CheckForLODS()
+    end
 end)
 
 CheckForLODS = function(forced)
@@ -33,7 +48,19 @@ CheckForLODS = function(forced)
         end
     end
 
-    if exports['stoneage_settings']:getConfig('FPSBoost', true) then
+    -- The client resource can start while its server counterpart is still stopped.
+    -- Protect the shared export and retry on the next streamer tick if it is unavailable.
+    if not settingsReady then
+        return false
+    end
+    local ok, fpsBoost = pcall(function()
+        return exports['stoneage_settings']:getConfig('FPSBoost', true)
+    end)
+    if not ok then
+        STREAMER.LastPos = nil
+        return false
+    end
+    if fpsBoost then
         return false
     end
 

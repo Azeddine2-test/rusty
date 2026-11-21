@@ -1,4 +1,5 @@
 <meta>
-    <script src='c.main.lua' type='client' cache='false'/>
+    <include resource="stoneage_settings" />
+<script src='c.main.lua' type='client' cache='false'/>
     <export function='toggleCompass' type='client'/>
 </meta>

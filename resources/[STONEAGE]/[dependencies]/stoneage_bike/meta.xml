@@ -1,5 +1,6 @@
 <meta>
-    <info author="bgzada" type="script" name="antievade" />
+    <include resource="gamemode" />
+<info author="bgzada" type="script" name="antievade" />
 
     <script src="c_main.lua" type="client" cache="false" />
     <script src="c_bike.lua" type="client" cache="false" />

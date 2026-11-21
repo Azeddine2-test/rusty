@@ -1,151 +1,71 @@
---[[
-    stoneage_starter
-    Demarre, dans l'ordre, les ressources du gamemode STONEAGE.
-
-    Reecriture lisible de l'ancien s.main.luac (le code source d'origine est perdu).
-    C'est un script serveur ordinaire : modifie librement la liste ci-dessous.
-
-    - Pour desactiver une ressource : retire (ou commente) son nom dans RESOURCES.
-    - Les ressources 'stoneage_bike' et 'replaces' sont deja lancees par mtaserver.conf.
-    - Droit necessaire (une seule fois, dans la console du serveur) :
-          aclrequest allow stoneage_starter all
-]]
-
--- Delai entre deux demarrages (ms). Laisse le serveur respirer et garde les logs lisibles.
-local DELAY_BETWEEN_MS = 100
-
--- Attente avant de commencer (ms), pour laisser finir les ressources lancees par mtaserver.conf.
-local INITIAL_DELAY_MS = 500
-
--- Ordre de demarrage, deduit des appels exports[...] entre ressources et du log du serveur.
--- Le gamemode passe avant les fonctionnalites : il n'appelle les autres ressources qu'a l'usage
--- (dans des fonctions), alors que certaines l'appellent des leur demarrage.
-local RESOURCES = {
-    -- 1. Services de base : utilises par presque toutes les autres ressources
-    'stoneage_utils',
-    'stoneage_logs',                -- utilise stoneage_utils
-    'stoneage_sql',                 -- utilise stoneage_logs des son demarrage
-    'stoneage_ui',
-    'stoneage_settings',
-    'stoneage_translations',
-    'stoneage_notifications',
-    'stoneage_ac',                  -- anti-triche : utilise logs et settings
-
-    -- 2. Bibliotheques, affichage et outils
-    'stoneage_loadscreen',
-    'stoneage_sound3D',
-    'stoneage_highlight',
-    'stoneage_bone_attach',
-    'stoneage_object_preview',
-    'stoneage_world_textures',
-    'texNames',
-    'dep-npc',
-    'ob-quantity',
-    'stoneage_weapon_properties',
-    'stoneage_zoom',
-    'stoneage_nametag',
-    'stoneage_scoreboard',
-    'stoneage_voice',
-    'stoneage_skins',
-    'stoneage_iron-fix',
-    'stoneage_placas',
-
-    -- 3. Cartes (le gamemode ne les nomme pas : elles doivent exister avant lui)
-    'stoneage_island',
-    'stoneage_island2',
-    'stoneage_muros',
-    'stoneage_patrol',
-    'loot-points',
-    'map-spawn',
-    'stoneage_military',
-
-    -- 4. Gamemode : lance AVANT les fonctionnalites, car pickups, helicopter et admin
-    --    appellent ses fonctions des leur demarrage, et c'est lui qui cree les tables SQL
-    'gamemode',
-
-    -- 5. Fonctionnalites de jeu
-    'stoneage_economy',
-    'stoneage_pickups',             -- utilise stoneage_economy et le gamemode
-    'stoneage_base_building',
-    'stoneage_farms',
-    'stoneage_groupsystem',
-    'stoneage_faint',
-    'stoneage_hospitals',
-    'stoneage_radiation_zones',
-    'stoneage_enter_vehicle',
-    'stoneage_vehicles',            -- utilise pickups, sound3D et sql
-    'stoneage_gas_stations',
-    'stoneage_helicopter',
-    'stoneage_airdrop',
-    'stoneage_compass',
-    'stoneage_map',
-    'stoneage_recycler',
-    'stoneage_sentrys',
-    'stoneage_ranking',             -- utilise ui et sql
-    'stoneage_interaction',
-    'stoneage_admin',
-    'richpresence-id',              -- anti-evade (verifie les bans)
-
-    -- Desactivees (prefixe _ ou - dans leur nom d'origine) : decommente pour les activer
-    -- '_stoneage_ship',
-    -- '-stoneage_muros',
+AutoStarter = {
+  priority = {
+    "stoneage_bike",
+    "richpresence-id",
+    "stoneage_utils",
+    "stoneage_notifications",
+    "stoneage_logs",
+    "stoneage_sql",
+    "stoneage_ui",
+    "stoneage_object_preview",
+    "stoneage_bone_attach",
+    "stoneage_translations",
+    "stoneage_highlight",
+    "stoneage_world_textures",
+    "stoneage_farms",
+    "stoneage_compass",
+    "stoneage_settings",
+    "gamemode"
+  },
+  _tag = "stoneage_",
+  resourcesToInit = {}
 }
-
-local function log(message)
-    outputServerLog('[stoneage_starter] ' .. message)
+function AutoStarter.Init()
+  for _FORV_4_, _FORV_5_ in ipairs(AutoStarter.priority) do
+    if getResourceFromName(_FORV_5_) then
+      table.insert(AutoStarter.resourcesToInit, (getResourceFromName(_FORV_5_)))
+    end
+  end
+  for _FORV_4_, _FORV_5_ in ipairs(getResources()) do
+    if not ({
+      [_FORV_5_] = true
+    })[getResourceName(_FORV_5_)] and getResourceName(_FORV_5_):sub(1, utf8.len(AutoStarter._tag)) == AutoStarter._tag then
+      table.insert(AutoStarter.resourcesToInit, _FORV_5_)
+    end
+  end
 end
-
-local function startOne(name)
-    local res = getResourceFromName(name)
-    if not res then
-        log(('Ressource introuvable : %s'):format(name))
-        return false
-    end
-
-    local state = getResourceState(res)
-    if state == 'running' or state == 'starting' then
-        return true -- deja lancee (ex. par mtaserver.conf)
-    end
-
-    if state == 'failed to load' then
-        log(('%s ne peut pas demarrer (echec au chargement : %s)'):format(name, tostring(getResourceLoadFailureReason(res))))
-        return false
-    end
-
-    -- persistent = true : la ressource reste active meme si le starter est arrete
-    if not startResource(res, true) then
-        log(('Echec du demarrage de %s (etat : %s)'):format(name, tostring(state)))
-        return false
-    end
-    return true
-end
-
-local function startFrom(index, started, failed)
-    local name = RESOURCES[index]
-    if not name then
-        log(('Termine : %d ressource(s) demarree(s), %d en echec.'):format(started, #failed))
-        if #failed > 0 then
-            log('En echec : ' .. table.concat(failed, ', '))
-        end
+function AutoStarter.toggeResourceState()
+  addEventHandler("onPlayerConnect", resourceRoot, AutoStarter.cancelConnectWhenStartingResource)
+  for _FORV_3_, _FORV_4_ in ipairs(getElementsByType("player")) do
+    toggleAllControls(_FORV_4_, false)
+  end
+  if eventName == "onResourceStart" then
+    for _FORV_3_, _FORV_4_ in ipairs(getResourceACLRequests(resource)) do
+      if not _FORV_4_.access or _FORV_4_.pending then
+        cancelEvent(true)
         return
+      end
     end
-
-    if startOne(name) then
-        started = started + 1
-    else
-        failed[#failed + 1] = name
+    AutoStarter.Init()
+    for _FORV_3_ = 1, #AutoStarter.resourcesToInit do
+      if getResourceState(AutoStarter.resourcesToInit[_FORV_3_]) == "loaded" then
+        startResource(AutoStarter.resourcesToInit[_FORV_3_])
+      end
     end
-
-    setTimer(startFrom, DELAY_BETWEEN_MS, 1, index + 1, started, failed)
+  else
+    for _FORV_3_ = #AutoStarter.resourcesToInit, 1, -1 do
+      if getResourceState(AutoStarter.resourcesToInit[_FORV_3_]) == "running" then
+        stopResource(AutoStarter.resourcesToInit[_FORV_3_])
+      end
+    end
+  end
+  removeEventHandler("onPlayerConnect", resourceRoot, AutoStarter.cancelConnectWhenStartingResource)
+  for _FORV_3_, _FORV_4_ in ipairs(getElementsByType("player")) do
+    toggleAllControls(_FORV_4_, true)
+  end
 end
-
-addEventHandler('onResourceStart', resourceRoot, function()
-    if not hasObjectPermissionTo(resource, 'function.startResource', false) then
-        log("Droit 'function.startResource' refuse : aucune ressource ne sera lancee.")
-        log("Tape dans la console du serveur : aclrequest allow stoneage_starter all")
-        return
-    end
-
-    log(('Demarrage de %d ressources...'):format(#RESOURCES))
-    setTimer(startFrom, INITIAL_DELAY_MS, 1, 1, 0, {})
-end)
+addEventHandler("onResourceStart", resourceRoot, AutoStarter.toggeResourceState)
+addEventHandler("onResourceStop", resourceRoot, AutoStarter.toggeResourceState)
+function AutoStarter.cancelConnectWhenStartingResource()
+  cancelEvent(true, "Wait.")
+end

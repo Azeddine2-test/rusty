@@ -1,36 +1,36 @@
 discordAvailableLogs = {
     ['joinquit'] = {
-        webHookURL = 'YOURWEBHOOK',
+        webHookURL = 'https://discord.com/api/webhooks/1573382523424350444/KZ-WbDHpc6DjIyC3JmuIG4oaOm-I4uS-q5RSUyIMm4q5rMhxIL2sLE9lG1NuQMleFd3j',
     },
     ['death'] = {
-        webHookURL = 'YOURWEBHOOK',
+        webHookURL = 'https://discord.com/api/webhooks/1573382523424350444/KZ-WbDHpc6DjIyC3JmuIG4oaOm-I4uS-q5RSUyIMm4q5rMhxIL2sLE9lG1NuQMleFd3j',
     },
     ['chat-local'] = {
-        webHookURL = 'YOURWEBHOOK',
+        webHookURL = 'https://discord.com/api/webhooks/1573382523424350444/KZ-WbDHpc6DjIyC3JmuIG4oaOm-I4uS-q5RSUyIMm4q5rMhxIL2sLE9lG1NuQMleFd3j',
     },
     ['chat-global'] = {
-        webHookURL = 'YOURWEBHOOK',
+        webHookURL = 'https://discord.com/api/webhooks/1573382523424350444/KZ-WbDHpc6DjIyC3JmuIG4oaOm-I4uS-q5RSUyIMm4q5rMhxIL2sLE9lG1NuQMleFd3j',
     },
     ['craft-object'] = {
-        webHookURL = 'YOURWEBHOOK',
+        webHookURL = 'https://discord.com/api/webhooks/1573382523424350444/KZ-WbDHpc6DjIyC3JmuIG4oaOm-I4uS-q5RSUyIMm4q5rMhxIL2sLE9lG1NuQMleFd3j',
     },
     ['craft-item'] = {
-        webHookURL = 'YOURWEBHOOK',
+        webHookURL = 'https://discord.com/api/webhooks/1573382523424350444/KZ-WbDHpc6DjIyC3JmuIG4oaOm-I4uS-q5RSUyIMm4q5rMhxIL2sLE9lG1NuQMleFd3j',
     },
     ['object-damage'] = {
-        webHookURL = 'YOURWEBHOOK',
+        webHookURL = 'https://discord.com/api/webhooks/1573382523424350444/KZ-WbDHpc6DjIyC3JmuIG4oaOm-I4uS-q5RSUyIMm4q5rMhxIL2sLE9lG1NuQMleFd3j',
     },
     ['object-destroy'] = {
-        webHookURL = 'YOURWEBHOOK',
+        webHookURL = 'https://discord.com/api/webhooks/1573382523424350444/KZ-WbDHpc6DjIyC3JmuIG4oaOm-I4uS-q5RSUyIMm4q5rMhxIL2sLE9lG1NuQMleFd3j',
     },
     ['vips'] = {
-        webHookURL = 'YOURWEBHOOK',
+        webHookURL = 'https://discord.com/api/webhooks/1573382523424350444/KZ-WbDHpc6DjIyC3JmuIG4oaOm-I4uS-q5RSUyIMm4q5rMhxIL2sLE9lG1NuQMleFd3j',
     },
     ['staff-actions'] = {
-        webHookURL = 'YOURWEBHOOK',
+        webHookURL = 'https://discord.com/api/webhooks/1573382523424350444/KZ-WbDHpc6DjIyC3JmuIG4oaOm-I4uS-q5RSUyIMm4q5rMhxIL2sLE9lG1NuQMleFd3j',
     },
     ['suspeitas'] = {
-        webHookURL = 'YOURWEBHOOK',
+        webHookURL = 'https://discord.com/api/webhooks/1573382523424350444/KZ-WbDHpc6DjIyC3JmuIG4oaOm-I4uS-q5RSUyIMm4q5rMhxIL2sLE9lG1NuQMleFd3j',
     },
 }
 

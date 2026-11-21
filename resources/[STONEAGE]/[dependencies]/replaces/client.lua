@@ -39,7 +39,7 @@ addEventHandler('onClientResourceStart', resourceRoot, function()
     
     Async:setPriority('high')
     
-    exports['stoneage_loadscreen']:setHeader('Unpacking files')
+    exports['stoneage_loadscreen']:setHeader('Décompression des fichiers')
     
     Async:foreach(Replaces, function(v, k)
             exports['stoneage_loadscreen']:setInfo(('%i/%i (%i%%)'):format(k, total, (k * 100 / total)))
@@ -74,8 +74,8 @@ addEventHandler('onClientResourceStart', resourceRoot, function()
             if whitelistedSerials[getPlayerSerial()] then
                 secondsToWait = 3
             end
-            exports['stoneage_loadscreen']:setHeader('Pronto!')
-            exports['stoneage_loadscreen']:setInfo('Entrando no jogo em ' .. secondsToWait)
+            exports['stoneage_loadscreen']:setHeader('Prêt !')
+            exports['stoneage_loadscreen']:setInfo('Entrée en jeu dans ' .. secondsToWait)
             setTimer(function()
                 local _, left = getTimerDetails(sourceTimer)
                 if (left == 1) then
@@ -83,7 +83,7 @@ addEventHandler('onClientResourceStart', resourceRoot, function()
                     -- exports['gamemode']:toggleLogin(true)
                     triggerServerEvent('requestStaffPermissions', localPlayer)
                 else
-                    exports['stoneage_loadscreen']:setInfo('Entrando no jogo em ' .. left - 1)
+                    exports['stoneage_loadscreen']:setInfo('Entrée en jeu dans ' .. (left - 1))
                 end
             end, 1000, secondsToWait)
         end

@@ -1,5 +1,15 @@
 <meta>
-    <info author="iDannz" version="1.0" name="Rust GameMode" description="desc." type="gamemode" />
+    <!-- DEPENDENCIES: start these resources before loading the gamemode -->
+    <include resource="stoneage_ui" />
+    <include resource="stoneage_highlight" />
+    <include resource="stoneage_object_preview" />
+    <include resource="stoneage_settings" />
+    <include resource="stoneage_logs" />
+    <include resource="stoneage_sql" />
+    <include resource="stoneage_bone_attach" />
+    <include resource="stoneage_translations" />
+    <include resource="stoneage_utils" />
+<info author="iDannz" version="1.0" name="Rust GameMode" description="desc." type="gamemode" />
     <min_mta_version server="1.5.6-9.18728" client="1.5.7-9.20447"></min_mta_version>
     
     <!-- SCRIPTS -->
@@ -9,7 +19,7 @@
     <script src="scripts/global/g.gameplayConfig.lua" type="shared" cache="false" />
     <script src="scripts/global/g.blueprints.lua" type="shared" cache="false" />
     <script src="scripts/global/g.objects.lua" type="shared" cache="false" />
-    <script src="scripts/global/g.inventory-functions.luac" type="shared" cache="false" />
+    <script src="scripts/global/g.inventory-functions.lua" type="shared" cache="false" />
     <script src="scripts/global/g.worldConfig.lua" type="shared" cache="false" />
     <script src="scripts/global/async.lua" type="shared" cache="false" />
     <script src="scripts/global/positions/spawns.player.lua" type="shared" cache="false" />
@@ -18,10 +28,10 @@
     <script src="scripts/server/s.main.lua" type="server" />
     <script src="scripts/server/database/s.database.lua" type="server" />
     <script src="scripts/server/database/s.accounts.lua" type="server" />
-    <script src="scripts/server/database/s.objects.luac" type="server" />
+    <script src="scripts/server/database/s.objects.lua" type="server" />
     <script src="scripts/server/s.utils.lua" type="server" />
-    <script src="scripts/server/s.player.luac" type="server" />
-    <script src="scripts/server/s.inventory.luac" type="server" />
+    <script src="scripts/server/s.player.lua" type="server" />
+    <script src="scripts/server/s.inventory.lua" type="server" />
     <script src="scripts/server/s.chat.lua" type="server" />
     <script src="scripts/server/s.damage.lua" type="server" />
     <script src="scripts/server/s.researchTable.lua" type="server" />
