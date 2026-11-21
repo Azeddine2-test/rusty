@@ -83,8 +83,9 @@ local function openClothesSelector()
     end
 
     applyClothesPreview(selectedClothes())
-    local w, h = math.min(560, sW - 40), 430
-    clothesUI.bounds = { x = (sW - w) / 2, y = menu.headerHeight + 35, w = w, h = h }
+    local w, h = math.min(460, sW - 30), math.min(430, sH - menu.headerHeight - 30)
+    -- Keep the preview panel on the right so the player remains visible on the left.
+    clothesUI.bounds = { x = math.max(15, sW - w - 25), y = menu.headerHeight + 15, w = w, h = h }
     menu.scene = "clothes"
 end
 
