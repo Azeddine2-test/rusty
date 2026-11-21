@@ -6,8 +6,19 @@ pickups = {
 -- //------------------- LOAD LOOT POINTS ON START -------------------\\--
 addEventHandler('onResourceStart', resourceRoot, function()
     local xml = xmlLoadFile('loot-points.map')
+    if not xml then
+        outputDebugString('[stoneage_pickups] Impossible de lire loot-points.map ; aucun point de loot chargé.', 2)
+        return
+    end
 
-    Async:foreach(xmlNodeGetChildren(xml), function(node, k)
+    local nodes = xmlNodeGetChildren(xml)
+    if type(nodes) ~= 'table' then
+        xmlUnloadFile(xml)
+        outputDebugString('[stoneage_pickups] loot-points.map ne contient aucun point valide.', 2)
+        return
+    end
+
+    Async:foreach(nodes, function(node, k)
         local attr = xmlNodeGetAttributes(node)
         local model = tonumber(attr.model)
         local x, y, z = attr.posX, attr.posY, attr.posZ
@@ -41,6 +52,8 @@ addEventHandler('onResourceStart', resourceRoot, function()
 
             createLootPoint(lootType, x, y, z, rx, ry, rz)
         end
+    end, function()
+        if isElement(xml) then xmlUnloadFile(xml) end
     end)
 end)
 -- //------------------- LOAD LOOT POINTS ON START -------------------\\--
@@ -326,35 +339,69 @@ end
 -- //------------------- RESPAWN LOOT POINT -------------------\\--
 -- //------------------- ON OPEN BARREL -------------------\\--
 local openingBarrels = {}
-function onOpenBarrel(ob)
-    local player = client or source
-    if (client ~= source and source ~= resourceRoot) then
-        if isElement(client) and exports["stoneage_ac"] then
-            exports["stoneage_ac"]:KickForCallingUnauthorizedEvent(client, eventName)
-        end
-        return
-    end
-    if not isElement(player) or getElementType(player) ~= "player" or not isElement(ob) then return end
-    if not getElementData(ob, "lootPickup") or openingBarrels[ob] then return end
+local barrelDamageCooldown = {}
 
-    local itemName = getElementData(ob, "obName")
-    if not itemName or not possibleLoots[itemName] then return end
+local function openBarrel(player, ob)
+    if not isElement(player) or getElementType(player) ~= 'player' or not isElement(ob) then return false end
+    if not getElementData(ob, 'lootPickup') or openingBarrels[ob] then return false end
+
+    local itemName = getElementData(ob, 'obName')
+    if not itemName or type(possibleLoots[itemName]) ~= 'table' then return false end
+
+    local px, py, pz = getElementPosition(player)
+    local ox, oy, oz = getElementPosition(ob)
+    if getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 7 then return false end
+    if (tonumber(getElementData(ob, 'health')) or 1) > 0 then return false end
+
+    openingBarrels[ob] = true
+    local loots = generateLootToGive(itemName)
+    if #loots > 0 then createSack(ox, oy, oz - 0.35, loots, 'Loot') end
+    triggerEvent('rust:play3DSound', player, 'barrel-destroy.mp3', ox, oy, oz, 0.5, 50)
+    if exports['stoneage_economy'] then
+        exports['stoneage_economy']:giveExp(player, math.random(2, 7))
+    end
+    setupRespawn(ob)
+    destroyElement(ob)
+    return true
+end
+
+-- Le serveur valide les dégâts : distance, outil équipé et cadence anti-spam.
+addEvent('pickups:damageBarrel', true)
+addEventHandler('pickups:damageBarrel', root, function(ob, requestedDamage)
+    local player = client
+    if not isElement(player) or source ~= player or not isElement(ob) then return end
+    if not getElementData(ob, 'lootPickup') or openingBarrels[ob] then return end
+
     local px, py, pz = getElementPosition(player)
     local ox, oy, oz = getElementPosition(ob)
     if getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 7 then return end
 
-    openingBarrels[ob] = true
-    local loots = generateLootToGive(itemName)
-    if #loots > 0 then createSack(ox, oy, oz - 0.35, loots, "Loot") end
-    triggerEvent("rust:play3DSound", player, "barrel-destroy.mp3", ox, oy, oz, 0.5, 50)
-    if exports["stoneage_economy"] then
-        exports["stoneage_economy"]:giveExp(player, math.random(2, 7))
-    end
-    setupRespawn(ob)
-    destroyElement(ob)
-end
-addEvent("pickups:onOpenBarrel", true)
-addEventHandler("pickups:onOpenBarrel", root, onOpenBarrel)
+    local equippedItem = getElementData(player, 'equippedItem')
+    local validTools = { Stone = true, Hatchet = true, Pickaxe = true, Chainsaw = true, JackHammer = true }
+    if not validTools[equippedItem] then return end
+
+    local now = getTickCount()
+    barrelDamageCooldown[player] = barrelDamageCooldown[player] or {}
+    local lastHit = barrelDamageCooldown[player][ob] or 0
+    if now - lastHit < 350 then return end
+    barrelDamageCooldown[player][ob] = now
+
+    local damage = math.floor(tonumber(requestedDamage) or 0)
+    damage = math.max(1, math.min(150, damage))
+    local health = math.max(0, tonumber(getElementData(ob, 'health')) or tonumber(getElementData(ob, 'maxHealth')) or 1000)
+    health = math.max(0, health - damage)
+    setElementData(ob, 'health', health)
+
+    if health <= 0 then openBarrel(player, ob) end
+end)
+
+-- Compatibilité avec l'ancien événement : impossible d'ouvrir un baril encore intact.
+addEvent('pickups:onOpenBarrel', true)
+addEventHandler('pickups:onOpenBarrel', root, function(ob)
+    local player = client
+    if not isElement(player) or source ~= player or not isElement(ob) then return end
+    openBarrel(player, ob)
+end)
 
 -- //------------------- UTILS -------------------\\--
 function getTimeToDestroySack()
