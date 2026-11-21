@@ -150,6 +150,13 @@ local function syncInventorySlots(player, inventoryType, firstSlot, secondSlot)
     end
 end
 
+local function syncAllInventorySlots(player, inventoryType, container)
+    local limit = inventorySlotLimit(container)
+    for slot = 1, limit do
+        triggerClientEvent(player, "receiveMoveSync", player, inventoryType, slot)
+    end
+end
+
 addEvent("inv:moveItem", true)
 addEventHandler("inv:moveItem", root, function(container, fromSlot, toSlot, inventoryType)
     local player = client
@@ -299,8 +306,8 @@ addEventHandler("inv:takeItem", root, function(container, targetSlot, sourceSlot
     setElementData(container, itemName, math.max(0, containerQuantity - quantity))
     setElementData(player, itemName, (tonumber(getElementData(player, itemName)) or 0) + quantity)
 
-    triggerClientEvent(player, "receiveMoveSync", player, "loot", sourceSlot)
-    if targetSlot then triggerClientEvent(player, "receiveMoveSync", player, "inv", targetSlot) end
+    syncAllInventorySlots(player, "loot", container)
+    syncAllInventorySlots(player, "inv", player)
 end)
 
 -- Secure server-side drop/transfer handler. The client only supplies slot IDs;
@@ -354,8 +361,8 @@ addEventHandler("inv:dropItem", root, function(fromSlot, targetSlot, lootObject,
         setPreference(player, fromSlot, itemName, quantity)
         setElementData(lootObject, itemName, (tonumber(getElementData(lootObject, itemName)) or 0) + quantity)
         setElementData(player, itemName, math.max(0, owned - quantity))
-        triggerClientEvent(player, "receiveMoveSync", player, "inv", fromSlot)
-        if targetSlot then triggerClientEvent(player, "receiveMoveSync", player, "loot", math.floor(targetSlot)) end
+        syncAllInventorySlots(player, "inv", player)
+        syncAllInventorySlots(player, "loot", lootObject)
         return
     end
 
@@ -368,7 +375,7 @@ addEventHandler("inv:dropItem", root, function(fromSlot, targetSlot, lootObject,
 
     setPreference(player, fromSlot, itemName, quantity)
     setElementData(player, itemName, math.max(0, owned - quantity))
-    triggerClientEvent(player, "receiveMoveSync", player, "inv", fromSlot)
+    syncAllInventorySlots(player, "inv", player)
 end)
 
 function onPlayerEquipItem(slotID, player)
