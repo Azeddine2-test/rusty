@@ -191,14 +191,17 @@ function generateLootToGive(lootType)
 end
 
 local timerSack = {}
-function createSack(x, y, z, items, sackName)
+function createSack(x, y, z, items, sackName, requestedMaxSlots)
     if type(items) ~= "table" or #items == 0 then return false end
+    local slotLimit = math.max(21, math.min(28, math.floor(tonumber(requestedMaxSlots) or 21)))
     local ob = getNearSack(x, y, z)
     if not isElement(ob) then
         ob = createObject(1575, x, y, z, 0, math.random(200, 320), 0)
         if not isElement(ob) then return false end
         setObjectScale(ob, 1.5)
-        setElementData(ob, "maxSlots", 21)
+        setElementData(ob, "maxSlots", slotLimit)
+    elseif requestedMaxSlots then
+        setElementData(ob, "maxSlots", math.max(slotLimit, tonumber(getElementData(ob, "maxSlots")) or 21))
         setElementData(ob, "obName", sackName or "Loot")
         setElementData(ob, "gearPickup", true)
         addEventHandler("onElementDestroy", ob, removeTimerOnDestroy)
@@ -222,7 +225,7 @@ function createSack(x, y, z, items, sackName)
                     break
                 end
             end
-            if not merged and nextSlot <= 21 then
+            if not merged and nextSlot <= slotLimit then
                 order[nextSlot] = {itemName = itemName, quantity = quantity}
                 nextSlot = nextSlot + 1
             end
