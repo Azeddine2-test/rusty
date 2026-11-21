@@ -23,6 +23,14 @@ local function giveRespawnStarterKit(player)
     return true
 end
 
+local function getOnlinePlayerByAccount(accountName)
+    if type(accountName) ~= "string" then return false end
+    for _, onlinePlayer in ipairs(getElementsByType("player")) do
+        if getElementData(onlinePlayer, "account") == accountName then return onlinePlayer end
+    end
+    return false
+end
+
 local function applySavedCharacterClothes(player)
     if not isElement(player) then return false end
     local clothes = getElementData(player, "Clothes")
@@ -356,20 +364,68 @@ loadEvent("player:onTryToLogin", root, function()
 end)
 
 
--- Secure account registration/login using MTA's built-in account storage.
--- Passwords are never written to the StoneAge gameplay database.
+-- Rusty-native authentication. MTA accounts are only checked once to migrate old accounts.
+-- New accounts and all migrated accounts authenticate exclusively against the Rusty SQL database.
 local authAttempts = {}
+local authPending = {}
+
+local function sendAuthResult(player, success, message)
+    if isElement(player) then
+        authPending[player] = nil
+        triggerClientEvent(player, "rust:auth:result", player, success, message)
+    end
+end
+
+local function finishRustyLogin(player, username)
+    if not isElement(player) then return end
+    setElementData(player, "account", username)
+    sendAuthResult(player, true, "Connexion réussie.")
+end
+
+local function hashAndStorePassword(player, username, password)
+    passwordHash(password, "bcrypt", {}, function(passwordHashValue)
+        if not isElement(player) then return end
+        if type(passwordHashValue) ~= "string" or passwordHashValue == "" then
+            sendAuthResult(player, false, "Impossible de sécuriser le mot de passe. Réessaie.")
+            return
+        end
+
+        if not GetAccount(username) and not createAccount(username) then
+            sendAuthResult(player, false, "Impossible de créer les données du compte.")
+            return
+        end
+
+        if not setAccountPasswordHash(username, passwordHashValue) then
+            sendAuthResult(player, false, "Impossible d'enregistrer le compte dans la base Rusty.")
+            return
+        end
+
+        finishRustyLogin(player, username)
+    end)
+end
+
+local function migrateLegacyAccount(player, username, password)
+    -- One-time bridge for old MTA accounts. After this bcrypt hash is stored,
+    -- all later logins are verified only against Rusty's SQL database.
+    local legacyAccount = getAccount(username, password)
+    if not legacyAccount then
+        sendAuthResult(player, false, "Identifiant ou mot de passe incorrect.")
+        return
+    end
+    hashAndStorePassword(player, username, password)
+end
 
 addEvent("rust:auth:submit", true)
 addEventHandler("rust:auth:submit", root, function(mode, username, password, confirmation)
     local player = client
-    if not isElement(player) or source ~= player then return end
-    if type(mode) ~= "string" or type(username) ~= "string" or type(password) ~= "string" then return end
+    if not isElement(player) or source ~= player or authPending[player] then return end
+    if mode ~= "register" and mode ~= "login" then return end
+    if type(username) ~= "string" or type(password) ~= "string" then return end
 
     local now = getTickCount()
     local attempt = authAttempts[player]
     if attempt and now - attempt.tick < 10000 and attempt.count >= 5 then
-        triggerClientEvent(player, "rust:auth:result", player, false, "Trop de tentatives. Attends quelques secondes.")
+        sendAuthResult(player, false, "Trop de tentatives. Attends quelques secondes.")
         return
     end
     if not attempt or now - attempt.tick >= 10000 then
@@ -380,70 +436,44 @@ addEventHandler("rust:auth:submit", root, function(mode, username, password, con
 
     username = username:match("^%s*(.-)%s*$")
     if #username < 3 or #username > 20 or not username:match("^[%w_%-]+$") then
-        triggerClientEvent(player, "rust:auth:result", player, false, "Identifiant : 3 à 20 caractères (lettres, chiffres, _ ou -).")
+        sendAuthResult(player, false, "Identifiant : 3 à 20 caractères (lettres, chiffres, _ ou -).")
         return
     end
     if #password < 6 or #password > 64 then
-        triggerClientEvent(player, "rust:auth:result", player, false, "Le mot de passe doit contenir entre 6 et 64 caractères.")
+        sendAuthResult(player, false, "Le mot de passe doit contenir entre 6 et 64 caractères.")
         return
     end
-    if mode == "register" and (type(confirmation) ~= "string" or password ~= confirmation) then
-        triggerClientEvent(player, "rust:auth:result", player, false, "Les deux mots de passe ne correspondent pas.")
-        return
-    end
+
+    authPending[player] = true
 
     if mode == "register" then
-        if getAccount(username) or GetAccount(username) then
-            triggerClientEvent(player, "rust:auth:result", player, false, "Ce compte existe déjà. Connecte-toi.")
+        if type(confirmation) ~= "string" or password ~= confirmation then
+            sendAuthResult(player, false, "Les deux mots de passe ne correspondent pas.")
             return
         end
-
-        local account = addAccount(username, password)
-        if not account then
-            triggerClientEvent(player, "rust:auth:result", player, false, "Impossible de créer ce compte. Vérifie l'identifiant.")
+        if GetAccount(username) or getAccount(username) then
+            sendAuthResult(player, false, "Ce compte existe déjà. Utilise Connexion pour le récupérer.")
             return
         end
-
-        local created = createAccount(username)
-        if not created then
-            removeAccount(account)
-            triggerClientEvent(player, "rust:auth:result", player, false, "La base de données a refusé la création du compte.")
-            return
-        end
-
-        -- Only accounts created from this registration flow receive the creator and starter kit.
-        setAccountData(username, "characterCreated", false)
-        setAccountData(username, "starterKitGiven", false)
-
-        if not logIn(player, account, password) then
-            triggerClientEvent(player, "rust:auth:result", player, false, "Compte créé, mais la connexion automatique a échoué. Essaie de te connecter.")
-            return
-        end
-    elseif mode == "login" then
-        local account = getAccount(username, password)
-        if not account then
-            triggerClientEvent(player, "rust:auth:result", player, false, "Identifiant ou mot de passe incorrect.")
-            return
-        end
-
-        if not GetAccount(username) then
-            local created = createAccount(username)
-            if not created then
-                triggerClientEvent(player, "rust:auth:result", player, false, "Impossible de préparer les données du joueur.")
-                return
-            end
-        end
-
-        if not logIn(player, account, password) then
-            triggerClientEvent(player, "rust:auth:result", player, false, "La connexion a échoué. Réessaie.")
-            return
-        end
-    else
+        hashAndStorePassword(player, username, password)
         return
     end
 
-    setElementData(player, "account", username)
-    triggerClientEvent(player, "rust:auth:result", player, true, "Connexion réussie.")
+    local accountRow = GetAccount(username)
+    local storedHash = accountRow and accountRow.PasswordHash
+    if type(storedHash) == "string" and storedHash ~= "" then
+        passwordVerify(password, storedHash, {}, function(matches)
+            if not isElement(player) then return end
+            if matches then
+                finishRustyLogin(player, username)
+            else
+                sendAuthResult(player, false, "Identifiant ou mot de passe incorrect.")
+            end
+        end)
+        return
+    end
+
+    migrateLegacyAccount(player, username, password)
 end)
 
 addEvent("rust:character:submit", true)
@@ -561,7 +591,7 @@ loadEvent("onPlayerSpawnAtBed", root, function(bed)
     local owner = getElementData(bed, "owner")
     local account = getElementData(player, "account")
     if owner ~= account then
-        local ownerPlayer = getAccountPlayer(owner)
+        local ownerPlayer = getOnlinePlayerByAccount(owner)
         local ownerGroup = ownerPlayer and getElementData(ownerPlayer, "Group") or GetAccountData(owner, "Group")
         if not ownerGroup or ownerGroup ~= getElementData(player, "Group") then return end
     end
