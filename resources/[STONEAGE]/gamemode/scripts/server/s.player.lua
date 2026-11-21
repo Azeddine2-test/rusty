@@ -574,6 +574,28 @@ addEventHandler("onPlayerQuit", root, function()
     savePlayerData(source)
 end)
 
+-- Broken bones periodically make the player stumble/fall.
+local brokenboneFallCooldown = {}
+addEvent("player:onFallByBrokenbone", true)
+addEventHandler("player:onFallByBrokenbone", root, function()
+    local player = client
+    if not isElement(player) or source ~= player or getElementType(player) ~= "player" then return end
+    if not getElementData(player, "account") or getElementData(player, "isDead")
+        or not getElementData(player, "brokenbone") then return end
+
+    local now = getTickCount()
+    if brokenboneFallCooldown[player] and now - brokenboneFallCooldown[player] < 9000 then return end
+    brokenboneFallCooldown[player] = now
+
+    if not getPedAnimation(player) then
+        setPedAnimation(player, "ped", "FLOOR_hit_f", 1000, false, false, false, false)
+    end
+end)
+
+addEventHandler("onPlayerQuit", root, function()
+    brokenboneFallCooldown[source] = nil
+end)
+
 addEventHandler("onResourceStart", resourceRoot, function()
     for _, player in ipairs(getElementsByType("player")) do
         local account = resolveAccount(player)
