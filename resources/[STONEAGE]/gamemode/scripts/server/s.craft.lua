@@ -44,8 +44,12 @@ local function getCraftItemSlotQuantity(player, itemName)
 end
 
 local function getCraftItemQuantity(player, itemName)
-    local slotQuantity = getCraftItemSlotQuantity(player, itemName)
-    if slotQuantity > 0 then return slotQuantity end
+    if itemName == 'Level' then
+        return math.max(0, math.floor(tonumber(getElementData(player, itemName)) or 0))
+    end
+    if type(getElementData(player, 'invOrder')) == 'table' then
+        return getCraftItemSlotQuantity(player, itemName)
+    end
     return math.max(0, math.floor(tonumber(getElementData(player, itemName)) or 0))
 end
 
@@ -73,12 +77,14 @@ local function consumeCraftItemQuantity(player, itemName, amount)
     amount = math.floor(tonumber(amount) or 0)
     if amount <= 0 then return true end
 
+    local currentOrder = getElementData(player, 'invOrder')
+    local hasInventoryOrder = type(currentOrder) == 'table'
     local slotQuantity = getCraftItemSlotQuantity(player, itemName)
-    local available = slotQuantity > 0 and slotQuantity
+    local available = hasInventoryOrder and slotQuantity
         or math.max(0, math.floor(tonumber(getElementData(player, itemName)) or 0))
     if available < amount then return false end
 
-    if slotQuantity > 0 then
+    if hasInventoryOrder then
         local slots = {}
         local order = getElementData(player, 'invOrder')
         for slot, entry in pairs(order or {}) do
@@ -486,7 +492,7 @@ function evolveObject(ob, newObjectName)
             end
         end
 
-        local limit = getObjectLimit(newObjectName, player);
+        local limit = getObjectLimit(newObjectName, player)
         if limit and (getElementData(player, newObjectName) or 0) + 1 > limit then
             local str = translate(player, 'Atingiu limite de %s', nil, translate(player, newObjectName, 'name'))
             exports['stoneage_notifications']:CreateNotification(player, str, 'error')
