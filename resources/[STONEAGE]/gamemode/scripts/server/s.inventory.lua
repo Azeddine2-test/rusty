@@ -325,8 +325,11 @@ addEventHandler("inv:dropItem", root, function(fromSlot, targetSlot, lootObject,
     if quantity <= 0 or owned <= 0 then return end
     quantity = math.min(quantity, owned)
 
-    if targetType == "loot" then
+    if targetType == "loot" or isElement(lootObject) then
         if not validLootContainer(player, lootObject) then return end
+        local containerName = getElementData(lootObject, "obName")
+        if containerName == "Fornalha" and not getItemFurnanceSettings(itemName) then return end
+        if containerName == "Mesa de pesquisa" then return end
         local maxSlots = math.max(1, tonumber(getElementData(lootObject, "maxSlots")) or 21)
         local lootOrder = getElementData(lootObject, "invOrder")
         if type(lootOrder) ~= "table" then lootOrder = {} end
@@ -356,7 +359,6 @@ addEventHandler("inv:dropItem", root, function(fromSlot, targetSlot, lootObject,
         return
     end
 
-    if lootObject and isElement(lootObject) then return end
     local x, y, z = getElementPosition(player)
     local sack = exports.stoneage_pickups:createSack(x, y, z - 0.8, {{itemName, quantity}}, "Loot")
     if not isElement(sack) then
