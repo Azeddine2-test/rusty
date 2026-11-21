@@ -136,8 +136,16 @@ local function copyInventoryEntry(entry)
 end
 
 local function validLootContainer(player, container)
+    if not isElement(player) or getElementType(player) ~= "player"
+        or getElementData(player, "isDead") or not getElementData(player, "account") then
+        return false
+    end
     if not isElement(container) or getElementType(container) ~= "object" then return false end
     if getElementData(container, "obName") == "farmObject" then return false end
+    if getElementDimension(player) ~= getElementDimension(container)
+        or getElementInterior(player) ~= getElementInterior(container) then
+        return false
+    end
     local px, py, pz = getElementPosition(player)
     local ox, oy, oz = getElementPosition(container)
     return getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) <= 10
@@ -255,14 +263,13 @@ end)
 addEvent("inv:takeItem", true)
 addEventHandler("inv:takeItem", root, function(container, targetSlot, sourceSlot, sourceType, targetType)
     local player = client
-    if not isElement(player) or source ~= player then return end
+    if not isElement(player) or source ~= player or getElementData(player, "isDead")
+        or not getElementData(player, "account") then return end
     if sourceType ~= "loot" or (targetType ~= nil and targetType ~= "inv") then return end
     if not isElement(container) or getElementType(container) ~= "object" then return end
     if container == player or getElementData(container, "obName") == "farmObject" then return end
 
-    local px, py, pz = getElementPosition(player)
-    local ox, oy, oz = getElementPosition(container)
-    if getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 10 then return end
+    if not validLootContainer(player, container) then return end
 
     sourceSlot = tonumber(sourceSlot)
     targetSlot = tonumber(targetSlot)
