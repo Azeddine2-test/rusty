@@ -1302,7 +1302,7 @@ playerDataTable = {
         attach = {
             modelID = 342,
             scale = 1,
-            bone = 24,
+            bone = 12,
             pos = {-0.05, 0.05, 0.05, 180, 90, 180},
         },
         receiveOnCraft = 1,
@@ -1360,7 +1360,7 @@ playerDataTable = {
         attach = {
             modelID = 2996,
             scale = 1,
-            bone = 24,
+            bone = 12,
             pos = {0, 0, 0, 180, 87.5, 180},
         },
         attachBackward = {
@@ -1390,7 +1390,7 @@ playerDataTable = {
         attach = {
             modelID = 2995,
             scale = 1.2,
-            bone = 24,
+            bone = 12,
             pos = {0, 0, 0.14, 0, 70, 0},
         },
         attachBackward = {
@@ -1421,7 +1421,7 @@ playerDataTable = {
         attach = {
             modelID = 2997,
             scale = 1,
-            bone = 24,
+            bone = 12,
             pos = {0, 0, 0, 180, 87.5, 180},
         },
         attachBackward = {
@@ -1452,7 +1452,7 @@ playerDataTable = {
         attach = {
             modelID = 3000,
             scale = 1,
-            bone = 24,
+            bone = 12,
             pos = {0, 0, 0, 180, 87.5, 180},
         },
         attachBackward = {
@@ -1482,7 +1482,7 @@ playerDataTable = {
         attach = {
             modelID = 337,
             scale = 1,
-            bone = 24,
+            bone = 12,
             pos = {0, 0, 0, 180, 87.5, 180},
         },
         attachBackward = {
