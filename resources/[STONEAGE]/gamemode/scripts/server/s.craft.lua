@@ -5,32 +5,77 @@ Dummys = {
 addEvent('onPlayerCraftObject', true)
 addEvent('onPlayerCraftItem', true)
 
-loadEvent('OnCraftObject', root, function(obName, pos)
-    local custo = exports['gamemode']:getObjectDataSetting(obName, 'craftingCusto')
+local lastCraftRequest = {}
 
-    if custo and (not getElementData(client, 'staffRole2')) then
-        for k, v in ipairs(custo) do
-            local cost = v[2]
-            if (v[1] == 'Level') and isVIP(client) then
+loadEvent('OnCraftObject', root, function(obName, pos)
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player then
+        return false
+    end
+    if getElementData(player, 'isDead') or not getElementData(player, 'account') then
+        return false
+    end
+    if type(obName) ~= 'string' or type(pos) ~= 'table' or #pos ~= 6 then
+        return false
+    end
+
+    local model = getObModel(obName)
+    local custo = getObjectDataSetting(obName, 'craftingCusto')
+    if not model or type(custo) ~= 'table' then
+        return false
+    end
+
+    for i = 1, 6 do
+        local value = pos[i]
+        if type(value) ~= 'number' or value ~= value or math.abs(value) > 100000 then
+            return false
+        end
+    end
+
+    local px, py, pz = getElementPosition(player)
+    if getDistanceBetweenPoints3D(px, py, pz, pos[1], pos[2], pos[3]) > 15 then
+        return false
+    end
+
+    local now = getTickCount()
+    if lastCraftRequest[player] and now - lastCraftRequest[player] < 1000 then
+        return false
+    end
+    lastCraftRequest[player] = now
+
+    local staff = getElementData(player, 'staffRole2') or isAdmin(player)
+    local countName = isBaseItem(obName) and 'baseItems' or obName
+    local limit = getObjectLimit(countName, player)
+    if not staff and limit and (getElementData(player, countName) or 0) >= limit then
+        exports['stoneage_notifications']:CreateNotification(player, translate(player, 'Atingiu limite de %s', nil, translate(player, countName, 'name')), 'error')
+        return false
+    end
+
+    if not staff then
+        for _, entry in ipairs(custo) do
+            if type(entry) ~= 'table' or type(entry[1]) ~= 'string' or type(entry[2]) ~= 'number' or entry[2] < 0 then
+                return false
+            end
+            local cost = entry[2]
+            if entry[1] == 'Level' and isVIP(player) then
                 cost = math.floor(cost * 0.75)
             end
-            if (getElementData(client, v[1]) or 0) < cost then
-                local str = exports['stoneage_translations']:translate(client, 'Você precisa de mais %s.', nil, exports['stoneage_translations']:translate(client, v[1], 'name'))
-                exports['stoneage_notifications']:CreateNotification(client, str, 'info')
-                removeElementData(client, 'WaitingResponse')
+            if (getElementData(player, entry[1]) or 0) < cost then
+                local str = exports['stoneage_translations']:translate(player, 'Você precisa de mais %s.', nil, exports['stoneage_translations']:translate(player, entry[1], 'name'))
+                exports['stoneage_notifications']:CreateNotification(player, str, 'info')
                 return false
             end
         end
 
-        for k, v in ipairs(custo) do
-            if v[1] ~= 'Level' then
-                setElementData(client, v[1], (getElementData(client, v[1]) or 0) - v[2])
+        -- Charge only after every requirement has been validated.
+        for _, entry in ipairs(custo) do
+            if entry[1] ~= 'Level' then
+                setElementData(player, entry[1], (getElementData(player, entry[1]) or 0) - entry[2])
             end
         end
     end
 
     createNewObject(obName, pos)
-    removeElementData(client, 'WaitingResponse')
 end)
 
 -- //------------------- CREATE NEW OBJECT -------------------\\--
@@ -111,7 +156,7 @@ function createNewObject(obName, pos)
         end
     end
 end
-loadEvent('craft:createNewObject', root, createNewObject)
+-- Server-only helper: object creation is routed through the validated OnCraftObject handler.
 -- //------------------- CREATE NEW OBJECT -------------------\\--
 
 -- //------------------- DESTROY OBJECT -------------------\\--
