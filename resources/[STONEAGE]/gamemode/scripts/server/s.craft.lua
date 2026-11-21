@@ -1547,4 +1547,4 @@ loadEvent('Craft:CraftItem', root, function(itemName, category)
     exports['stoneage_logs']:saveLog('craft-item',
         ('%s acabou de craftar %s "%s".'):format(getPlayerName(player), quantity, itemName))
     return true
-end))
+end)
