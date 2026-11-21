@@ -237,11 +237,12 @@ function showRightClickOptions(state)
         end
         local hoverSource = inv.hover.source
         local hoverPos = inv.hover.id
-        local order = inv.order[hoverSource]
-        local itemName = order and order[hoverPos] and order[hoverPos].itemName
+        local order = type(inv.order[hoverSource]) == 'table' and inv.order[hoverSource] or nil
+        local hoveredEntry = order and order[hoverPos]
+        local itemName = type(hoveredEntry) == 'table' and hoveredEntry.itemName or nil
         
         if itemName then
-            local quantity = order and order[hoverPos] and order[hoverPos].quantity
+            local quantity = type(hoveredEntry) == 'table' and tonumber(hoveredEntry.quantity) or 0
             local options = getOptionsToUseItem(itemName, quantity)
             
             inv.gui.rightClickOptions = {}
@@ -289,9 +290,13 @@ function showRightClickOptions(state)
 end
 
 function onClickRightOptions(optionID)
-    local selectedID = inv.selected.id
-    
-    local order = selectedID and inv.order.inv[selectedID]
+    if type(inv.selected) ~= 'table' or inv.selected.source ~= 'inv' then
+        setSelectedItem(false)
+        return false
+    end
+    local selectedID = tonumber(inv.selected.id)
+    local inventory = type(inv.order.inv) == 'table' and inv.order.inv or {}
+    local order = selectedID and inventory[selectedID]
     if not order then
         return
     end
