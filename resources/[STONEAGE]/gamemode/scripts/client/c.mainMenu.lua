@@ -9,7 +9,7 @@ local menu = {
 local clothesUI = {
     slots = {
         { id = 0, key = "shirt", label = "HAUT" },
-        { id = 1, key = "head", label = "VISAGE / TEINT" },
+        { id = 1, key = "hairBeard", label = "CHEVEUX / BARBES" },
         { id = 2, key = "pants", label = "PANTALON" },
         { id = 3, key = "shoes", label = "CHAUSSURES" },
         { id = 15, key = "glasses", label = "LUNETTES" },
@@ -18,26 +18,69 @@ local clothesUI = {
     choices = {},
     selected = {},
     bounds = {},
+    original = nil,
+    saving = false,
 }
 
-local function openClothesSelector()
-    local saved = getElementData(localPlayer, "Clothes") or { shirt = 1, head = 0, pants = 7, shoes = 0, glasses = 0, hat = 0 }
+local function selectedClothes()
+    local result = {}
     for _, slot in ipairs(clothesUI.slots) do
-        local choices = {}
+        local choices = clothesUI.choices[slot.key] or {}
+        result[slot.key] = choices[clothesUI.selected[slot.key] or 1]
+    end
+    return result
+end
+
+local function applyClothesPreview(clothes)
+    if getElementModel(localPlayer) ~= 0 then setElementModel(localPlayer, 0) end
+    clothes = clothes or selectedClothes()
+    for _, slot in ipairs(clothesUI.slots) do
+        local value = clothes[slot.key]
+        if value == nil then value = false end
+        setPedClothes(localPlayer, slot.id, value)
+    end
+end
+
+local function restoreClothesPreview()
+    if type(clothesUI.original) == "table" then
+        applyClothesPreview(clothesUI.original)
+    end
+    clothesUI.saving = false
+end
+
+local function openClothesSelector()
+    local saved = getElementData(localPlayer, "Clothes") or {
+        shirt = 1, hairBeard = 0, pants = 7, shoes = 0, glasses = 0, hat = 0
+    }
+    saved = table.copy and table.copy(saved) or {
+        shirt = saved.shirt, hairBeard = saved.hairBeard or saved.head,
+        pants = saved.pants, shoes = saved.shoes, glasses = saved.glasses, hat = saved.hat
+    }
+    if saved.hairBeard == nil then saved.hairBeard = saved.head or 0 end
+    clothesUI.original = {
+        shirt = saved.shirt, hairBeard = saved.hairBeard,
+        pants = saved.pants, shoes = saved.shoes, glasses = saved.glasses, hat = saved.hat
+    }
+    clothesUI.saving = false
+
+    for _, slot in ipairs(clothesUI.slots) do
+        local choices = { false } -- "SANS" is always before model 0.
         if type(getClothesByTypeIndex) == "function" then
             for index = 0, 300 do
                 local texture, model = getClothesByTypeIndex(slot.id, index)
                 if texture and model then choices[#choices + 1] = index end
             end
         end
-        if #choices == 0 then choices = { tonumber(saved[slot.key]) or 0 } end
         clothesUI.choices[slot.key] = choices
         clothesUI.selected[slot.key] = 1
-        local current = tonumber(saved[slot.key])
+        local current = saved[slot.key]
+        if current == nil then current = false end
         for i, value in ipairs(choices) do
             if value == current then clothesUI.selected[slot.key] = i break end
         end
     end
+
+    applyClothesPreview(selectedClothes())
     local w, h = math.min(560, sW - 40), 430
     clothesUI.bounds = { x = (sW - w) / 2, y = menu.headerHeight + 35, w = w, h = h }
     menu.scene = "clothes"
@@ -49,53 +92,66 @@ local function drawClothesSelector()
     dxDrawRectangle(b.x, b.y, b.w, b.h, predefinedColor("menu:color1"), true)
     dxDrawRectangleBorders(b.x, b.y, b.w, b.h, predefinedColor("menu:color2"), 3, true)
     dxDrawRectangle(b.x, b.y, b.w, 5, predefinedColor("menu:color2"), true)
-    dxDrawText("PERSONNALISER LES VÊTEMENTS", b.x + 12, b.y + 12, b.x + b.w - 12, b.y + 48,
+    dxDrawText("PERSONNALISER LE PERSONNAGE", b.x + 12, b.y + 12, b.x + b.w - 12, b.y + 48,
         predefinedColor("menu:color2"), 1, font("futura:2"), "center", "center", false, false, true)
     for row, slot in ipairs(clothesUI.slots) do
         local y = b.y + 65 + (row - 1) * 47
-        local choices = clothesUI.choices[slot.key] or { 0 }
+        local choices = clothesUI.choices[slot.key] or { false }
         local selected = clothesUI.selected[slot.key] or 1
-        dxDrawText(slot.label, b.x + 25, y, b.x + 145, y + 38, predefinedColor("menu:color2"), 1, font("futura:2"), "left", "center", false, false, true)
+        local value = choices[selected]
+        local display = value == false and "SANS" or ("Modèle : " .. tostring(value))
+        dxDrawText(slot.label, b.x + 20, y, b.x + 155, y + 38, predefinedColor("menu:color2"), 0.9, font("futura:2"), "left", "center", false, false, true)
         dxDrawText("<", b.x + 155, y, b.x + 205, y + 38, predefinedColor("menu:color2"), 1.5, font("futura:2"), "center", "center", false, false, true)
-        dxDrawText("Modèle : " .. tostring(choices[selected] or 0), b.x + 205, y, b.x + b.w - 205, y + 38, predefinedColor("menu:color2"), 1, font("futura"), "center", "center", false, false, true)
+        dxDrawText(display, b.x + 205, y, b.x + b.w - 205, y + 38, predefinedColor("menu:color2"), 1, font("futura"), "center", "center", false, false, true)
         dxDrawText(">", b.x + b.w - 205, y, b.x + b.w - 155, y + 38, predefinedColor("menu:color2"), 1.5, font("futura:2"), "center", "center", false, false, true)
     end
+    local saveText = clothesUI.saving and "ENREGISTREMENT..." or "ENREGISTRER"
     dxDrawRectangle(b.x + 25, b.y + b.h - 55, b.w * 0.43, 36, predefinedColor("menu:color2"), true)
-    dxDrawText("ENREGISTRER", b.x + 25, b.y + b.h - 55, b.x + 25 + b.w * 0.43, b.y + b.h - 19, predefinedColor("menu:color1"), 1, font("futura:2"), "center", "center", false, false, true)
+    dxDrawText(saveText, b.x + 25, b.y + b.h - 55, b.x + 25 + b.w * 0.43, b.y + b.h - 19, predefinedColor("menu:color1"), 1, font("futura:2"), "center", "center", false, false, true)
     dxDrawRectangle(b.x + b.w * 0.55, b.y + b.h - 55, b.w * 0.4, 36, predefinedColor("menu:color2"), true)
-    dxDrawText("FERMER", b.x + b.w * 0.55, b.y + b.h - 55, b.x + b.w * 0.95, b.y + b.h - 19, predefinedColor("menu:color1"), 1, font("futura:2"), "center", "center", false, false, true)
+    dxDrawText("ANNULER", b.x + b.w * 0.55, b.y + b.h - 55, b.x + b.w * 0.95, b.y + b.h - 19, predefinedColor("menu:color1"), 1, font("futura:2"), "center", "center", false, false, true)
 end
 
 local function handleClothesSelectorClick(x, y)
     local b = clothesUI.bounds
     if not b or not b.x then return true end
+    if clothesUI.saving then return true end
+
     for row, slot in ipairs(clothesUI.slots) do
         local rowY = b.y + 65 + (row - 1) * 47
         if y >= rowY and y <= rowY + 38 then
-            local choices = clothesUI.choices[slot.key] or { 0 }
+            local choices = clothesUI.choices[slot.key] or { false }
             local selected = clothesUI.selected[slot.key] or 1
+            local changed = false
             if x >= b.x + 155 and x <= b.x + 205 then
                 clothesUI.selected[slot.key] = ((selected - 2) % #choices) + 1
+                changed = true
             elseif x >= b.x + b.w - 205 and x <= b.x + b.w - 155 then
                 clothesUI.selected[slot.key] = (selected % #choices) + 1
+                changed = true
+            end
+            if changed then
+                local value = choices[clothesUI.selected[slot.key]]
+                setPedClothes(localPlayer, slot.id, value)
             end
             return true
         end
     end
+
     if y >= b.y + b.h - 55 and y <= b.y + b.h - 19 then
         if x >= b.x + 25 and x <= b.x + 25 + b.w * 0.43 then
-            for _, slot in ipairs(clothesUI.slots) do
-                local choices = clothesUI.choices[slot.key] or { 0 }
-                local selected = clothesUI.selected[slot.key] or 1
-                triggerServerEvent("rust:clothes:change", localPlayer, slot.id, choices[selected] or 0)
-            end
-            menu.scene = nil
+            clothesUI.saving = true
+            triggerServerEvent("rust:clothes:save", localPlayer, selectedClothes())
         elseif x >= b.x + b.w * 0.55 and x <= b.x + b.w * 0.95 then
+            restoreClothesPreview()
             menu.scene = nil
         end
         return true
     end
-    if x < b.x or x > b.x + b.w or y < b.y or y > b.y + b.h then menu.scene = nil end
+    if x < b.x or x > b.x + b.w or y < b.y or y > b.y + b.h then
+        restoreClothesPreview()
+        menu.scene = nil
+    end
     return true
 end
 
@@ -268,6 +324,14 @@ end)
 
 addEvent('rust:clothes:result', true)
 addEventHandler('rust:clothes:result', localPlayer, function(success, message)
+    clothesUI.saving = false
+    if success then
+        clothesUI.original = selectedClothes()
+        menu.scene = nil
+    else
+        restoreClothesPreview()
+        menu.scene = nil
+    end
     if message and message ~= '' then outputChatBox(tostring(message), 235, 190, 80) end
 end)
 
@@ -287,6 +351,7 @@ function toggleMenu(state)
         addEventHandler('onClientClick', root, menu.onClick)
         fadeCamera(true)
     else
+        if menu.scene == 'clothes' then restoreClothesPreview() end
         if authUI.visible then closeAuth() end
         removeEventHandler('onClientRender', root, drawMenu)
         removeEventHandler('onClientClick', root, menu.onClick)
