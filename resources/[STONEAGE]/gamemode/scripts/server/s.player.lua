@@ -285,6 +285,93 @@ loadEvent("player:onTryToLogin", root, function()
     if source == client then triggerClientEvent(client, "toggleLogin", client, true) end
 end)
 
+
+-- Secure account registration/login using MTA's built-in account storage.
+-- Passwords are never written to the StoneAge gameplay database.
+local authAttempts = {}
+
+addEvent("rust:auth:submit", true)
+addEventHandler("rust:auth:submit", root, function(mode, username, password)
+    local player = client
+    if not isElement(player) or source ~= player then return end
+    if type(mode) ~= "string" or type(username) ~= "string" or type(password) ~= "string" then return end
+
+    local now = getTickCount()
+    local attempt = authAttempts[player]
+    if attempt and now - attempt.tick < 10000 and attempt.count >= 5 then
+        triggerClientEvent(player, "rust:auth:result", player, false, "Trop de tentatives. Attends quelques secondes.")
+        return
+    end
+    if not attempt or now - attempt.tick >= 10000 then
+        attempt = { tick = now, count = 0 }
+        authAttempts[player] = attempt
+    end
+    attempt.count = attempt.count + 1
+
+    username = username:match("^%s*(.-)%s*$")
+    if #username < 3 or #username > 20 or not username:match("^[%w_%-]+$") then
+        triggerClientEvent(player, "rust:auth:result", player, false, "Identifiant : 3 à 20 caractères (lettres, chiffres, _ ou -).")
+        return
+    end
+    if #password < 6 or #password > 64 then
+        triggerClientEvent(player, "rust:auth:result", player, false, "Le mot de passe doit contenir entre 6 et 64 caractères.")
+        return
+    end
+
+    if mode == "register" then
+        if getAccount(username) or GetAccount(username) then
+            triggerClientEvent(player, "rust:auth:result", player, false, "Ce compte existe déjà. Connecte-toi.")
+            return
+        end
+
+        local account = addAccount(username, password)
+        if not account then
+            triggerClientEvent(player, "rust:auth:result", player, false, "Impossible de créer ce compte. Vérifie l'identifiant.")
+            return
+        end
+
+        local created = createAccount(username)
+        if not created then
+            removeAccount(account)
+            triggerClientEvent(player, "rust:auth:result", player, false, "La base de données a refusé la création du compte.")
+            return
+        end
+
+        if not logIn(player, account, password) then
+            triggerClientEvent(player, "rust:auth:result", player, false, "Compte créé, mais la connexion automatique a échoué. Essaie de te connecter.")
+            return
+        end
+    elseif mode == "login" then
+        local account = getAccount(username, password)
+        if not account then
+            triggerClientEvent(player, "rust:auth:result", player, false, "Identifiant ou mot de passe incorrect.")
+            return
+        end
+
+        if not GetAccount(username) then
+            local created = createAccount(username)
+            if not created then
+                triggerClientEvent(player, "rust:auth:result", player, false, "Impossible de préparer les données du joueur.")
+                return
+            end
+        end
+
+        if not logIn(player, account, password) then
+            triggerClientEvent(player, "rust:auth:result", player, false, "La connexion a échoué. Réessaie.")
+            return
+        end
+    else
+        return
+    end
+
+    setElementData(player, "account", username)
+    triggerClientEvent(player, "rust:auth:result", player, true, "Connexion réussie.")
+end)
+
+addEventHandler("onPlayerQuit", root, function()
+    authAttempts[source] = nil
+end)
+
 loadEvent("player:onDie", root, function(details)
     local player = client or source
     if not isElement(player) or getElementType(player) ~= "player" or getElementData(player, "isDead") then return end
