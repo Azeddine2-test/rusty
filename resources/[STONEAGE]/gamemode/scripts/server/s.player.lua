@@ -173,34 +173,40 @@ local function loadPlayerData(player, account)
     syncPedSide(player, {}, getElementData(player, "pedSideOrder"))
     loadingPlayerData[player] = nil
 
-    -- New accounts must finish character creation before entering the world.
-    if not isAccountFlagEnabled(getElementData(player, "characterCreated")) then
-        triggerClientEvent(player, "rust:character:open", player)
-        return true
-    end
-
-    -- Spawn the player at the saved position after a successful login.
-    -- Without this, the account loads but the player remains at the default sky camera.
+    -- Retour au système de compte MTA : connexion directe, sans créateur obligatoire.
     if not getElementData(player, "isDead") then
         local position = getElementData(player, "position")
-        if type(position) ~= "table" or not tonumber(position.x) or not tonumber(position.y) or not tonumber(position.z) then
-            local x, y, z = getRandomSpawnPos()
-            position = { x = x, y = y, z = z }
-            setElementData(player, "position", position)
+        local x = type(position) == "table" and tonumber(position.x)
+        local y = type(position) == "table" and tonumber(position.y)
+        local z = type(position) == "table" and tonumber(position.z)
+        local validPosition = x and y and z and math.abs(x) < 4000 and math.abs(y) < 4000 and z >= 0 and z < 2000 and not (x == 0 and y == 0 and z == 0)
+
+        if not validPosition then
+            x, y, z = getRandomSpawnPos()
+            setElementData(player, "position", { x = x, y = y, z = z })
         end
 
-        local skin = tonumber(getElementData(player, "Skin")) or 0
-        local spawned = spawnPlayer(
-            player,
-            tonumber(position.x), tonumber(position.y), tonumber(position.z),
-            math.random(0, 359), skin,
-            getElementInterior(player), getElementDimension(player)
-        )
+        local skin = tonumber(getElementData(player, "Skin")) or 7
+        if skin <= 0 or skin > 311 then
+            skin = 7
+            setElementData(player, "Skin", skin)
+            SQL:Exec("UPDATE `Accounts` SET `Skin` = ? WHERE `Owner` = ?", skin, account)
+        end
+        local spawned = spawnPlayer(player, x, y, z, math.random(0, 359), skin, 0, 0)
+        if not spawned then
+            x, y, z = getRandomSpawnPos()
+            setElementData(player, "position", { x = x, y = y, z = z })
+            spawned = spawnPlayer(player, x, y, z, math.random(0, 359), skin, 0, 0)
+        end
+
         if spawned then
             applySavedCharacterClothes(player)
             setCameraTarget(player, player)
+            fadeCamera(player, true)
+            setElementFrozen(player, false)
+            giveRespawnStarterKit(player)
         else
-            outputDebugString("[STONEAGE] Impossible de faire apparaître " .. getPlayerName(player) .. " à sa position sauvegardée.", 2)
+            outputDebugString("[STONEAGE] Echec du spawn initial de " .. getPlayerName(player), 1)
         end
     end
 
@@ -374,8 +380,8 @@ loadEvent("player:onTryToLogin", root, function()
 end)
 
 
--- Rusty-native authentication. MTA accounts are only checked once to migrate old accounts.
--- New accounts and all migrated accounts authenticate exclusively against the Rusty SQL database.
+-- Authentification historique MTA : les mots de passe restent dans les comptes MTA.
+-- La table SQL Accounts ne stocke que les données du personnage et de l'inventaire.
 local authAttempts = {}
 local authPending = {}
 
@@ -386,43 +392,25 @@ local function sendAuthResult(player, success, message)
     end
 end
 
-local function finishRustyLogin(player, username)
+local function finishNativeLogin(player, username, password, nativeAccount)
     if not isElement(player) then return end
-    setElementData(player, "account", username)
-    sendAuthResult(player, true, "Connexion réussie.")
-end
+    nativeAccount = nativeAccount or getAccount(username)
+    if not nativeAccount then
+        sendAuthResult(player, false, "Compte MTA introuvable.")
+        return
+    end
 
-local function hashAndStorePassword(player, username, password)
-    passwordHash(password, "bcrypt", {}, function(passwordHashValue)
-        if not isElement(player) then return end
-        if type(passwordHashValue) ~= "string" or passwordHashValue == "" then
-            sendAuthResult(player, false, "Impossible de sécuriser le mot de passe. Réessaie.")
-            return
-        end
-
-        if not GetAccount(username) and not createAccount(username) then
-            sendAuthResult(player, false, "Impossible de créer les données du compte.")
-            return
-        end
-
-        if not setAccountPasswordHash(username, passwordHashValue) then
-            sendAuthResult(player, false, "Impossible d'enregistrer le compte dans la base Rusty.")
-            return
-        end
-
-        finishRustyLogin(player, username)
-    end)
-end
-
-local function migrateLegacyAccount(player, username, password)
-    -- One-time bridge for old MTA accounts. After this bcrypt hash is stored,
-    -- all later logins are verified only against Rusty's SQL database.
-    local legacyAccount = getAccount(username, password)
-    if not legacyAccount then
+    if not GetAccount(username) and not createAccount(username) and not GetAccount(username) then
+        sendAuthResult(player, false, "Impossible de créer les données du personnage.")
+        return
+    end
+    if not logIn(player, nativeAccount, password) then
         sendAuthResult(player, false, "Identifiant ou mot de passe incorrect.")
         return
     end
-    hashAndStorePassword(player, username, password)
+
+    setElementData(player, "account", username)
+    sendAuthResult(player, true, "Connexion réussie.")
 end
 
 addEvent("rust:auth:submit", true)
@@ -445,12 +433,12 @@ addEventHandler("rust:auth:submit", root, function(mode, username, password, con
     attempt.count = attempt.count + 1
 
     username = username:match("^%s*(.-)%s*$")
-    if #username < 3 or #username > 20 or not username:match("^[%w_%-]+$") then
-        sendAuthResult(player, false, "Identifiant : 3 à 20 caractères (lettres, chiffres, _ ou -).")
+    if #username < 3 or #username > 30 then
+        sendAuthResult(player, false, "L'identifiant doit contenir entre 3 et 30 caractères.")
         return
     end
-    if #password < 6 or #password > 64 then
-        sendAuthResult(player, false, "Le mot de passe doit contenir entre 6 et 64 caractères.")
+    if #password < 1 or #password > 64 then
+        sendAuthResult(player, false, "Mot de passe invalide.")
         return
     end
 
@@ -461,101 +449,98 @@ addEventHandler("rust:auth:submit", root, function(mode, username, password, con
             sendAuthResult(player, false, "Les deux mots de passe ne correspondent pas.")
             return
         end
-        if GetAccount(username) or getAccount(username) then
-            sendAuthResult(player, false, "Ce compte existe déjà. Utilise Connexion pour le récupérer.")
+        if getAccount(username) or GetAccount(username) then
+            sendAuthResult(player, false, "Ce compte existe déjà. Utilise Connexion.")
             return
         end
-        hashAndStorePassword(player, username, password)
+        local nativeAccount = addAccount(username, password)
+        if not nativeAccount then
+            sendAuthResult(player, false, "Impossible de créer le compte MTA.")
+            return
+        end
+        if not createAccount(username) and not GetAccount(username) then
+            removeAccount(nativeAccount)
+            sendAuthResult(player, false, "Impossible de créer les données du personnage.")
+            return
+        end
+        finishNativeLogin(player, username, password, nativeAccount)
         return
     end
 
-    local accountRow = GetAccount(username)
-    local storedHash = accountRow and accountRow.PasswordHash
+    local nativeAccount = getAccount(username)
+    if nativeAccount then
+        finishNativeLogin(player, username, password, nativeAccount)
+        return
+    end
+
+    -- Récupération unique des comptes créés pendant l'essai du nouveau système.
+    local row = GetAccount(username)
+    local storedHash = row and row.PasswordHash
     if type(storedHash) == "string" and storedHash ~= "" then
         passwordVerify(password, storedHash, {}, function(matches)
             if not isElement(player) then return end
-            if matches then
-                finishRustyLogin(player, username)
-            else
+            if not matches then
                 sendAuthResult(player, false, "Identifiant ou mot de passe incorrect.")
+                return
             end
+            local migrated = addAccount(username, password)
+            if not migrated then
+                sendAuthResult(player, false, "Impossible de restaurer le compte MTA.")
+                return
+            end
+            finishNativeLogin(player, username, password, migrated)
         end)
         return
     end
-
-    migrateLegacyAccount(player, username, password)
+    sendAuthResult(player, false, "Identifiant ou mot de passe incorrect.")
 end)
 
-addEvent("rust:character:submit", true)
-addEventHandler("rust:character:submit", root, function(skin, clothes)
+addEvent("rust:player:ensureSpawn", true)
+addEventHandler("rust:player:ensureSpawn", root, function()
     local player = client
-    if not isElement(player) or source ~= player then return end
-    if isAccountFlagEnabled(getElementData(player, "characterCreated")) then return end
+    if not isElement(player) or source ~= player or not getElementData(player, "account") then return end
 
-    skin = tonumber(skin)
-    local allowedSkins = {
-        [0] = true, [7] = true, [14] = true, [15] = true, [16] = true,
-        [17] = true, [18] = true, [19] = true, [20] = true, [21] = true,
-        [22] = true, [23] = true, [24] = true, [25] = true,
-    }
-    if not skin or not allowedSkins[skin] then
-        triggerClientEvent(player, "rust:character:result", player, false, "Choix de personnage invalide.")
-        return
+    local px, py, pz = getElementPosition(player)
+    local invalidPosition = not px or not py or not pz or math.abs(px) > 4000 or math.abs(py) > 4000 or pz < 0 or pz > 2000 or (px == 0 and py == 0 and pz == 0)
+    if invalidPosition or getElementData(player, "isDead") then
+        local position = getElementData(player, "position")
+        local x = type(position) == "table" and tonumber(position.x)
+        local y = type(position) == "table" and tonumber(position.y)
+        local z = type(position) == "table" and tonumber(position.z)
+        if not x or not y or not z or math.abs(x) > 4000 or math.abs(y) > 4000 or z < 0 or z > 2000 or (x == 0 and y == 0 and z == 0) then
+            x, y, z = getRandomSpawnPos()
+        end
+        local skin = tonumber(getElementData(player, "Skin")) or 7
+        if skin <= 0 or skin > 311 then skin = 7 end
+        if spawnPlayer(player, x, y, z, math.random(0, 359), skin, 0, 0) then
+            setElementData(player, "isDead", false)
+            applySavedCharacterClothes(player)
+            giveRespawnStarterKit(player)
+            triggerClientEvent(player, "rust:onClientPlayerSpawn", player)
+        end
     end
-
-    if type(clothes) ~= "table" then clothes = {} end
-    local selectedClothes = {
-        shirt = tonumber(clothes.shirt) or 1,
-        head = tonumber(clothes.head) or 0,
-        pants = tonumber(clothes.pants) or 7,
-    }
-    local function validClothing(slot, clothingID)
-        if type(getClothesByTypeIndex) ~= "function" then return false end
-        local texture, model = getClothesByTypeIndex(slot, clothingID)
-        return texture ~= false and texture ~= nil and model ~= false and model ~= nil
-    end
-    if not validClothing(0, selectedClothes.shirt) or not validClothing(2, selectedClothes.pants) then
-        triggerClientEvent(player, "rust:character:result", player, false, "Cette tenue n'est pas disponible. Choisis-en une autre.")
-        return
-    end
-
-    setAccountData(player, "Skin", skin)
-    setAccountData(player, "Clothes", selectedClothes)
-    setAccountData(player, "characterCreated", true)
-
-    local position = getElementData(player, "position")
-    if type(position) ~= "table" or not tonumber(position.x) or not tonumber(position.y) or not tonumber(position.z) then
-        local x, y, z = getRandomSpawnPos()
-        position = { x = x, y = y, z = z }
-        setElementData(player, "position", position)
-    end
-
-    local spawned = spawnPlayer(
-        player,
-        tonumber(position.x), tonumber(position.y), tonumber(position.z),
-        math.random(0, 359), skin,
-        getElementInterior(player), getElementDimension(player)
-    )
-    if not spawned then
-        setAccountData(player, "characterCreated", false)
-        triggerClientEvent(player, "rust:character:result", player, false, "Impossible de faire apparaître ton personnage. Réessaie.")
-        return
-    end
-
-    applySavedCharacterClothes(player)
     setCameraTarget(player, player)
-    setElementData(player, "isDead", false)
-    setElementData(player, "blood", getPlayerDataSetting("blood", "max") or 15000)
-    setElementData(player, "bleeding", 0)
-    setElementData(player, "alivetime", 0)
-    setElementHealth(player, 100)
+    fadeCamera(player, true)
+    setElementFrozen(player, false)
+end)
 
-    giveRespawnStarterKit(player)
-
-    triggerClientEvent(player, "rust:onClientPlayerLogin", player, getElementData(player, "account"))
-    triggerClientEvent(player, "rust:onClientPlayerSpawn", player)
-    savePlayerData(player)
-    triggerClientEvent(player, "rust:character:result", player, true, "Personnage créé. Bienvenue dans Rusty !")
+addEvent("rust:skin:change", true)
+addEventHandler("rust:skin:change", root, function(skin)
+    local player = client
+    if not isElement(player) or source ~= player or not getElementData(player, "account") or getElementData(player, "isDead") then return end
+    skin = tonumber(skin)
+    local allowed = { [7]=true, [14]=true, [15]=true, [16]=true, [17]=true, [18]=true, [19]=true, [20]=true, [21]=true, [22]=true, [23]=true, [24]=true, [25]=true }
+    if not skin or not allowed[skin] then
+        triggerClientEvent(player, "rust:skin:result", player, false, "Skin non autorisé.")
+        return
+    end
+    if not setElementModel(player, skin) then
+        triggerClientEvent(player, "rust:skin:result", player, false, "Impossible d'appliquer ce skin.")
+        return
+    end
+    setAccountData(player, "Skin", skin)
+    applySavedCharacterClothes(player)
+    triggerClientEvent(player, "rust:skin:result", player, true, "Skin modifié.")
 end)
 
 addEventHandler("onPlayerQuit", root, function()
