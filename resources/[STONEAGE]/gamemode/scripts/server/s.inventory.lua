@@ -322,28 +322,58 @@ end)
 addEvent("inv:dropItem", true)
 addEventHandler("inv:dropItem", root, function(fromSlot, targetSlot, lootObject, sourceType, targetType)
     local player = client
-    if not isElement(player) or source ~= player or sourceType ~= "inv" then return end
-    if getElementData(player, "isDead") or not getElementData(player, "account") then return end
+    if not isElement(player) or source ~= player then return end
 
-    fromSlot = tonumber(fromSlot)
-    if not fromSlot then return end
-    fromSlot = math.floor(fromSlot)
-    if fromSlot < 1 or fromSlot > inventorySlotLimit(player) then return end
+    local requestedSlot = tonumber(fromSlot)
+    local function acknowledgeDrop()
+        if requestedSlot then
+            triggerClientEvent(player, "receiveMoveSync", player, "inv", math.floor(requestedSlot))
+        end
+    end
+
+    if sourceType ~= "inv" or getElementData(player, "isDead") or not getElementData(player, "account") then
+        acknowledgeDrop()
+        return
+    end
+
+    if not requestedSlot then
+        return
+    end
+    fromSlot = math.floor(requestedSlot)
+    if fromSlot < 1 or fromSlot > inventorySlotLimit(player) then
+        acknowledgeDrop()
+        return
+    end
 
     local order = getElementData(player, "invOrder")
     local entry = type(order) == "table" and order[fromSlot]
-    if type(entry) ~= "table" or type(entry.itemName) ~= "string" then return end
+    if type(entry) ~= "table" or type(entry.itemName) ~= "string" then
+        acknowledgeDrop()
+        return
+    end
     local itemName = entry.itemName
     local quantity = math.floor(tonumber(entry.quantity) or 0)
     local owned = math.floor(tonumber(getElementData(player, itemName)) or 0)
-    if quantity <= 0 or owned <= 0 then return end
+    if quantity <= 0 or owned <= 0 then
+        acknowledgeDrop()
+        return
+    end
     quantity = math.min(quantity, owned)
 
     if targetType == "loot" or isElement(lootObject) then
-        if not validLootContainer(player, lootObject) then return end
+        if not validLootContainer(player, lootObject) then
+            acknowledgeDrop()
+            return
+        end
         local containerName = getElementData(lootObject, "obName")
-        if containerName == "Fornalha" and not getItemFurnanceSettings(itemName) then return end
-        if containerName == "Mesa de pesquisa" then return end
+        if containerName == "Fornalha" and not getItemFurnanceSettings(itemName) then
+            acknowledgeDrop()
+            return
+        end
+        if containerName == "Mesa de pesquisa" then
+            acknowledgeDrop()
+            return
+        end
         local maxSlots = math.max(1, tonumber(getElementData(lootObject, "maxSlots")) or 21)
         local lootOrder = getElementData(lootObject, "invOrder")
         if type(lootOrder) ~= "table" then lootOrder = {} end
@@ -358,7 +388,7 @@ addEventHandler("inv:dropItem", root, function(fromSlot, targetSlot, lootObject,
             end
         end
         if stackRoom + math.max(0, maxSlots - used) * stackLimit < quantity then
-            triggerClientEvent(player, "receiveMoveSync", player, "inv", fromSlot)
+            acknowledgeDrop()
             return
         end
         targetSlot = tonumber(targetSlot)
@@ -374,13 +404,19 @@ addEventHandler("inv:dropItem", root, function(fromSlot, targetSlot, lootObject,
     end
 
     local x, y, z = getElementPosition(player)
-    local sack = exports.stoneage_pickups:createSack(x, y, z - 0.8, {{itemName, quantity}}, "Loot")
-    if not isElement(sack) then
-        triggerClientEvent(player, "receiveMoveSync", player, "inv", fromSlot)
+    local ok, sack = pcall(function()
+        return exports.stoneage_pickups:createSack(x, y, z - 0.8, {{itemName, quantity}}, "Loot")
+    end)
+    if not ok or not isElement(sack) then
+        outputDebugString("[STONEAGE] Impossible de créer le sac de loot pour " .. getPlayerName(player), 2)
+        acknowledgeDrop()
         return
     end
 
-    setPreference(player, fromSlot, itemName, quantity)
+    -- Prefer the exact source slot so the element-data sync empties that slot,
+    -- instead of leaving a ghost entry after a successful drop.
+    inventoryPreferences[player] = inventoryPreferences[player] or {}
+    inventoryPreferences[player][itemName] = { id = fromSlot, quantity = quantity }
     setElementData(player, itemName, math.max(0, owned - quantity))
     syncAllInventorySlots(player, "inv", player)
 end)
