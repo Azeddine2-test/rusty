@@ -384,7 +384,7 @@ playerDataTable = {
         savableInDB = { ['Accounts'] = 'INT' },
     },
     ['starterKitGiven'] = {
-        initialValue = true,
+        initialValue = false,
         savableInDB = { ['Accounts'] = 'INT' },
     },
     ['Clothes'] = {

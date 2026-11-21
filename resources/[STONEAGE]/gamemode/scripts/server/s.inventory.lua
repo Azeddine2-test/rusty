@@ -128,6 +128,122 @@ function getPreference(element, itemName)
     return result
 end
 
+
+-- Inventory slot movement. All changes are validated server-side before syncing.
+local function copyInventoryEntry(entry)
+    if type(entry) ~= "table" then return nil end
+    return { itemName = entry.itemName, quantity = math.floor(tonumber(entry.quantity) or 0) }
+end
+
+local function validLootContainer(player, container)
+    if not isElement(container) or getElementType(container) ~= "object" then return false end
+    if getElementData(container, "obName") == "farmObject" then return false end
+    local px, py, pz = getElementPosition(player)
+    local ox, oy, oz = getElementPosition(container)
+    return getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) <= 10
+end
+
+local function syncInventorySlots(player, inventoryType, firstSlot, secondSlot)
+    triggerClientEvent(player, "receiveMoveSync", player, inventoryType, firstSlot)
+    if secondSlot then
+        triggerClientEvent(player, "receiveMoveSync", player, inventoryType, secondSlot)
+    end
+end
+
+addEvent("inv:moveItem", true)
+addEventHandler("inv:moveItem", root, function(container, fromSlot, toSlot, inventoryType)
+    local player = client
+    if not isElement(player) or source ~= player then return end
+    if inventoryType ~= "inv" and inventoryType ~= "loot" then return end
+    if inventoryType == "inv" then
+        if container ~= player then return end
+    elseif not validLootContainer(player, container) then
+        return
+    end
+
+    fromSlot, toSlot = tonumber(fromSlot), tonumber(toSlot)
+    if not fromSlot or not toSlot or fromSlot < 1 or toSlot < 1 then return end
+    fromSlot, toSlot = math.floor(fromSlot), math.floor(toSlot)
+    local order = getElementData(container, "invOrder")
+    if type(order) ~= "table" or fromSlot == toSlot then return end
+    local sourceEntry = copyInventoryEntry(order[fromSlot])
+    if not sourceEntry or sourceEntry.quantity <= 0 then return end
+
+    local maxSlots = inventoryType == "inv"
+        and (tonumber(getElementData(player, "maxSlots")) or 28)
+        or (tonumber(getElementData(container, "maxSlots")) or 21)
+    if toSlot > maxSlots then return end
+
+    order[fromSlot], order[toSlot] = order[toSlot], order[fromSlot]
+    setElementData(container, "invOrder", order)
+    syncInventorySlots(player, inventoryType, fromSlot, toSlot)
+end)
+
+addEvent("inv:putItemOnKeybar", true)
+addEventHandler("inv:putItemOnKeybar", root, function(itemName, quantity, fromSlot, toSlot, sourceType, targetType)
+    local player = client
+    if not isElement(player) or source ~= player or sourceType ~= "inv" or targetType ~= "keybar" then return end
+    fromSlot, toSlot = tonumber(fromSlot), tonumber(toSlot)
+    if type(itemName) ~= "string" or not fromSlot or not toSlot then return end
+    fromSlot, toSlot = math.floor(fromSlot), math.floor(toSlot)
+    if fromSlot < 1 or fromSlot > inventorySlotLimit(player) or toSlot < 1 or toSlot > 7 then return end
+
+    local inventory = getElementData(player, "invOrder")
+    local keybar = getElementData(player, "keybarOrder")
+    if type(inventory) ~= "table" then return end
+    if type(keybar) ~= "table" then keybar = {} end
+    local entry = copyInventoryEntry(inventory[fromSlot])
+    if not entry or entry.itemName ~= itemName or entry.quantity <= 0 then return end
+
+    local oldKeybarEntry = copyInventoryEntry(keybar[toSlot])
+    keybar[toSlot] = entry
+    inventory[fromSlot] = oldKeybarEntry
+    setElementData(player, "invOrder", inventory)
+    setElementData(player, "keybarOrder", keybar)
+    syncInventorySlots(player, "inv", fromSlot)
+    triggerClientEvent(player, "receiveMoveSync", player, "keybar", toSlot)
+end)
+
+addEvent("inv:removeItemFromKeyBar", true)
+addEventHandler("inv:removeItemFromKeyBar", root, function(fromSlot, toSlot, targetElement, sourceType, targetType)
+    local player = client
+    if not isElement(player) or source ~= player or targetElement ~= player
+        or sourceType ~= "keybar" or targetType ~= "inv" then return end
+    fromSlot, toSlot = tonumber(fromSlot), tonumber(toSlot)
+    if not fromSlot or not toSlot then return end
+    fromSlot, toSlot = math.floor(fromSlot), math.floor(toSlot)
+    if fromSlot < 1 or fromSlot > 7 or toSlot < 1 or toSlot > inventorySlotLimit(player) then return end
+
+    local keybar = getElementData(player, "keybarOrder")
+    local inventory = getElementData(player, "invOrder")
+    if type(keybar) ~= "table" or type(inventory) ~= "table" then return end
+    local entry = copyInventoryEntry(keybar[fromSlot])
+    if not entry or entry.quantity <= 0 then return end
+
+    keybar[fromSlot] = copyInventoryEntry(inventory[toSlot])
+    inventory[toSlot] = entry
+    setElementData(player, "keybarOrder", keybar)
+    setElementData(player, "invOrder", inventory)
+    triggerClientEvent(player, "receiveMoveSync", player, "keybar", fromSlot)
+    triggerClientEvent(player, "receiveMoveSync", player, "inv", toSlot)
+end)
+
+addEvent("inv:moveItemOnKeyBar", true)
+addEventHandler("inv:moveItemOnKeyBar", root, function(fromSlot, toSlot)
+    local player = client
+    if not isElement(player) or source ~= player then return end
+    fromSlot, toSlot = tonumber(fromSlot), tonumber(toSlot)
+    if not fromSlot or not toSlot then return end
+    fromSlot, toSlot = math.floor(fromSlot), math.floor(toSlot)
+    if fromSlot < 1 or fromSlot > 7 or toSlot < 1 or toSlot > 7 then return end
+    local keybar = getElementData(player, "keybarOrder")
+    if type(keybar) ~= "table" or not keybar[fromSlot] then return end
+    keybar[fromSlot], keybar[toSlot] = keybar[toSlot], keybar[fromSlot]
+    setElementData(player, "keybarOrder", keybar)
+    triggerClientEvent(player, "receiveMoveSync", player, "keybar", fromSlot)
+    triggerClientEvent(player, "receiveMoveSync", player, "keybar", toSlot)
+end)
+
 -- Transfer loot from a container into the player's real inventory.
 addEvent("inv:takeItem", true)
 addEventHandler("inv:takeItem", root, function(container, targetSlot, sourceSlot, sourceType, targetType)
