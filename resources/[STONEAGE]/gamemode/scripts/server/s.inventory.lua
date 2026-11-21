@@ -360,7 +360,7 @@ addEventHandler("inv:dropItem", root, function(fromSlot, targetSlot, lootObject,
     end
     quantity = math.min(quantity, owned)
 
-    if targetType == "loot" or isElement(lootObject) then
+    if targetType == "loot" then
         if not validLootContainer(player, lootObject) then
             acknowledgeDrop()
             return
