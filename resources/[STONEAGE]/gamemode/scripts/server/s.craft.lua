@@ -1216,7 +1216,7 @@ loadEvent('craft:toggleFire', root, function(ob, state, equippedID)
         end
         local order = getElementData(player, 'keybarOrder')
         if (not order) or (not order[equippedID]) or (order[equippedID].itemName ~= 'Fosforo') then
-            exports['stoneage_notifications']:CreateNotification(player, translate(player, 'Precisa ter %s em mãos', nil, translate(source, 'Fosforo', 'name')), 'error')
+            exports['stoneage_notifications']:CreateNotification(player, translate(player, 'Precisa ter %s em mãos', nil, translate(player, 'Fosforo', 'name')), 'error')
             return
         end
 
