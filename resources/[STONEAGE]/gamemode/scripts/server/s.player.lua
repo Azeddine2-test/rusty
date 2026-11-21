@@ -613,7 +613,11 @@ addEventHandler("rust:clothes:save", root, function(requested)
             triggerClientEvent(player, "rust:clothes:result", player, false, "Choix de vêtement invalide.")
             return
         end
-        clothes[key] = value == false and false or math.floor(tonumber(value))
+        if value == false then
+            clothes[key] = false
+        else
+            clothes[key] = math.floor(tonumber(value))
+        end
     end
 
     setElementData(player, "Clothes", clothes)
