@@ -406,7 +406,7 @@ loadEvent("rust:onPlayerEquipItem", root, function(slotID)
 end)
 
 loadEvent("rust:onPlayerDisequipItem", root, function(slotID)
-    if source == client then onPlayerDisequipItem(slotID, client) end
+    if source == client then onPlayerDisequipItem(slotID, client, true) end
 end)
 
 loadEvent("rust:onAmmoChange", root, function(weaponID, ammoCount, slotID)
