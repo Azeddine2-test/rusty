@@ -25,7 +25,7 @@ attachElementToBone = function(ob, ped, bone, x, y, z, rx, ry, rz)
                 setElementCollisionsEnabled(ob, false)
 
                 if serverSide then
-                    triggerClientEvent('attachElementToBone', root, ob, ped, bone, x, y, z, rx, ry, rz)
+                    triggerClientEvent(root, 'attachElementToBone', root, ob, ped, bone, x, y, z, rx, ry, rz)
                     addEventHandler('onElementDestroy', ob, clearOnDestroy)    
                 end
 
@@ -56,7 +56,7 @@ detachElementFromBone = function(ob)
         setElementCollisionsEnabled(ob, true)
         if serverSide then
             removeEventHandler('onElementDestroy', ob, clearOnDestroy)    
-            triggerClientEvent('detachElementFromBone', root, ob)
+            triggerClientEvent(root, 'detachElementFromBone', root, ob)
         end
         return true
     end
