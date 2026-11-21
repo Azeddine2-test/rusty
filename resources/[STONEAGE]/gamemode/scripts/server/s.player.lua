@@ -328,12 +328,14 @@ local function consumeItem(player, itemName, slotID)
 
     local quantity = math.max(0, (tonumber(getElementData(player, itemName)) or 0) - 1)
     if quantity > 0 then setElementData(player, itemName, quantity) else removeElementData(player, itemName) end
-    local order = getElementData(player, "invOrder") or {}
-    if order[tonumber(slotID)] then
-        order[tonumber(slotID)].quantity = math.max(0, (tonumber(order[tonumber(slotID)].quantity) or 0) - 1)
-        if order[tonumber(slotID)].quantity <= 0 then order[tonumber(slotID)] = nil end
-        setElementData(player, "invOrder", order)
+
+    -- Only bottled water returns an empty bottle. Food must never create bottles.
+    if itemName == "Water" then
+        setElementData(player, "Empty Bottle", (tonumber(getElementData(player, "Empty Bottle")) or 0) + 1)
     end
+
+    -- invOrder is synchronized by s.inventory.lua when the item element-data changes.
+    -- Do not decrement the slot a second time here.
     triggerClientEvent(player, "playItemSound", player, itemName)
     return true
 end
