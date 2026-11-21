@@ -23,6 +23,92 @@ local function openSkinSelector()
     menu.scene = 'skin'
 end
 
+local clothesUI = {
+    slots = { { id = 0, key = "shirt", label = "HAUT" }, { id = 1, key = "head", label = "TÊTE" }, { id = 2, key = "pants", label = "PANTALON" } },
+    choices = {},
+    selected = {},
+    bounds = {},
+}
+
+local function openClothesSelector()
+    local saved = getElementData(localPlayer, "Clothes") or { shirt = 1, head = 0, pants = 7 }
+    for _, slot in ipairs(clothesUI.slots) do
+        local choices = {}
+        if type(getClothesByTypeIndex) == "function" then
+            for index = 0, 300 do
+                local texture, model = getClothesByTypeIndex(slot.id, index)
+                if texture and model then choices[#choices + 1] = index end
+            end
+        end
+        if #choices == 0 then choices = { tonumber(saved[slot.key]) or 0 } end
+        clothesUI.choices[slot.key] = choices
+        clothesUI.selected[slot.key] = 1
+        local current = tonumber(saved[slot.key])
+        for i, value in ipairs(choices) do
+            if value == current then clothesUI.selected[slot.key] = i break end
+        end
+    end
+    local w, h = math.min(520, sW - 40), 320
+    clothesUI.bounds = { x = (sW - w) / 2, y = menu.headerHeight + 35, w = w, h = h }
+    menu.scene = "clothes"
+end
+
+local function drawClothesSelector()
+    local b = clothesUI.bounds
+    if not b or not b.x then return end
+    dxDrawRectangle(b.x, b.y, b.w, b.h, predefinedColor("menu:color1"), true)
+    dxDrawRectangleBorders(b.x, b.y, b.w, b.h, predefinedColor("menu:color2"), 3, true)
+    dxDrawRectangle(b.x, b.y, b.w, 5, predefinedColor("menu:color2"), true)
+    dxDrawText("PERSONNALISER LES VÊTEMENTS", b.x + 12, b.y + 12, b.x + b.w - 12, b.y + 48,
+        predefinedColor("menu:color2"), 1, font("futura:2"), "center", "center", false, false, true)
+    for row, slot in ipairs(clothesUI.slots) do
+        local y = b.y + 65 + (row - 1) * 55
+        local choices = clothesUI.choices[slot.key] or { 0 }
+        local selected = clothesUI.selected[slot.key] or 1
+        dxDrawText(slot.label, b.x + 25, y, b.x + 145, y + 38, predefinedColor("menu:color2"), 1, font("futura:2"), "left", "center", false, false, true)
+        dxDrawText("<", b.x + 155, y, b.x + 205, y + 38, predefinedColor("menu:color2"), 1.5, font("futura:2"), "center", "center", false, false, true)
+        dxDrawText("Modèle : " .. tostring(choices[selected] or 0), b.x + 205, y, b.x + b.w - 205, y + 38, predefinedColor("menu:color2"), 1, font("futura"), "center", "center", false, false, true)
+        dxDrawText(">", b.x + b.w - 205, y, b.x + b.w - 155, y + 38, predefinedColor("menu:color2"), 1.5, font("futura:2"), "center", "center", false, false, true)
+    end
+    dxDrawRectangle(b.x + 25, b.y + b.h - 55, b.w * 0.43, 36, predefinedColor("menu:color2"), true)
+    dxDrawText("ENREGISTRER", b.x + 25, b.y + b.h - 55, b.x + 25 + b.w * 0.43, b.y + b.h - 19, predefinedColor("menu:color1"), 1, font("futura:2"), "center", "center", false, false, true)
+    dxDrawRectangle(b.x + b.w * 0.55, b.y + b.h - 55, b.w * 0.4, 36, predefinedColor("menu:color2"), true)
+    dxDrawText("FERMER", b.x + b.w * 0.55, b.y + b.h - 55, b.x + b.w * 0.95, b.y + b.h - 19, predefinedColor("menu:color1"), 1, font("futura:2"), "center", "center", false, false, true)
+end
+
+local function handleClothesSelectorClick(x, y)
+    local b = clothesUI.bounds
+    if not b or not b.x then return true end
+    for row, slot in ipairs(clothesUI.slots) do
+        local rowY = b.y + 65 + (row - 1) * 55
+        if y >= rowY and y <= rowY + 38 then
+            local choices = clothesUI.choices[slot.key] or { 0 }
+            local selected = clothesUI.selected[slot.key] or 1
+            if x >= b.x + 155 and x <= b.x + 205 then
+                clothesUI.selected[slot.key] = ((selected - 2) % #choices) + 1
+            elseif x >= b.x + b.w - 205 and x <= b.x + b.w - 155 then
+                clothesUI.selected[slot.key] = (selected % #choices) + 1
+            end
+            return true
+        end
+    end
+    if y >= b.y + b.h - 55 and y <= b.y + b.h - 19 then
+        if x >= b.x + 25 and x <= b.x + 25 + b.w * 0.43 then
+            for _, slot in ipairs(clothesUI.slots) do
+                local choices = clothesUI.choices[slot.key] or { 0 }
+                local selected = clothesUI.selected[slot.key] or 1
+                triggerServerEvent("rust:clothes:change", localPlayer, slot.id, choices[selected] or 0)
+            end
+            menu.scene = nil
+        elseif x >= b.x + b.w * 0.55 and x <= b.x + b.w * 0.95 then
+            menu.scene = nil
+        end
+        return true
+    end
+    if x < b.x or x > b.x + b.w or y < b.y or y > b.y + b.h then menu.scene = nil end
+    return true
+end
+
 local function drawSkinSelector()
     local b = skinUI.bounds
     if not b or not b.x then return end
@@ -239,6 +325,11 @@ addEventHandler('rust:skin:result', localPlayer, function(success, message)
     if message and message ~= '' then outputChatBox(tostring(message), 235, 190, 80) end
 end)
 
+addEvent('rust:clothes:result', true)
+addEventHandler('rust:clothes:result', localPlayer, function(success, message)
+    if message and message ~= '' then outputChatBox(tostring(message), 235, 190, 80) end
+end)
+
 function toggleLogin(state)
     toggleMenu(true)
     toggleTutorial(true)
@@ -299,6 +390,9 @@ local menuItems = {
     }, {
         label = 'SKIN',
         icon = 'ui/settings.png',
+    }, {
+        label = 'VÊTEMENTS',
+        icon = 'ui/settings.png',
     }},
     ['right'] = {{
         label = 'QUIT',
@@ -349,6 +443,8 @@ function drawMenu()
         drawRegras()
     elseif menu.scene == 'skin' then
         drawSkinSelector()
+    elseif menu.scene == 'clothes' then
+        drawClothesSelector()
     end
     if authUI.visible then
         drawAuth()
@@ -428,6 +524,10 @@ function menu.onClick(btn, state, x, y)
         handleSkinSelectorClick(x, y)
         return
     end
+    if btn == 'left' and state == 'down' and menu.scene == 'clothes' then
+        handleClothesSelectorClick(x, y)
+        return
+    end
     if btn == 'left' and state == 'down' then
         local selected = menuItems.hover
         if selected == 'QUIT' then
@@ -445,6 +545,8 @@ function menu.onClick(btn, state, x, y)
             end
         elseif selected == 'SKIN' then
             if getElementData(localPlayer, 'account') then openSkinSelector() end
+        elseif selected == 'VÊTEMENTS' then
+            if getElementData(localPlayer, 'account') then openClothesSelector() end
         elseif selected == 'REGRAS' then
             if menu.scene == 'config' then
                 exports['stoneage_settings']:toggleConfigs(false)
