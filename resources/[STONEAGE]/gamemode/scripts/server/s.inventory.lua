@@ -303,47 +303,127 @@ addEventHandler("inv:takeItem", root, function(container, targetSlot, sourceSlot
     if targetSlot then triggerClientEvent(player, "receiveMoveSync", player, "inv", targetSlot) end
 end)
 
-function onPlayerEquipItem(_ARG_0_, _ARG_1_)
-  _ARG_1_ = _ARG_1_ or source
-  if not isElement(_ARG_1_) then
-    return false
-  end
-  if not getElementData(_ARG_1_, "keybarOrder") then
-    return false
-  end
-  takeAllWeapons(_ARG_1_)
-  if isWeapon(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName) then
-    if getPlayerDataSetting(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, "ammo") then
-    end
-    if getPlayerDataSetting(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, "weaponSettings") and getPlayerDataSetting(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, "weaponSettings").weapID and getPlayerDataSetting(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, "weaponSettings") and getPlayerDataSetting(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, "weaponSettings").slotID then
-      if not getPlayerDataSetting(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, "ammo").name then
-        if getItemType(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName) == "weapon-melee" then
-          giveWeapon(_ARG_1_, getPlayerDataSetting(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, "weaponSettings") and getPlayerDataSetting(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, "weaponSettings").weapID, 1, true)
-          detachWeaponFromBone(getItemType(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName), _ARG_1_)
+-- Secure server-side drop/transfer handler. The client only supplies slot IDs;
+-- item names and quantities are always read from authoritative server element-data.
+addEvent("inv:dropItem", true)
+addEventHandler("inv:dropItem", root, function(fromSlot, targetSlot, lootObject, sourceType, targetType)
+    local player = client
+    if not isElement(player) or source ~= player or sourceType ~= "inv" then return end
+    if getElementData(player, "isDead") or not getElementData(player, "account") then return end
+
+    fromSlot = tonumber(fromSlot)
+    if not fromSlot then return end
+    fromSlot = math.floor(fromSlot)
+    if fromSlot < 1 or fromSlot > inventorySlotLimit(player) then return end
+
+    local order = getElementData(player, "invOrder")
+    local entry = type(order) == "table" and order[fromSlot]
+    if type(entry) ~= "table" or type(entry.itemName) ~= "string" then return end
+    local itemName = entry.itemName
+    local quantity = math.floor(tonumber(entry.quantity) or 0)
+    local owned = math.floor(tonumber(getElementData(player, itemName)) or 0)
+    if quantity <= 0 or owned <= 0 then return end
+    quantity = math.min(quantity, owned)
+
+    if targetType == "loot" then
+        if not validLootContainer(player, lootObject) then return end
+        local maxSlots = math.max(1, tonumber(getElementData(lootObject, "maxSlots")) or 21)
+        local lootOrder = getElementData(lootObject, "invOrder")
+        if type(lootOrder) ~= "table" then lootOrder = {} end
+        local used, stackRoom = 0, 0
+        local stackLimit = inventoryStackLimit(itemName)
+        for _, current in pairs(lootOrder) do
+            if type(current) == "table" then
+                used = used + 1
+                if current.itemName == itemName then
+                    stackRoom = stackRoom + math.max(0, stackLimit - (tonumber(current.quantity) or 0))
+                end
+            end
         end
-      elseif 0 < (getElementData(_ARG_1_, getPlayerDataSetting(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, "ammo").name) or 0) then
-        giveWeapon(_ARG_1_, getPlayerDataSetting(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, "weaponSettings") and getPlayerDataSetting(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, "weaponSettings").weapID, getElementData(_ARG_1_, getPlayerDataSetting(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, "ammo").name) or 0, true)
-        if getElementData(root, "weapon_switch_anim") and 1 < getSlotFromWeapon(getPlayerDataSetting(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, "weaponSettings") and getPlayerDataSetting(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, "weaponSettings").weapID) then
-          setPedAnimation(_ARG_1_, "colt45", "colt45_reload", 1, false, true, true, false, 0, true)
+        if stackRoom + math.max(0, maxSlots - used) * stackLimit < quantity then
+            triggerClientEvent(player, "receiveMoveSync", player, "inv", fromSlot)
+            return
         end
-        detachWeaponFromBone(getItemType(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName), _ARG_1_)
-      else
-        onPlayerDisequipItem(_ARG_0_, source)
-        triggerClientEvent(_ARG_1_, "inv:disequipCurrentKeybarItem", _ARG_1_)
-        exports.stoneage_notifications:CreateNotification(_ARG_1_, translate(_ARG_1_, "precisa de muni\195\167\195\163o", nil, translate(_ARG_1_, getPlayerDataSetting(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, "ammo").name, "name")), "error")
+        targetSlot = tonumber(targetSlot)
+        if targetSlot and targetSlot >= 1 and targetSlot <= maxSlots then
+            setPreference(lootObject, targetSlot, itemName, quantity)
+        end
+        setPreference(player, fromSlot, itemName, quantity)
+        setElementData(lootObject, itemName, (tonumber(getElementData(lootObject, itemName)) or 0) + quantity)
+        setElementData(player, itemName, math.max(0, owned - quantity))
+        triggerClientEvent(player, "receiveMoveSync", player, "inv", fromSlot)
+        if targetSlot then triggerClientEvent(player, "receiveMoveSync", player, "loot", math.floor(targetSlot)) end
         return
-      end
     end
-    if (getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName) == "Torch" then
-      setPedWalkingStyle(_ARG_1_, 127)
+
+    if lootObject and isElement(lootObject) then return end
+    local x, y, z = getElementPosition(player)
+    local sack = exports.stoneage_pickups:createSack(x, y, z - 0.8, {{itemName, quantity}}, "Loot")
+    if not isElement(sack) then
+        triggerClientEvent(player, "receiveMoveSync", player, "inv", fromSlot)
+        return
     end
-  end
-  attachItemToBone(getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, _ARG_1_)
-  setElementData(_ARG_1_, "equippedItem", getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName)
-  setElementData(_ARG_1_, "equippedSlotID", _ARG_0_)
-  triggerClientEvent(_ARG_1_, "rust:onClientPlayerEquipItem", _ARG_1_, getElementData(_ARG_1_, "keybarOrder")[_ARG_0_] and getElementData(_ARG_1_, "keybarOrder")[_ARG_0_].itemName, _ARG_0_)
+
+    setPreference(player, fromSlot, itemName, quantity)
+    setElementData(player, itemName, math.max(0, owned - quantity))
+    triggerClientEvent(player, "receiveMoveSync", player, "inv", fromSlot)
+end)
+
+function onPlayerEquipItem(slotID, player)
+    player = player or source
+    if not isElement(player) or getElementType(player) ~= "player" then return false end
+
+    slotID = tonumber(slotID)
+    if not slotID then return false end
+    slotID = math.floor(slotID)
+
+    local keybar = getElementData(player, "keybarOrder")
+    local entry = type(keybar) == "table" and keybar[slotID]
+    if type(entry) ~= "table" or type(entry.itemName) ~= "string" then return false end
+
+    local itemName = entry.itemName
+    if (tonumber(getElementData(player, itemName)) or 0) <= 0 then return false end
+
+    local weapon = getPlayerDataSetting(itemName, "weaponSettings")
+    local ammoSettings = getPlayerDataSetting(itemName, "ammo")
+    if type(weapon) == "table" and tonumber(weapon.weapID) then
+        local ammo = 0
+        if weapon.type == "melee" or getItemType(itemName) == "weapon-melee" then
+            ammo = 1
+        elseif type(ammoSettings) == "table" and type(ammoSettings.name) == "string" then
+            ammo = math.max(0, tonumber(getElementData(player, ammoSettings.name)) or 0)
+            if ammo <= 0 then
+                exports.stoneage_notifications:CreateNotification(
+                    player,
+                    translate(player, "precisa de munição", nil, translate(player, ammoSettings.name, "name")),
+                    "error"
+                )
+                return false
+            end
+        end
+
+        takeAllWeapons(player)
+        if not giveWeapon(player, tonumber(weapon.weapID), ammo, true) then return false end
+        if weapon.slotID then setPedWeaponSlot(player, tonumber(weapon.slotID)) end
+        if type(detachItemFromBone) == "function" then detachItemFromBone(itemName, player) end
+    elseif getPlayerDataSetting(itemName, "clothSettings") then
+        applyClothes(player, itemName)
+    end
+
+    if getItemType(itemName) == "defenseItem" and type(attachDefenseToBody) == "function" then
+        attachDefenseToBody(itemName, player)
+    end
+    if itemName == "Torch" then
+        setPedWalkingStyle(player, 127)
+    end
+
+    setElementData(player, "equippedItem", itemName)
+    setElementData(player, "equippedSlotID", slotID)
+    triggerClientEvent(player, "rust:onClientPlayerEquipItem", player, itemName, slotID)
+    return true
 end
 loadEvent("rust:onPlayerEquipItem", root, onPlayerEquipItem)
+
 function onPlayerDisequipItem(_ARG_0_, _ARG_1_)
   _ARG_1_ = _ARG_1_ or source
   if type((getElementData(_ARG_1_, "keybarOrder"))) ~= "table" then
