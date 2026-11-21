@@ -1,6 +1,7 @@
-addEventHandler('onClientElementStreamIn', resourceRoot, function()
+addEventHandler('onClientElementStreamIn', root, function()
     if getElementType(source) == 'object' then
-        setObjectBreakable(source, false)
+        -- Les barils de loot doivent recevoir les coups; les autres objets restent protégés.
+        setObjectBreakable(source, getElementData(source, 'lootPickup') == true)
 
         if getElementData(source, 'gearPickup') then
             setElementCollidableWith(localPlayer, source, false)
@@ -40,7 +41,7 @@ function damagePickup(ob, damage, fromMenu)
     end
 end
 
-addEventHandler('onClientObjectDamage', resourceRoot, function(loss, attacker)
+addEventHandler('onClientObjectDamage', root, function(loss, attacker)
     if attacker == localPlayer and getElementData(source, 'lootPickup') then
         local originalHealth = getElementHealth(source)
         setTimer(function(ob, originalHealth)
