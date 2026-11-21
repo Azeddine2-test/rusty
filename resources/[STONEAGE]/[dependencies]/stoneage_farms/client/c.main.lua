@@ -15,7 +15,7 @@ function damageFarm(ob, what)
     end
 end
 
-addEventHandler('onClientObjectDamage', resourceRoot, function(loss, attacker)
+addEventHandler('onClientObjectDamage', root, function(loss, attacker)
     if attacker == localPlayer and getElementData(source, 'obName') == 'farmObject' then
         local equippedItem = getElementData(localPlayer, 'equippedItem')
         if equippedItem then
@@ -61,11 +61,10 @@ addEventHandler('onClientResourceStart', resourceRoot, function()
     end
 end)
 
-addEventHandler('onClientElementStreamIn', resourceRoot, function()
-    if getElementType(source) == 'object' then
-        -- Harvest nodes must remain damageable so onClientObjectDamage can
-        -- request a server-validated hit. Other farm-resource objects stay protected.
-        setObjectBreakable(source, getElementData(source, 'obName') == 'farmObject')
+addEventHandler('onClientElementStreamIn', root, function()
+    if getElementType(source) == 'object' and getElementData(source, 'obName') == 'farmObject' then
+        -- Les noeuds de récolte sont créés sous root : ils doivent être destructibles côté client.
+        setObjectBreakable(source, true)
     end
 end)
 
