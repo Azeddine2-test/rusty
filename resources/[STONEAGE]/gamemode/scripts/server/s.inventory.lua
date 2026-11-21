@@ -165,6 +165,44 @@ local function syncAllInventorySlots(player, inventoryType, container)
     end
 end
 
+local function snapshotInventoryOrder(element)
+    local order = getElementData(element, "invOrder")
+    local copy = {}
+    if type(order) == "table" then
+        for slot, entry in pairs(order) do
+            if type(entry) == "table" then
+                copy[slot] = { itemName = entry.itemName, quantity = tonumber(entry.quantity) or 0 }
+            end
+        end
+    end
+    return copy
+end
+
+local function syncChangedInventorySlots(player, inventoryType, element, before)
+    local after = getElementData(element, "invOrder")
+    if type(after) ~= "table" then after = {} end
+    before = type(before) == "table" and before or {}
+    local changed = {}
+    for slot, entry in pairs(before) do
+        local current = after[slot]
+        if type(current) ~= "table" or current.itemName ~= entry.itemName
+            or (tonumber(current.quantity) or 0) ~= entry.quantity then
+            changed[slot] = true
+        end
+    end
+    for slot, entry in pairs(after) do
+        local previous = before[slot]
+        if type(entry) == "table" and (type(previous) ~= "table"
+            or previous.itemName ~= entry.itemName
+            or previous.quantity ~= (tonumber(entry.quantity) or 0)) then
+            changed[slot] = true
+        end
+    end
+    for slot in pairs(changed) do
+        triggerClientEvent(player, "receiveMoveSync", player, inventoryType, slot)
+    end
+end
+
 addEvent("inv:moveItem", true)
 addEventHandler("inv:moveItem", root, function(container, fromSlot, toSlot, inventoryType)
     local player = client
@@ -259,6 +297,47 @@ addEventHandler("inv:moveItemOnKeyBar", root, function(fromSlot, toSlot)
     triggerClientEvent(player, "receiveMoveSync", player, "keybar", toSlot)
 end)
 
+-- Split a stack without changing the total item count.
+addEvent("inv:splitItem", true)
+addEventHandler("inv:splitItem", root, function(target, sourceSlot)
+    local player = client
+    if not isElement(player) or source ~= player then return end
+    if not isElement(target) then return end
+    if target == player then
+        if getElementData(player, "isDead") or not getElementData(player, "account") then return end
+    elseif not validLootContainer(player, target) then
+        return
+    end
+
+    sourceSlot = tonumber(sourceSlot)
+    if not sourceSlot then return end
+    sourceSlot = math.floor(sourceSlot)
+    local order = getElementData(target, "invOrder")
+    if type(order) ~= "table" then return end
+    local entry = order[sourceSlot]
+    if type(entry) ~= "table" or type(entry.itemName) ~= "string" then return end
+
+    local quantity = math.floor(tonumber(entry.quantity) or 0)
+    if quantity < 2 then return end
+    local limit = inventorySlotLimit(target)
+    local freeSlot
+    for slot = 1, limit do
+        if not order[slot] then
+            freeSlot = slot
+            break
+        end
+    end
+    if not freeSlot then return end
+
+    local moved = math.floor(quantity / 2)
+    if moved < 1 then return end
+    order[sourceSlot] = { itemName = entry.itemName, quantity = quantity - moved }
+    order[freeSlot] = { itemName = entry.itemName, quantity = moved }
+    setElementData(target, "invOrder", order)
+    triggerClientEvent(player, "receiveMoveSync", player, target == player and "inv" or "loot", sourceSlot)
+    triggerClientEvent(player, "receiveMoveSync", player, target == player and "inv" or "loot", freeSlot)
+end)
+
 -- Transfer loot from a container into the player's real inventory.
 addEvent("inv:takeItem", true)
 addEventHandler("inv:takeItem", root, function(container, targetSlot, sourceSlot, sourceType, targetType)
@@ -307,14 +386,16 @@ addEventHandler("inv:takeItem", root, function(container, targetSlot, sourceSlot
         return
     end
 
+    local beforeLoot = snapshotInventoryOrder(container)
+    local beforeInventory = snapshotInventoryOrder(player)
     if targetSlot then setPreference(player, targetSlot, itemName, quantity) end
     setPreference(container, sourceSlot, itemName, quantity)
 
     setElementData(container, itemName, math.max(0, containerQuantity - quantity))
     setElementData(player, itemName, (tonumber(getElementData(player, itemName)) or 0) + quantity)
 
-    syncAllInventorySlots(player, "loot", container)
-    syncAllInventorySlots(player, "inv", player)
+    syncChangedInventorySlots(player, "loot", container, beforeLoot)
+    syncChangedInventorySlots(player, "inv", player, beforeInventory)
 end)
 
 -- Secure server-side drop/transfer handler. The client only supplies slot IDs;
@@ -392,14 +473,16 @@ addEventHandler("inv:dropItem", root, function(fromSlot, targetSlot, lootObject,
             return
         end
         targetSlot = tonumber(targetSlot)
+        local beforeInventory = snapshotInventoryOrder(player)
+        local beforeLoot = snapshotInventoryOrder(lootObject)
         if targetSlot and targetSlot >= 1 and targetSlot <= maxSlots then
             setPreference(lootObject, targetSlot, itemName, quantity)
         end
         setPreference(player, fromSlot, itemName, quantity)
         setElementData(lootObject, itemName, (tonumber(getElementData(lootObject, itemName)) or 0) + quantity)
         setElementData(player, itemName, math.max(0, owned - quantity))
-        syncAllInventorySlots(player, "inv", player)
-        syncAllInventorySlots(player, "loot", lootObject)
+        syncChangedInventorySlots(player, "inv", player, beforeInventory)
+        syncChangedInventorySlots(player, "loot", lootObject, beforeLoot)
         return
     end
 
@@ -415,10 +498,11 @@ addEventHandler("inv:dropItem", root, function(fromSlot, targetSlot, lootObject,
 
     -- Prefer the exact source slot so the element-data sync empties that slot,
     -- instead of leaving a ghost entry after a successful drop.
+    local beforeInventory = snapshotInventoryOrder(player)
     inventoryPreferences[player] = inventoryPreferences[player] or {}
     inventoryPreferences[player][itemName] = { id = fromSlot, quantity = quantity }
     setElementData(player, itemName, math.max(0, owned - quantity))
-    syncAllInventorySlots(player, "inv", player)
+    syncChangedInventorySlots(player, "inv", player, beforeInventory)
 end)
 
 function onPlayerEquipItem(slotID, player)
