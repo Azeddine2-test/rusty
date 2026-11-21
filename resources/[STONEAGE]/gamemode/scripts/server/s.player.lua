@@ -4,6 +4,25 @@ local SQL = exports.stoneage_sql
 local loadingPlayerData = {}
 local savingPlayerData = {}
 
+local function applySavedCharacterClothes(player)
+    if not isElement(player) then return false end
+    local clothes = getElementData(player, "Clothes")
+    if type(clothes) ~= "table" then return false end
+
+    local slots = {
+        { 0, tonumber(clothes.shirt) },
+        { 1, tonumber(clothes.head) },
+        { 2, tonumber(clothes.pants) },
+    }
+    for _, entry in ipairs(slots) do
+        if entry[2] and type(getClothesByTypeIndex) == "function" then
+            local texture, model = getClothesByTypeIndex(entry[1], entry[2])
+            if texture and model then setPedClothes(player, entry[1], entry[2]) end
+        end
+    end
+    return true
+end
+
 local function syncPedSide(player, oldOrder, newOrder)
     if not isElement(player) then return end
     oldOrder = type(oldOrder) == "table" and oldOrder or {}
@@ -121,6 +140,12 @@ local function loadPlayerData(player, account)
     syncPedSide(player, {}, getElementData(player, "pedSideOrder"))
     loadingPlayerData[player] = nil
 
+    -- New accounts must finish character creation before entering the world.
+    if getElementData(player, "characterCreated") ~= true then
+        triggerClientEvent(player, "rust:character:open", player)
+        return true
+    end
+
     -- Spawn the player at the saved position after a successful login.
     -- Without this, the account loads but the player remains at the default sky camera.
     if not getElementData(player, "isDead") then
@@ -139,6 +164,7 @@ local function loadPlayerData(player, account)
             getElementInterior(player), getElementDimension(player)
         )
         if spawned then
+            applySavedCharacterClothes(player)
             setCameraTarget(player, player)
         else
             outputDebugString("[STONEAGE] Impossible de faire apparaître " .. getPlayerName(player) .. " à sa position sauvegardée.", 2)
@@ -362,6 +388,10 @@ addEventHandler("rust:auth:submit", root, function(mode, username, password)
             return
         end
 
+        -- Only accounts created from this registration flow receive the creator and starter kit.
+        setAccountData(username, "characterCreated", false)
+        setAccountData(username, "starterKitGiven", false)
+
         if not logIn(player, account, password) then
             triggerClientEvent(player, "rust:auth:result", player, false, "Compte créé, mais la connexion automatique a échoué. Essaie de te connecter.")
             return
@@ -393,6 +423,82 @@ addEventHandler("rust:auth:submit", root, function(mode, username, password)
     triggerClientEvent(player, "rust:auth:result", player, true, "Connexion réussie.")
 end)
 
+addEvent("rust:character:submit", true)
+addEventHandler("rust:character:submit", root, function(skin, clothes)
+    local player = client
+    if not isElement(player) or source ~= player then return end
+    if getElementData(player, "characterCreated") == true then return end
+
+    skin = tonumber(skin)
+    local allowedSkins = {
+        [0] = true, [7] = true, [14] = true, [15] = true, [16] = true,
+        [17] = true, [18] = true, [19] = true, [20] = true, [21] = true,
+        [22] = true, [23] = true, [24] = true, [25] = true,
+    }
+    if not skin or not allowedSkins[skin] then
+        triggerClientEvent(player, "rust:character:result", player, false, "Choix de personnage invalide.")
+        return
+    end
+
+    if type(clothes) ~= "table" then clothes = {} end
+    local selectedClothes = {
+        shirt = tonumber(clothes.shirt) or 1,
+        head = tonumber(clothes.head) or 0,
+        pants = tonumber(clothes.pants) or 7,
+    }
+    local function validClothing(slot, clothingID)
+        if type(getClothesByTypeIndex) ~= "function" then return false end
+        local texture, model = getClothesByTypeIndex(slot, clothingID)
+        return texture ~= false and texture ~= nil and model ~= false and model ~= nil
+    end
+    if not validClothing(0, selectedClothes.shirt) or not validClothing(2, selectedClothes.pants) then
+        triggerClientEvent(player, "rust:character:result", player, false, "Cette tenue n'est pas disponible. Choisis-en une autre.")
+        return
+    end
+
+    setAccountData(player, "Skin", skin)
+    setAccountData(player, "Clothes", selectedClothes)
+    setAccountData(player, "characterCreated", true)
+
+    local position = getElementData(player, "position")
+    if type(position) ~= "table" or not tonumber(position.x) or not tonumber(position.y) or not tonumber(position.z) then
+        local x, y, z = getRandomSpawnPos()
+        position = { x = x, y = y, z = z }
+        setElementData(player, "position", position)
+    end
+
+    local spawned = spawnPlayer(
+        player,
+        tonumber(position.x), tonumber(position.y), tonumber(position.z),
+        math.random(0, 359), skin,
+        getElementInterior(player), getElementDimension(player)
+    )
+    if not spawned then
+        setAccountData(player, "characterCreated", false)
+        triggerClientEvent(player, "rust:character:result", player, false, "Impossible de faire apparaître ton personnage. Réessaie.")
+        return
+    end
+
+    applySavedCharacterClothes(player)
+    setCameraTarget(player, player)
+    setElementData(player, "isDead", false)
+    setElementData(player, "blood", getPlayerDataSetting("blood", "max") or 15000)
+    setElementData(player, "bleeding", 0)
+    setElementData(player, "alivetime", 0)
+    setElementHealth(player, 100)
+
+    if getElementData(player, "starterKitGiven") ~= true then
+        setElementData(player, "Stone", 1)
+        setElementData(player, "Torch", 1)
+        setAccountData(player, "starterKitGiven", true)
+    end
+
+    triggerClientEvent(player, "rust:onClientPlayerLogin", player, getElementData(player, "account"))
+    triggerClientEvent(player, "rust:onClientPlayerSpawn", player)
+    savePlayerData(player)
+    triggerClientEvent(player, "rust:character:result", player, true, "Personnage créé. Bienvenue dans Rusty !")
+end)
+
 addEventHandler("onPlayerQuit", root, function()
     authAttempts[source] = nil
 end)
@@ -416,6 +522,7 @@ loadEvent("player:onSpawn", root, function(x, y, z, model)
     if not x or not y or not z then return end
     local skin = tonumber(model) or tonumber(getElementData(player, "Skin")) or 0
     spawnPlayer(player, x, y, z, math.random(0, 359), skin, getElementInterior(player), getElementDimension(player))
+    applySavedCharacterClothes(player)
     setCameraTarget(player, player)
     setElementData(player, "isDead", false)
     setElementData(player, "blood", getPlayerDataSetting("blood", "max") or 15000)
