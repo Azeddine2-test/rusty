@@ -709,10 +709,11 @@ loadEvent("player:onDie", root, function(details)
         or (isElement(client) and source ~= client) or getElementData(player, "isDead") then return end
     details = type(details) == "table" and details or {}
     setElementData(player, "isDead", true)
-    setAccountData(player, "starterKitGiven", false)
     setElementData(player, "blood", 0)
     onPlayerDisequipItem(false, player)
-    dropPlayerInventoryOnDeath(player)
+    local inventoryDropped = dropPlayerInventoryOnDeath(player)
+    -- Do not grant a new starter kit if the loot bag could not be created.
+    setAccountData(player, "starterKitGiven", not inventoryDropped)
     local alivetime = tonumber(getElementData(player, "alivetime")) or 0
     triggerClientEvent(player, "rust:onClientPlayerDie", player, details.reason or "Unknown", details.weapon, alivetime)
     savePlayerData(player)
