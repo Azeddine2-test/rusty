@@ -5,7 +5,7 @@ FarmConfigs = {
         min = UTILS:seconds(5),
         max = UTILS:seconds(10),
     },
-    ['possibleFarmDrops'] = {'Wood', 'Stone', 'Apple', 'Pure Iron', 'Sulphur', 'Minerio Metal de Alta', 'Minerio de Enxofre'},
+    ['possibleFarmDrops'] = {'Wood', 'Stone', 'Apple', 'Pure Iron', 'Minerio Metal de Alta', 'Minerio de Enxofre'},
 }
 
 farms = {
