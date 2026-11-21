@@ -52,11 +52,13 @@ local function openClothesSelector()
     local saved = getElementData(localPlayer, "Clothes") or {
         shirt = 1, hairBeard = 0, pants = 7, shoes = 0, glasses = 0, hat = 0
     }
-    saved = table.copy and table.copy(saved) or {
-        shirt = saved.shirt, hairBeard = saved.hairBeard or saved.head,
+    local savedHairBeard = saved.hairBeard
+    if savedHairBeard == nil then savedHairBeard = saved.head end
+    saved = {
+        shirt = saved.shirt, hairBeard = savedHairBeard,
         pants = saved.pants, shoes = saved.shoes, glasses = saved.glasses, hat = saved.hat
     }
-    if saved.hairBeard == nil then saved.hairBeard = saved.head or 0 end
+    if saved.hairBeard == nil then saved.hairBeard = 0 end
     clothesUI.original = {
         shirt = saved.shirt, hairBeard = saved.hairBeard,
         pants = saved.pants, shoes = saved.shoes, glasses = saved.glasses, hat = saved.hat
