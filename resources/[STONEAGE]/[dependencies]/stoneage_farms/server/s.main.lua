@@ -88,10 +88,46 @@ local function destroyFarmObject(object, respawn)
     destroyElement(object)
 end
 
+local lastFarmHit = {}
+addEventHandler("onPlayerQuit", root, function()
+    lastFarmHit[source] = nil
+end)
+
 addEventHandler("farm:onHitObject", root, function(object, itemName)
-    local player = client or source
-    if not isElement(player) or getElementType(player) ~= "player" or not isElement(object) then return end
-    if getElementData(object, "obName") ~= "farmObject" then return end
+    local player = client
+    if not isElement(player) or getElementType(player) ~= "player" or source ~= player
+        or getElementData(player, "isDead") or not getElementData(player, "account")
+        or not isElement(object) or getElementType(object) ~= "object" then
+        return
+    end
+    if getElementData(object, "obName") ~= "farmObject" or type(itemName) ~= "string" then
+        return
+    end
+
+    local px, py, pz = getElementPosition(player)
+    local ox, oy, oz = getElementPosition(object)
+    if getElementDimension(player) ~= getElementDimension(object)
+        or getElementInterior(player) ~= getElementInterior(object)
+        or getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 5 then
+        return
+    end
+
+    local now = getTickCount()
+    if lastFarmHit[player] and now - lastFarmHit[player] < 450 then
+        return
+    end
+    lastFarmHit[player] = now
+
+    local validDrop = false
+    for _, dropName in ipairs(FarmConfigs.possibleFarmDrops or {}) do
+        if dropName == itemName then
+            validDrop = true
+            break
+        end
+    end
+    if not validDrop then
+        return
+    end
 
     local farmType = getElementData(object, "farmType")
     local config = farms[farmType]
@@ -101,8 +137,8 @@ addEventHandler("farm:onHitObject", root, function(object, itemName)
 
     local available = math.floor(tonumber(getElementData(object, itemName)) or 0)
     if available <= 0 then return end
-    local minimum = tonumber(hitSettings.removeQuantity[1]) or 1
-    local maximum = tonumber(hitSettings.removeQuantity[2]) or minimum
+    local minimum = math.max(1, math.floor(tonumber(hitSettings.removeQuantity[1]) or 1))
+    local maximum = math.max(minimum, math.floor(tonumber(hitSettings.removeQuantity[2]) or minimum))
     local amount = math.min(available, math.random(minimum, maximum))
     if amount <= 0 then return end
 
