@@ -418,7 +418,7 @@ end
 addEvent("rust:auth:submit", true)
 addEventHandler("rust:auth:submit", root, function(mode, username, password, confirmation)
     local player = client
-    if not isElement(player) or source ~= player or authPending[player] then return end
+    if not isElement(player) or source ~= player or authPending[player] or getElementData(player, "account") then return end
     if mode ~= "register" and mode ~= "login" then return end
     if type(username) ~= "string" or type(password) ~= "string" then return end
 
