@@ -6,9 +6,145 @@ local menu = {
     showing = false,
 }
 
+local authUI = {
+    visible = false,
+    mode = 'login',
+    busy = false,
+    message = '',
+    edits = {},
+    bounds = {},
+}
+
+local function destroyAuthInputs()
+    for _, edit in pairs(authUI.edits) do
+        if isElement(edit) then destroyElement(edit) end
+    end
+    authUI.edits = {}
+end
+
+local function createAuthInputs()
+    destroyAuthInputs()
+    local w, h = math.min(520, sW - 40), 410
+    local x, y = (sW - w) / 2, (sH - h) / 2
+    authUI.bounds = {x = x, y = y, w = w, h = h}
+    authUI.edits.username = guiCreateEdit(x + 48, y + 143, w - 96, 34, '', false)
+    authUI.edits.password = guiCreateEdit(x + 48, y + 213, w - 96, 34, '', false)
+    for _, edit in pairs(authUI.edits) do
+        guiSetFont(edit, 'default-bold-small')
+        guiSetAlpha(edit, 0.94)
+        guiSetProperty(edit, 'NormalTextColour', 'FFFFFFFF')
+        guiSetProperty(edit, 'NormalBackgroundColour', 'FF202020')
+    end
+    guiEditSetMaxLength(authUI.edits.username, 20)
+    guiEditSetMaxLength(authUI.edits.password, 64)
+    guiEditSetMasked(authUI.edits.password, true)
+    guiBringToFront(authUI.edits.username)
+    guiSetInputMode('no_binds_when_editing')
+end
+
+local function openAuth()
+    if authUI.visible then return end
+    authUI.visible = true
+    authUI.mode = 'login'
+    authUI.busy = false
+    authUI.message = ''
+    menu.scene = 'auth'
+    toggleTutorial(false)
+    createAuthInputs()
+    guiSetInputEnabled(true)
+    showCursor(true)
+end
+
+local function closeAuth()
+    authUI.visible = false
+    authUI.busy = false
+    destroyAuthInputs()
+    guiSetInputEnabled(false)
+    guiSetInputMode('allow_binds')
+    authUI.bounds = {}
+end
+
+local function drawAuth()
+    local b = authUI.bounds
+    if not b or not b.x then return end
+    dxDrawRectangle(0, 0, sW, sH, tocolor(0, 0, 0, 155), true)
+    dxDrawRectangle(b.x, b.y, b.w, b.h, predefinedColor('menu:color1'), true)
+    dxDrawRectangleBorders(b.x, b.y, b.w, b.h, predefinedColor('menu:color2'), 3, true)
+    dxDrawRectangle(b.x, b.y, b.w, 5, predefinedColor('menu:color2'), true)
+
+    local title = authUI.mode == 'register' and 'CRÉER UN COMPTE' or 'CONNEXION'
+    dxDrawText(title, b.x + 20, b.y + 20, b.x + b.w - 20, b.y + 65,
+        predefinedColor('menu:color2'), 1, font('futura:2'), 'center', 'center', false, false, true)
+
+    dxDrawText('IDENTIFIANT', b.x + 48, b.y + 112, b.x + b.w - 48, b.y + 140,
+        predefinedColor('menu:color2'), 1, font('futura:2'), 'left', 'center', false, false, true)
+    dxDrawText('MOT DE PASSE', b.x + 48, b.y + 182, b.x + b.w - 48, b.y + 210,
+        predefinedColor('menu:color2'), 1, font('futura:2'), 'left', 'center', false, false, true)
+
+    local mainText = authUI.busy and 'VEUILLEZ PATIENTER...' or
+        (authUI.mode == 'register' and 'CRÉER MON COMPTE' or 'SE CONNECTER')
+    local mainY = b.y + 270
+    dxDrawRectangle(b.x + 48, mainY, b.w - 96, 42, predefinedColor('menu:color2'), true)
+    dxDrawText(mainText, b.x + 48, mainY, b.x + b.w - 48, mainY + 42,
+        predefinedColor('menu:color1'), 1, font('futura:2'), 'center', 'center', false, false, true)
+
+    local switchText = authUI.mode == 'register' and 'Déjà inscrit ? Se connecter' or 'Pas encore de compte ? Créer un compte'
+    dxDrawText(switchText, b.x + 35, b.y + 320, b.x + b.w - 35, b.y + 355,
+        predefinedColor('menu:color2'), 1, font('futura'), 'center', 'center', false, false, true)
+    dxDrawText('FERMER', b.x + b.w - 100, b.y + 12, b.x + b.w - 20, b.y + 42,
+        predefinedColor('menu:color2'), 1, font('futura:2'), 'center', 'center', false, false, true)
+
+    if authUI.message and authUI.message ~= '' then
+        dxDrawText(authUI.message, b.x + 25, b.y + 365, b.x + b.w - 25, b.y + 395,
+            predefinedColor('menu:color2'), 1, font('futura'), 'center', 'center', true, false, true)
+    end
+end
+
+local function authClick(button, state, cx, cy)
+    if not authUI.visible or button ~= 'left' or state ~= 'down' or authUI.busy then return end
+    local b = authUI.bounds
+    if not b then return end
+
+    if cx >= b.x + b.w - 100 and cx <= b.x + b.w - 20 and cy >= b.y + 12 and cy <= b.y + 42 then
+        closeAuth()
+        menu.scene = nil
+        return
+    end
+
+    local mainY = b.y + 270
+    if cx >= b.x + 48 and cx <= b.x + b.w - 48 and cy >= mainY and cy <= mainY + 42 then
+        local username = guiGetText(authUI.edits.username) or ''
+        local password = guiGetText(authUI.edits.password) or ''
+        if username == '' or password == '' then
+            authUI.message = 'Remplis les deux champs.'
+            return
+        end
+        authUI.busy = true
+        authUI.message = ''
+        triggerServerEvent('rust:auth:submit', localPlayer, authUI.mode, username, password)
+        return
+    end
+
+    if cy >= b.y + 320 and cy <= b.y + 355 then
+        authUI.mode = authUI.mode == 'login' and 'register' or 'login'
+        authUI.message = ''
+        if isElement(authUI.edits.password) then guiSetText(authUI.edits.password, '') end
+    end
+end
+
+addEvent('rust:auth:result', true)
+addEventHandler('rust:auth:result', localPlayer, function(success, message)
+    authUI.busy = false
+    authUI.message = tostring(message or '')
+    if success then
+        closeAuth()
+        menu.scene = nil
+    end
+end)
+
 function toggleLogin(state)
     toggleMenu(true)
-    toggleTutorial(true)
+    toggleTutorial(false)
 end
 addEvent('toggleLogin', true)
 addEventHandler('toggleLogin', localPlayer, toggleLogin)
@@ -22,6 +158,7 @@ function toggleMenu(state)
         addEventHandler('onClientClick', root, menu.onClick)
         fadeCamera(true)
     else
+        if authUI.visible then closeAuth() end
         removeEventHandler('onClientRender', root, drawMenu)
         removeEventHandler('onClientClick', root, menu.onClick)
         toggleTutorial(false)
@@ -107,6 +244,9 @@ function drawMenu()
     if menu.scene == 'regras' then
         drawRegras()
     end
+    if authUI.visible then
+        drawAuth()
+    end
 end
 
 drawRegras = function()
@@ -174,7 +314,10 @@ end
 -- //------------------- DRAW -------------------\\--
 
 -- //------------------- ON CLICK -------------------\\--
+addEventHandler('onClientClick', root, authClick)
+
 function menu.onClick(btn, state, x, y)
+    if authUI.visible then return end
     if btn == 'left' and state == 'down' then
         local selected = menuItems.hover
         if selected == 'QUIT' then
@@ -182,15 +325,12 @@ function menu.onClick(btn, state, x, y)
             triggerServerEvent('rust:customKick', localPlayer, 'Quit')
             menu.scene = nil
         elseif selected == 'JOGAR' then
-            if  isTransferBoxActive() then
-                return false
-            end
+            if isTransferBoxActive() then return false end
             if getElementData(localPlayer, 'account') then
                 toggleMenu(false)
                 setCameraTarget(localPlayer)
             else
-                triggerServerEvent('player:onTryToLogin', localPlayer)
-                menu.scene = nil
+                openAuth()
             end
         elseif selected == 'REGRAS' then
             if menu.scene == 'config' then
