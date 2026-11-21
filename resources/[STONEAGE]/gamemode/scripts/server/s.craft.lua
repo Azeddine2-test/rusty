@@ -895,7 +895,7 @@ loadEvent('craft:startMovingObject', root, function(ob)
     end
 
     local owner = getElementData(ob, 'owner')
-    if owner ~= getElementData(player, 'account') and not isAdmin(player) then
+    if not hasObjectAccess(player, ob) then
         return
     end
     local px, py, pz = getElementPosition(player)
@@ -1159,7 +1159,7 @@ loadEvent('craft:repairAllObjects', root, function(ob)
         return
     end
     local owner = getElementData(ob, 'owner')
-    if owner and (owner == getElementData(player, 'account') or isAdmin(player)) then
+    if owner and hasObjectAccess(player, ob) then
         local px, py, pz = getElementPosition(player)
         local ox, oy, oz = getElementPosition(ob)
         if getElementDimension(player) ~= getElementDimension(ob)
