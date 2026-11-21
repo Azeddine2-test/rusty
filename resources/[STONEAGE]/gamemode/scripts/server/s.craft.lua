@@ -66,7 +66,7 @@ loadEvent('OnCraftObject', root, function(obName, pos)
     end
     lastCraftRequest[player] = now
 
-    local staff = getElementData(player, 'staffRole2') or isAdmin(player)
+    local staff = isAdmin(player)
     local countName = isBaseItem(obName) and 'baseItems' or obName
     local limit = getObjectLimit(countName, player)
     if not staff and limit and (getElementData(player, countName) or 0) >= limit then
