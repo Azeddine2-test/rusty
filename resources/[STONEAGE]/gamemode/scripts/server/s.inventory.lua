@@ -405,7 +405,9 @@ function onPlayerEquipItem(slotID, player)
         takeAllWeapons(player)
         if not giveWeapon(player, tonumber(weapon.weapID), ammo, true) then return false end
         if weapon.slotID then setPedWeaponSlot(player, tonumber(weapon.slotID)) end
-        if type(detachItemFromBone) == "function" then detachItemFromBone(itemName, player) end
+        if type(detachWeaponFromBone) == "function" then
+            detachWeaponFromBone(getItemType(itemName), player)
+        end
     elseif getPlayerDataSetting(itemName, "clothSettings") then
         applyClothes(player, itemName)
     end
@@ -413,6 +415,7 @@ function onPlayerEquipItem(slotID, player)
     if getItemType(itemName) == "defenseItem" and type(attachDefenseToBody) == "function" then
         attachDefenseToBody(itemName, player)
     end
+    if type(attachItemToBone) == "function" then attachItemToBone(itemName, player) end
     if itemName == "Torch" then
         setPedWalkingStyle(player, 127)
     end
