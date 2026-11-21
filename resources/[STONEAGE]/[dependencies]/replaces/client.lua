@@ -33,31 +33,56 @@ local funcMethods = {
     end
 }
 
+-- STRICT = true  : comportement d'origine, le joueur est expulse des qu'un modele ne se charge pas.
+-- STRICT = false : le modele en echec est ignore (le modele GTA par defaut reste), le chargement continue
+--                  et ne reste plus bloque sur "Decompression des fichiers".
+local STRICT = false
+local failures = 0
+
+-- Charge un fichier chiffre, sans jamais lever d'erreur. Renvoie true si le modele est applique.
+local function loadOne(method, fileName, modelID)
+    local content
+    if type(decrypt) == 'function' then
+        local ok, result = pcall(decrypt, ('files/%s.%s_encrypted'):format(fileName, method))
+        if ok then
+            content = result
+        end
+    end
+    if content and funcMethods[method](content, modelID, fileName) then
+        return true
+    end
+    failures = failures + 1
+    outputDebugString(('[replaces] echec %s : %s (modele %s)'):format(method, tostring(fileName), tostring(modelID)), 3)
+    return false
+end
+
 addEventHandler('onClientResourceStart', resourceRoot, function()
     local total = #Replaces
     local start = getTickCount()
-    
+
+    if type(decrypt) ~= 'function' then
+        outputDebugString("[replaces] la fonction 'decrypt' n'existe pas : decrypt.lua ne s'est pas charge sur ce client.", 1)
+    end
+
     Async:setPriority('high')
-    
+
     exports['stoneage_loadscreen']:setHeader('Décompression des fichiers')
-    
+
     Async:foreach(Replaces, function(v, k)
             exports['stoneage_loadscreen']:setInfo(('%i/%i (%i%%)'):format(k, total, (k * 100 / total)))
             if v.custom then
                 for method, fileName in pairs(v.custom) do
                     if fileName and funcMethods[method] then
-                        local content = decrypt(('files/%s.%s_encrypted'):format(fileName, method))
-                        if (not funcMethods[method](content, v.model, fileName)) then
-                            return triggerServerEvent('rust:customKick', localPlayer, ('Error loading model (%s - %s)'):format(method, fileName, v.model))
+                        if (not loadOne(method, fileName, v.model)) and STRICT then
+                            return triggerServerEvent('rust:customKick', localPlayer, ('Error loading model (%s - %s)'):format(method, fileName))
                         end
                     end
                 end
             end
             for d, method in ipairs({'txd', 'dff', 'col'}) do
                 if (not v.custom) or (v.custom[method] == nil) then
-                    local content = decrypt(('files/%s.%s_encrypted'):format(v.file, method))
-                    if (not funcMethods[method](content, v.model, v.file)) then
-                        return triggerServerEvent('rust:customKick', localPlayer, ('Error loading model (%s - %s)'):format(method, v.file, v.model))
+                    if (not loadOne(method, v.file, v.model)) and STRICT then
+                        return triggerServerEvent('rust:customKick', localPlayer, ('Error loading model (%s - %s)'):format(method, v.file))
                     end
                 end
             end
@@ -86,6 +111,9 @@ addEventHandler('onClientResourceStart', resourceRoot, function()
                     exports['stoneage_loadscreen']:setInfo('Entrée en jeu dans ' .. (left - 1))
                 end
             end, 1000, secondsToWait)
+        end
+        if failures > 0 then
+            outputDebugString(('[replaces] %d fichier(s) n\'ont pas pu etre charges (voir les lignes "echec" ci-dessus)'):format(failures), 2)
         end
         print(('Replaced in %ims'):format(getTickCount() - start))
         Replaces = nil
