@@ -46,6 +46,9 @@ local function applySavedCharacterClothes(player)
         { 0, tonumber(clothes.shirt) },
         { 1, tonumber(clothes.head) },
         { 2, tonumber(clothes.pants) },
+        { 3, tonumber(clothes.shoes) },
+        { 15, tonumber(clothes.glasses) },
+        { 16, tonumber(clothes.hat) },
     }
     for _, entry in ipairs(slots) do
         if entry[2] and type(getClothesByTypeIndex) == "function" then
@@ -190,12 +193,10 @@ local function loadPlayerData(player, account)
             setElementData(player, "position", { x = x, y = y, z = z })
         end
 
-        local skin = tonumber(getElementData(player, "Skin")) or 7
-        if skin <= 0 or skin > 311 then
-            skin = 7
-            setElementData(player, "Skin", skin)
-            SQL:Exec("UPDATE `Accounts` SET `Skin` = ? WHERE `Owner` = ?", skin, account)
-        end
+        -- Tous les personnages utilisent le modèle CJ, seul modèle compatible avec les vêtements GTA SA.
+        local skin = 0
+        setElementData(player, "Skin", skin)
+        SQL:Exec("UPDATE `Accounts` SET `Skin` = ? WHERE `Owner` = ?", skin, account)
         local spawned = spawnPlayer(player, x, y, z, math.random(0, 359), skin, 0, 0)
         if not spawned then
             x, y, z = getRandomSpawnPos()
@@ -517,8 +518,8 @@ addEventHandler("rust:player:ensureSpawn", root, function()
         if not x or not y or not z or math.abs(x) > 4000 or math.abs(y) > 4000 or z < 0 or z > 2000 or (x == 0 and y == 0 and z == 0) then
             x, y, z = getRandomSpawnPos()
         end
-        local skin = tonumber(getElementData(player, "Skin")) or 7
-        if skin <= 0 or skin > 311 then skin = 7 end
+        local skin = 0
+        setElementData(player, "Skin", skin)
         if spawnPlayer(player, x, y, z, math.random(0, 359), skin, 0, 0) then
             setElementData(player, "isDead", false)
             applySavedCharacterClothes(player)
@@ -536,11 +537,16 @@ addEvent("rust:clothes:change", true)
 addEventHandler("rust:clothes:change", root, function(clothingSlot, clothingID)
     local player = client
     if not isElement(player) or source ~= player or not getElementData(player, "account") or getElementData(player, "isDead") then return end
+    if getElementModel(player) ~= 0 then setElementModel(player, 0) end
 
     clothingSlot = tonumber(clothingSlot)
     clothingID = tonumber(clothingID)
-    local allowedSlots = { [0] = "shirt", [1] = "head", [2] = "pants" }
-    if not clothingSlot or not allowedSlots[clothingSlot] or not clothingID or clothingID < 0 or clothingID > 300 or clothingID ~= math.floor(clothingID) then
+    local allowedSlots = {
+        [0] = "shirt", [1] = "head", [2] = "pants", [3] = "shoes",
+        [15] = "glasses", [16] = "hat",
+    }
+    if not clothingSlot or not allowedSlots[clothingSlot] or not clothingID
+        or clothingID < 0 or clothingID > 300 or clothingID ~= math.floor(clothingID) then
         triggerClientEvent(player, "rust:clothes:result", player, false, "Vêtement invalide.")
         return
     end
@@ -552,30 +558,14 @@ addEventHandler("rust:clothes:change", root, function(clothingSlot, clothingID)
     end
 
     local clothes = getElementData(player, "Clothes")
-    if type(clothes) ~= "table" then clothes = { shirt = 1, head = 0, pants = 7 } end
+    if type(clothes) ~= "table" then
+        clothes = { shirt = 1, head = 0, pants = 7, shoes = 0, glasses = 0, hat = 0 }
+    end
     clothes[allowedSlots[clothingSlot]] = clothingID
     setElementData(player, "Clothes", clothes)
     setPedClothes(player, clothingSlot, clothingID)
+    setAccountData(player, "Clothes", clothes)
     triggerClientEvent(player, "rust:clothes:result", player, true, "Vêtement appliqué et sauvegardé.")
-end)
-
-addEvent("rust:skin:change", true)
-addEventHandler("rust:skin:change", root, function(skin)
-    local player = client
-    if not isElement(player) or source ~= player or not getElementData(player, "account") or getElementData(player, "isDead") then return end
-    skin = tonumber(skin)
-    local allowed = { [7]=true, [14]=true, [15]=true, [16]=true, [17]=true, [18]=true, [19]=true, [20]=true, [21]=true, [22]=true, [23]=true, [24]=true, [25]=true }
-    if not skin or not allowed[skin] then
-        triggerClientEvent(player, "rust:skin:result", player, false, "Skin non autorisé.")
-        return
-    end
-    if not setElementModel(player, skin) then
-        triggerClientEvent(player, "rust:skin:result", player, false, "Impossible d'appliquer ce skin.")
-        return
-    end
-    setAccountData(player, "Skin", skin)
-    applySavedCharacterClothes(player)
-    triggerClientEvent(player, "rust:skin:result", player, true, "Skin modifié.")
 end)
 
 addEventHandler("onPlayerQuit", root, function()
@@ -602,7 +592,8 @@ loadEvent("player:onSpawn", root, function(x, y, z, model)
     if not isAccountFlagEnabled(getElementData(player, "isDead")) then return end
     x, y, z = tonumber(x), tonumber(y), tonumber(z)
     if not x or not y or not z then return end
-    local skin = tonumber(model) or tonumber(getElementData(player, "Skin")) or 0
+    local skin = 0
+    setElementData(player, "Skin", skin)
     spawnPlayer(player, x, y, z, math.random(0, 359), skin, getElementInterior(player), getElementDimension(player))
     applySavedCharacterClothes(player)
     setCameraTarget(player, player)
