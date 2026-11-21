@@ -671,21 +671,36 @@ end)
 
 local movingObjects = {}
 loadEvent('craft:startMovingObject', root, function(ob)
-    if not isElement(ob) or movingObjects[ob] or movingObjects[source] then
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player then
+        return
+    end
+    if not isElement(ob) or getElementType(ob) ~= 'object' or movingObjects[ob] or movingObjects[player] then
+        return
+    end
+    if getElementData(player, 'isDead') or not getElementData(player, 'account') then
         return
     end
 
-    movingObjects[source] = ob
-    movingObjects[ob] = source
+    local owner = getElementData(ob, 'owner')
+    if owner ~= getElementData(player, 'account') and not isAdmin(player) then
+        return
+    end
+    if getElementDimension(player) ~= getElementDimension(ob)
+        or getElementInterior(player) ~= getElementInterior(ob)
+        or getDistanceBetweenPoints3D(Vector3(getElementPosition(player)), Vector3(getElementPosition(ob))) > 8 then
+        return
+    end
 
+    movingObjects[player] = ob
+    movingObjects[ob] = player
     setElementCollisionsEnabled(ob, false)
-
-    addEventHandler('onPlayerQuit', source, restoreMovingObjectCollision)
+    addEventHandler('onPlayerQuit', player, restoreMovingObjectCollision)
 
     if getElementData(ob, 'baseObject') then
-        triggerClientEvent(source, 'base:startMovingObject', source, ob)
+        triggerClientEvent(player, 'base:startMovingObject', player, ob)
     else
-        triggerClientEvent(source, 'craft:startMovingObject', source, ob)
+        triggerClientEvent(player, 'craft:startMovingObject', player, ob)
     end
 end)
 
@@ -717,21 +732,42 @@ function restoreMovingObjectCollision()
 end
 
 loadEvent('craft:saveObjectPosition', root, function(ob, x, y, z, rx, ry, rz)
-    if isElement(ob) then
-        setElementPosition(ob, x, y, z)
-        setElementRotation(ob, rx, ry, rz)
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player then
+        return
+    end
+    if not isElement(ob) or movingObjects[player] ~= ob or movingObjects[ob] ~= player then
+        return
+    end
+    if getElementData(ob, 'owner') ~= getElementData(player, 'account') and not isAdmin(player) then
+        return
+    end
 
-        local id = getElementData(ob, 'objID')
-        if id then
-            SQL:Exec('UPDATE `Objects` SET `Position`=? WHERE `ObjectID`=?', toJSON({x, y, z, rx, ry, rz}), id)
+    local values = {x, y, z, rx, ry, rz}
+    for i = 1, 6 do
+        if type(values[i]) ~= 'number' or values[i] ~= values[i] or math.abs(values[i]) > 100000 then
+            return
         end
+    end
 
-        for k, v in ipairs(getAttachedElements(ob)) do
-            local xx, yy, zz, rxx, ryy, rzz = getElementAttachedOffsets(v)
-            xx, yy, zz = UTILS:getPositionFromElementOffset(ob, xx, yy, zz)
-            setElementPosition(v, xx, yy, zz)
-            setElementRotation(v, rx + rxx, ry + ryy, rz + rzz)
-        end
+    local px, py, pz = getElementPosition(player)
+    if getDistanceBetweenPoints3D(px, py, pz, x, y, z) > 20 then
+        return
+    end
+
+    setElementPosition(ob, x, y, z)
+    setElementRotation(ob, rx, ry, rz)
+
+    local id = getElementData(ob, 'objID')
+    if id then
+        SQL:Exec('UPDATE `Objects` SET `Position`=? WHERE `ObjectID`=?', toJSON({x, y, z, rx, ry, rz}), id)
+    end
+
+    for _, attached in ipairs(getAttachedElements(ob)) do
+        local xx, yy, zz, rxx, ryy, rzz = getElementAttachedOffsets(attached)
+        xx, yy, zz = UTILS:getPositionFromElementOffset(ob, xx, yy, zz)
+        setElementPosition(attached, xx, yy, zz)
+        setElementRotation(attached, rx + rxx, ry + ryy, rz + rzz)
     end
 end)
 
