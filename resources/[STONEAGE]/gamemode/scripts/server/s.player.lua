@@ -285,6 +285,12 @@ function onPlayerDisequipItem(slotID, player)
     if type(detachDefenseFromBone) == "function" then detachDefenseFromBone(itemName, player) end
     if type(detachItemFromBone) == "function" then detachItemFromBone(itemName, player) end
 
+    -- Une fois déséquipé, l'outil retourne sur le dos s'il existe encore dans l'inventaire.
+    if settings and (tonumber(getElementData(player, itemName)) or 0) > 0
+        and type(attachWeaponToBody) == "function" then
+        attachWeaponToBody(itemName, player)
+    end
+
     if getElementData(player, "equippedItem") == itemName then
         removeElementData(player, "equippedItem")
         removeElementData(player, "equippedSlotID")
@@ -303,6 +309,12 @@ function onPlayerEquipItem(slotID, player)
 
     local weapon = getPlayerDataSetting(itemName, "weaponSettings")
     if weapon and weapon.weapID then
+        -- Retire le modèle porté sur le dos avant d'afficher l'outil dans la main.
+        local itemType = getItemType(itemName)
+        if itemType and type(detachWeaponFromBone) == "function" then
+            detachWeaponFromBone(itemType, player)
+        end
+
         local ammo = 0
         if weapon.type == "melee" then
             ammo = 1
