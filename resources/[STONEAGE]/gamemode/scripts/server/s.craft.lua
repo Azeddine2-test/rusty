@@ -686,9 +686,11 @@ loadEvent('craft:startMovingObject', root, function(ob)
     if owner ~= getElementData(player, 'account') and not isAdmin(player) then
         return
     end
+    local px, py, pz = getElementPosition(player)
+    local ox, oy, oz = getElementPosition(ob)
     if getElementDimension(player) ~= getElementDimension(ob)
         or getElementInterior(player) ~= getElementInterior(ob)
-        or getDistanceBetweenPoints3D(Vector3(getElementPosition(player)), Vector3(getElementPosition(ob))) > 8 then
+        or getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 8 then
         return
     end
 
