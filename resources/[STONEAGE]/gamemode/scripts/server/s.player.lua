@@ -14,12 +14,18 @@ local function giveRespawnStarterKit(player)
     -- Standard Rust starter tools: pickaxe, hatchet and torch.
     local starterItems = { "Pickaxe", "Hatchet", "Torch" }
 
+    if isAccountFlagEnabled(getElementData(player, "starterKitGiven")) then
+        return false
+    end
+
     for _, itemName in ipairs(starterItems) do
         if getPlayerDataSetting(itemName, "invSettings") then
             local quantity = math.max(0, tonumber(getElementData(player, itemName)) or 0)
             setElementData(player, itemName, quantity + 1)
         end
     end
+
+    setAccountData(player, "starterKitGiven", true)
     return true
 end
 
@@ -211,6 +217,10 @@ local function savePlayerData(player)
     local account = resolveAccount(player)
     if not account or savingPlayerData[player] or loadingPlayerData[player] then return false end
     savingPlayerData[player] = true
+    if not getElementData(player, "isDead") then
+        local x, y, z = getElementPosition(player)
+        setElementData(player, "position", { x = x, y = y, z = z })
+    end
     for dataName, definition in pairs(playerDataTable) do
         if definition.savableInDB and definition.savableInDB.Accounts then
             local value = getElementData(player, dataName)
@@ -541,7 +551,6 @@ addEventHandler("rust:character:submit", root, function(skin, clothes)
     setElementHealth(player, 100)
 
     giveRespawnStarterKit(player)
-    setAccountData(player, "starterKitGiven", true)
 
     triggerClientEvent(player, "rust:onClientPlayerLogin", player, getElementData(player, "account"))
     triggerClientEvent(player, "rust:onClientPlayerSpawn", player)
@@ -559,6 +568,7 @@ loadEvent("player:onDie", root, function(details)
     if not isElement(player) or getElementType(player) ~= "player" or getElementData(player, "isDead") then return end
     details = type(details) == "table" and details or {}
     setElementData(player, "isDead", true)
+    setAccountData(player, "starterKitGiven", false)
     setElementData(player, "blood", 0)
     onPlayerDisequipItem(false, player)
     local alivetime = tonumber(getElementData(player, "alivetime")) or 0
@@ -569,6 +579,7 @@ end)
 loadEvent("player:onSpawn", root, function(x, y, z, model)
     local player = client or source
     if not isElement(player) or getElementType(player) ~= "player" then return end
+    if not isAccountFlagEnabled(getElementData(player, "isDead")) then return end
     x, y, z = tonumber(x), tonumber(y), tonumber(z)
     if not x or not y or not z then return end
     local skin = tonumber(model) or tonumber(getElementData(player, "Skin")) or 0
@@ -622,6 +633,13 @@ addEventHandler("onPlayerQuit", root, function()
     savePlayerData(source)
 end)
 
+-- Preserve the last position and inventory when the gamemode resource is restarted.
+addEventHandler("onResourceStop", resourceRoot, function()
+    for _, player in ipairs(getElementsByType("player")) do
+        savePlayerData(player)
+    end
+end)
+
 -- Broken bones periodically make the player stumble/fall.
 local brokenboneFallCooldown = {}
 addEvent("player:onFallByBrokenbone", true)
@@ -635,9 +653,8 @@ addEventHandler("player:onFallByBrokenbone", root, function()
     if brokenboneFallCooldown[player] and now - brokenboneFallCooldown[player] < 9000 then return end
     brokenboneFallCooldown[player] = now
 
-    if not getPedAnimation(player) then
-        setPedAnimation(player, "ped", "FLOOR_hit_f", 1000, false, false, false, false)
-    end
+    -- getPedAnimation is client-side only; setPedAnimation is valid server-side.
+    setPedAnimation(player, "ped", "FLOOR_hit_f", 1000, false, false, false, false)
 end)
 
 addEventHandler("onPlayerQuit", root, function()
