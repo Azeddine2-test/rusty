@@ -54,7 +54,7 @@ local function selectedCharacterClothes()
 end
 
 local function destroyCharacterPreview()
-    if isElement(characterUI.previewRender) then
+    if characterUI.previewRender then
         exports['stoneage_object_preview']:destroyObjectPreview(characterUI.previewRender)
     end
     if isElement(characterUI.previewPed) then destroyElement(characterUI.previewPed) end
