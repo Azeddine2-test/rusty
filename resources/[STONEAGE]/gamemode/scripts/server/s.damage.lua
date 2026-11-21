@@ -40,10 +40,9 @@ loadEvent('Damage:Apply', root, function(victim, bodypart, clientDamage, usedWea
         return false
     end
 
-    local distance = getDistanceBetweenPoints3D(
-        getElementPosition(client),
-        getElementPosition(victim)
-    )
+    local cx, cy, cz = getElementPosition(client)
+    local vx, vy, vz = getElementPosition(victim)
+    local distance = getDistanceBetweenPoints3D(cx, cy, cz, vx, vy, vz)
     local maxDistance = tonumber(weaponSettings.distance) or 0
     if maxDistance <= 0 or distance > maxDistance then
         return false
@@ -53,7 +52,6 @@ loadEvent('Damage:Apply', root, function(victim, bodypart, clientDamage, usedWea
     if type(hitx) ~= 'number' or type(hity) ~= 'number' or type(hitz) ~= 'number' then
         hitx, hity, hitz = getElementPosition(victim)
     else
-        local vx, vy, vz = getElementPosition(victim)
         if getDistanceBetweenPoints3D(hitx, hity, hitz, vx, vy, vz) > 4 then
             return false
         end
