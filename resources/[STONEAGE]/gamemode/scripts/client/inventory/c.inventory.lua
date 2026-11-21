@@ -349,7 +349,8 @@ function onClickRightOptions(optionID)
         end
         
         blockInventoryID('inv', inv.selected.id)
-        triggerServerEvent('inv:dropItem', localPlayer, inv.selected.id, nil, inv.lootOb, 'inv')
+        -- The Drop action always creates a world loot bag, even while another container is open.
+        triggerServerEvent('inv:dropItem', localPlayer, inv.selected.id, nil, nil, 'inv')
     
     elseif selectedOption == 'Encher Garrafa' then
         triggerServerEvent('inv:fillBottle', localPlayer, inv.selected.id)
