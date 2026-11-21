@@ -76,13 +76,13 @@ local function refreshCharacterPreview()
     setPedClothes(characterUI.previewPed, 1, clothes.head)
     setPedClothes(characterUI.previewPed, 2, clothes.pants)
 
-    if not isElement(characterUI.previewRender) then
+    if not characterUI.previewRender then
         local b = characterUI.bounds
         characterUI.previewRender = exports['stoneage_object_preview']:createObjectPreview(
             characterUI.previewPed, 0, 0, 180,
             b.x + 25, b.y + 105, b.w * 0.43, b.h - 145, false, true, true
         )
-        if isElement(characterUI.previewRender) then
+        if characterUI.previewRender then
             exports['stoneage_object_preview']:setDistanceSpread(characterUI.previewRender, 0)
         end
     end
