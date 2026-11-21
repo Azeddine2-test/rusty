@@ -31,89 +31,101 @@ end)
 
 -- //------------------- Fill bottle from menu -------------------\\--
 loadEvent('rust:fillBottleFromMenu', root, function(slotID)
-    if not isElement(source) then
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player
+        or getElementData(player, 'isDead') or not getElementData(player, 'account')
+        or not isElementInWater(player) then
+        return
+    end
+    slotID = tonumber(slotID)
+    if not slotID then return end
+    slotID = math.floor(slotID)
+    local order = getElementData(player, 'keybarOrder')
+    local entry = type(order) == 'table' and order[slotID]
+    if not entry or entry.itemName ~= 'Empty Bottle' or (tonumber(entry.quantity) or 0) <= 0
+        or (tonumber(getElementData(player, 'Empty Bottle')) or 0) <= 0 then
         return
     end
 
-    local order = getElementData(source, 'keybarOrder')
-    if not order or not order[slotID] or order[slotID].itemName ~= 'Empty Bottle' then
-        return
-    end
-
-    onPlayerDisequipItem(slotID, source)
-
-    order[slotID].itemName = 'Water'
-    setElementData(source, 'keybarOrder', order)
-
-    triggerClientEvent(source, 'playerUseItem', source, 'Water', slotID)
+    onPlayerDisequipItem(slotID, player)
+    entry.itemName = 'Water'
+    setElementData(player, 'Empty Bottle', getElementData(player, 'Empty Bottle') - 1)
+    setElementData(player, 'Water', (getElementData(player, 'Water') or 0) + 1)
+    setElementData(player, 'keybarOrder', order)
+    triggerClientEvent(player, 'playerUseItem', player, 'Water', slotID)
 end)
 -- //------------------- Fill bottle from menu -------------------\\--
 
 -- //------------------- LEARN BLUEPRINT -------------------\\--
 loadEvent('rust:learnBlueprint', root, function(slotID, itemName)
-    if not isElement(source) then
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player
+        or getElementData(player, 'isDead') or not getElementData(player, 'account') then
+        return
+    end
+    slotID = tonumber(slotID)
+    if not slotID or type(itemName) ~= 'string' or getItemType(itemName) ~= 'blueprint' then
+        return
+    end
+    slotID = math.floor(slotID)
+    local order = getElementData(player, 'keybarOrder')
+    local entry = type(order) == 'table' and order[slotID]
+    if not entry or entry.itemName ~= itemName or (tonumber(entry.quantity) or 0) <= 0
+        or (tonumber(getElementData(player, itemName)) or 0) <= 0 then
         return
     end
 
-    local order = getElementData(source, 'keybarOrder')
-    if not order or not order[slotID] or order[slotID].itemName ~= itemName then
-        return
-    end
-
-    local alreadyLearned = getElementData(source, 'learnedBlueprint') or {}
-
+    local alreadyLearned = getElementData(player, 'learnedBlueprint') or {}
     if alreadyLearned[itemName] then
-        exports['stoneage_notifications']:CreateNotification(source, translate(source, 'já aprendeu blueprint'))
+        exports['stoneage_notifications']:CreateNotification(player, translate(player, 'já aprendeu blueprint'))
         return
     end
 
     alreadyLearned[itemName] = true
-    setElementData(source, 'learnedBlueprint', alreadyLearned)
+    setElementData(player, 'learnedBlueprint', alreadyLearned)
+    local str = translate(player, 'acabou de aprender blueprint', nil, translate(player, itemName:gsub(':BLUEPRINT', ''), 'name'))
+    exports['stoneage_notifications']:CreateNotification(player, str, 'info')
 
-    local str = translate(source, 'acabou de aprender blueprint', nil, translate(source, itemName:gsub(':BLUEPRINT', ''), 'name'))
-    exports['stoneage_notifications']:CreateNotification(source, str, 'info')
-
-    order[slotID].quantity = order[slotID].quantity - 1
-    onPlayerDisequipItem(slotID, source)
-
-    if order[slotID].quantity <= 0 then
+    entry.quantity = entry.quantity - 1
+    if entry.quantity <= 0 then
+        onPlayerDisequipItem(slotID, player)
         order[slotID] = nil
     end
-
-    setElementData(source, 'keybarOrder', order)
+    setElementData(player, itemName, math.max(0, (tonumber(getElementData(player, itemName)) or 0) - 1))
+    setElementData(player, 'keybarOrder', order)
 end)
 
 loadEvent('rust:learnBlueprintFromInv', root, function(_, id)
-    if not isElement(source) then
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player
+        or getElementData(player, 'isDead') or not getElementData(player, 'account') then
         return
     end
+    id = tonumber(id)
+    if not id then return end
+    id = math.floor(id)
+    if id < 1 or id > (tonumber(getElementData(player, 'maxSlots')) or 28) then return end
 
-    local inventory = getElementData(source, 'invOrder') or {}
-
-    local itemName = inventory[id] and inventory[id].itemName
-
-    if (not itemName) then
+    local inventory = getElementData(player, 'invOrder') or {}
+    local entry = inventory[id]
+    local itemName = entry and entry.itemName
+    if type(itemName) ~= 'string' or getItemType(itemName) ~= 'blueprint'
+        or (tonumber(entry.quantity) or 0) <= 0 or (tonumber(getElementData(player, itemName)) or 0) <= 0 then
         return false
     end
 
-    if (getItemType(itemName) ~= 'blueprint') then
-        return false
-    end
-
-    local alreadyLearned = getElementData(source, 'learnedBlueprint') or {}
-
+    local alreadyLearned = getElementData(player, 'learnedBlueprint') or {}
     if alreadyLearned[itemName] then
-        exports['stoneage_notifications']:CreateNotification(source, translate(source, 'já aprendeu blueprint'))
+        exports['stoneage_notifications']:CreateNotification(player, translate(player, 'já aprendeu blueprint'))
         return
     end
 
     alreadyLearned[itemName] = true
-    setElementData(source, 'learnedBlueprint', alreadyLearned)
-
-    setPreference(source, id, itemName, 1)
-    setElementData(source, itemName, (getElementData(source, itemName) or 0) - 1)
-
-    local str = translate(source, 'acabou de aprender blueprint', nil, translate(source, itemName:gsub(':BLUEPRINT', ''), 'name'))
-    exports['stoneage_notifications']:CreateNotification(source, str, 'info')
+    setElementData(player, 'learnedBlueprint', alreadyLearned)
+    setPreference(player, id, itemName, 1)
+    setElementData(player, itemName, math.max(0, (tonumber(getElementData(player, itemName)) or 0) - 1))
+    local str = translate(player, 'acabou de aprender blueprint', nil, translate(player, itemName:gsub(':BLUEPRINT', ''), 'name'))
+    exports['stoneage_notifications']:CreateNotification(player, str, 'info')
 end)
 -- //------------------- LEARN BLUEPRINT -------------------\\--
+
