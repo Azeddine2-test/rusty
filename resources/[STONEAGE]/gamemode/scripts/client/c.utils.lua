@@ -1,3 +1,10 @@
+-- Register les evenements réseau dès le premier script client, avant toute interface.
+addEvent("rust:onClientPlayerLogin", true)
+addEvent("rust:onClientPlayerDie", true)
+addEvent("rust:onClientPlayerSpawn", true)
+addEvent("rust:onClientPlayerEquipItem", true)
+addEvent("rust:onClientPlayerDisequipItem", true)
+
 -- //------------------- UI THINGS -------------------\\--
 sW, sH = 800, 600
 sW, sH = guiGetScreenSize()
