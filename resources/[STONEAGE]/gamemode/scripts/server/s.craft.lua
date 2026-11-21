@@ -268,69 +268,117 @@ end)
 
 -- //------------------- EVOLVE OBJECT -------------------\\--
 function evolveObject(ob, newObjectName)
-    if ob and isElement(ob) then
-        if (not isAdmin(source)) then
-            local custo = getObjectDataSetting(newObjectName, 'craftingCusto')
-            if not custo then
-                return removeElementData(source, 'WaitingResponse')
+    local player = client
+    if not isElement(player) or getElementType(player) ~= 'player' or source ~= player then
+        return false
+    end
+    if not isElement(ob) or getElementType(ob) ~= 'object' or getElementData(player, 'isDead') then
+        removeElementData(player, 'WaitingResponse')
+        return false
+    end
+    if not getElementData(player, 'account') then
+        removeElementData(player, 'WaitingResponse')
+        return false
+    end
+
+    local owner = getElementData(ob, 'owner')
+    if owner ~= getElementData(player, 'account') and not isAdmin(player) then
+        removeElementData(player, 'WaitingResponse')
+        return false
+    end
+
+    local px, py, pz = getElementPosition(player)
+    local ox, oy, oz = getElementPosition(ob)
+    if getElementDimension(player) ~= getElementDimension(ob)
+        or getElementInterior(player) ~= getElementInterior(ob)
+        or getDistanceBetweenPoints3D(px, py, pz, ox, oy, oz) > 8 then
+        removeElementData(player, 'WaitingResponse')
+        return false
+    end
+
+    local oldObjectName = getElementData(ob, 'obName')
+    local allowedEvolution = oldObjectName and getObjectDataSetting(oldObjectName, 'evolutionTo')
+    local model = type(newObjectName) == 'string' and getObModel(newObjectName)
+    if not allowedEvolution or allowedEvolution ~= newObjectName or not model then
+        removeElementData(player, 'WaitingResponse')
+        return false
+    end
+
+    local staff = isAdmin(player)
+    local custo = getObjectDataSetting(newObjectName, 'craftingCusto')
+    if not staff then
+        if type(custo) ~= 'table' then
+            removeElementData(player, 'WaitingResponse')
+            return false
+        end
+        for _, entry in ipairs(custo) do
+            if type(entry) ~= 'table' or type(entry[1]) ~= 'string' or type(entry[2]) ~= 'number' or entry[2] < 0 then
+                removeElementData(player, 'WaitingResponse')
+                return false
             end
-            for k, v in ipairs(custo) do
-                local cost = v[2]
-                if (v[1] == 'Level') and isVIP(source) then
-                    cost = math.floor(cost * 0.75)
-                end
-                if (getElementData(source, v[1]) or 0) < cost then
-                    local str = ('Você precisa de mais %s.'):format(translate(source, v[1], 'name'))
-                    exports['stoneage_notifications']:CreateNotification(source, str, 'error')
-                    return removeElementData(source, 'WaitingResponse')
-                end
+            local cost = entry[2]
+            if entry[1] == 'Level' and isVIP(player) then
+                cost = math.floor(cost * 0.75)
             end
-            if (getElementData(source, newObjectName) or 0) + 1 > getObjectLimit(newObjectName, source) then
-                local str = translate(source, 'Atingiu limite de %s', nil, translate(source, newObjectName, 'name'))
-                exports['stoneage_notifications']:CreateNotification(str, 'error')
-                return removeElementData(source, 'WaitingResponse')
-            end
-            for k, v in ipairs(custo) do
-                if (v[1] ~= 'Level') then
-                    setElementData(source, v[1], getElementData(source, v[1]) - v[2])
-                end
+            if (getElementData(player, entry[1]) or 0) < cost then
+                local str = ('Você precisa de mais %s.'):format(translate(player, entry[1], 'name'))
+                exports['stoneage_notifications']:CreateNotification(player, str, 'error')
+                removeElementData(player, 'WaitingResponse')
+                return false
             end
         end
 
-        local obName = getElementData(ob, 'obName')
-        if (not isBaseItem(obName)) then
-            setElementData(source, obName, (getElementData(source, obName) or 0) - 1)
-            setElementData(source, newObjectName, (getElementData(source, newObjectName) or 0) + 1)
+        local limit = getObjectLimit(newObjectName, player)
+        if limit and (getElementData(player, newObjectName) or 0) + 1 > limit then
+            local str = translate(player, 'Atingiu limite de %s', nil, translate(player, newObjectName, 'name'))
+            exports['stoneage_notifications']:CreateNotification(player, str, 'error')
+            removeElementData(player, 'WaitingResponse')
+            return false
         end
 
-        local allData = getAllElementData(ob)
-        local x, y, z = getElementPosition(ob)
-        local rx, ry, rz = getElementRotation(ob)
-        local objID = getElementData(ob, 'objID')
-
-        destroyElement(ob)
-
-        local model = getObModel(newObjectName)
-        local newOb = createObject(model, x, y, z, rx, ry, rz)
-
-        setElementData(newOb, 'maxSlots', getObjectDataSetting(newObjectName, 'maxSlots') or nil)
-
-        for key, value in pairs(allData) do
-            if (key ~= 'obName') and (key ~= 'invOrder') and (key ~= 'maxSlots') then
-                setElementData(newOb, key, value)
+        for _, entry in ipairs(custo) do
+            if entry[1] ~= 'Level' then
+                setElementData(player, entry[1], (getElementData(player, entry[1]) or 0) - entry[2])
             end
         end
+    end
 
-        setElementData(newOb, 'invOrder', allData['invOrder'])
+    if not isBaseItem(oldObjectName) then
+        setElementData(player, oldObjectName, math.max(0, (getElementData(player, oldObjectName) or 0) - 1))
+        setElementData(player, newObjectName, (getElementData(player, newObjectName) or 0) + 1)
+    end
 
-        setElementData(newOb, 'obName', newObjectName)
+    local allData = getAllElementData(ob)
+    local x, y, z = getElementPosition(ob)
+    local rx, ry, rz = getElementRotation(ob)
+    local objID = getElementData(ob, 'objID')
 
+    destroyElement(ob)
+
+    local newOb = createObject(model, x, y, z, rx, ry, rz)
+    if not newOb then
+        removeElementData(player, 'WaitingResponse')
+        return false
+    end
+    setElementFrozen(newOb, true)
+    setElementData(newOb, 'maxSlots', getObjectDataSetting(newObjectName, 'maxSlots') or nil)
+
+    for key, value in pairs(allData) do
+        if key ~= 'obName' and key ~= 'invOrder' and key ~= 'maxSlots' then
+            setElementData(newOb, key, value)
+        end
+    end
+
+    setElementData(newOb, 'invOrder', allData['invOrder'])
+    setElementData(newOb, 'obName', newObjectName)
+    setElementData(newOb, 'health', getObjectDataSetting(newObjectName, 'maxHealth') or 1000)
+
+    if objID then
         SQL:Exec('UPDATE `Objects` SET `Name`=?, `health`=? WHERE `ObjectID`=?', newObjectName, getObjectDataSetting(newObjectName, 'maxHealth') or 1000, objID)
-        setElementData(newOb, 'health', getObjectDataSetting(newObjectName, 'maxHealth') or 1000)
     end
-    if isElement(client) then
-        removeElementData(client, 'WaitingResponse')
-    end
+
+    removeElementData(player, 'WaitingResponse')
+    return true
 end
 loadEvent('craft:evolveObject', root, evolveObject)
 -- //------------------- EVOLVE OBJECT -------------------\\--
