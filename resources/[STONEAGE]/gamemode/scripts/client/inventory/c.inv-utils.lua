@@ -95,38 +95,42 @@ function createInvSlot(where, x, y, w, h, thisID, parent)
 end
 
 function onOrderChange(where, add, remove)
-    local order = inv.order[where]
-    local slots = inv.gui.slots[where]
+    local order = type(inv.order[where]) == 'table' and inv.order[where] or {}
+    local slots = inv.gui.slots[where] or {}
+    add = type(add) == 'table' and add or {}
+    remove = type(remove) == 'table' and remove or {}
 
     for k in pairs(add) do
-        if slots[k] then
-            if order[k] and order[k].quantity > 0 then
-                guiStaticImageLoadImage(slots[k].img, getItemIcon(order[k].itemName))
-                guiSetVisible(slots[k].img, true)
-
-                guiSetText(slots[k].quantity, order[k].quantity)
-            end
+        local slot = slots[k]
+        local entry = order[k]
+        if slot and type(entry) == 'table' and (tonumber(entry.quantity) or 0) > 0 then
+            guiStaticImageLoadImage(slot.img, getItemIcon(entry.itemName))
+            guiSetVisible(slot.img, true)
+            guiSetText(slot.quantity, entry.quantity)
         end
     end
 
     for k in pairs(remove) do
-        if order[k] then
-            guiStaticImageLoadImage(slots[k].img, getItemIcon(order[k].itemName))
-            guiSetVisible(slots[k].img, true)
-
-            guiSetText(slots[k].quantity, order[k].quantity)
-        else
-            guiStaticImageLoadImage(slots[k].img, 'files/images/logo.png')
-            guiSetVisible(slots[k].img, false)
-
-            guiSetText(slots[k].quantity, '')
-
-            UI:setImageColor(slots[k].bg, color('inv:boxColor'))
+        local slot = slots[k]
+        if slot then
+            local entry = order[k]
+            if type(entry) == 'table' and (tonumber(entry.quantity) or 0) > 0 then
+                guiStaticImageLoadImage(slot.img, getItemIcon(entry.itemName))
+                guiSetVisible(slot.img, true)
+                guiSetText(slot.quantity, entry.quantity)
+            else
+                guiStaticImageLoadImage(slot.img, 'files/images/logo.png')
+                guiSetVisible(slot.img, false)
+                guiSetText(slot.quantity, '')
+                UI:setImageColor(slot.bg, color('inv:boxColor'))
+            end
         end
     end
 end
 
 function orderDifference(t1, t2)
+    t1 = type(t1) == 'table' and t1 or {}
+    t2 = type(t2) == 'table' and t2 or {}
     local add = {}
     local remove = {}
 
@@ -188,6 +192,7 @@ end
 
 addEventHandler('onClientElementDataChange', localPlayer, function(key, old, new)
     if key == 'invOrder' then
+        new = type(new) == 'table' and new or {}
         local add, remove = orderDifference(inv.order.inv or {}, new)
 
         inv.order.inv = new
@@ -195,6 +200,7 @@ addEventHandler('onClientElementDataChange', localPlayer, function(key, old, new
         inv.toggleDrag(false)
 
     elseif key == 'keybarOrder' then
+        new = type(new) == 'table' and new or {}
         local add, remove = orderDifference(inv.order.keybar or {}, new)
 
         inv.order.keybar = new
@@ -202,6 +208,7 @@ addEventHandler('onClientElementDataChange', localPlayer, function(key, old, new
         inv.toggleDrag(false)
 
     elseif key == 'pedSideOrder' then
+        new = type(new) == 'table' and new or {}
         local add, remove = orderDifference(inv.order.pedSide or {}, new)
 
         inv.order.pedSide = new
@@ -217,6 +224,7 @@ end)
 
 function onLootDataChange(key, old, new)
     if key == 'invOrder' then
+        new = type(new) == 'table' and new or {}
         local add, remove = orderDifference(inv.order.loot or {}, new)
         inv.order.loot = new
         onOrderChange('loot', add, remove)
@@ -269,7 +277,7 @@ function onPlayerClickOnItem()
     local hoverPos = inv.hover.id
     local hoverSource = inv.hover.source
     local order = hoverSource and inv.order[hoverSource]
-    local hoverItem = hoverPos and order[hoverPos]
+    local hoverItem = hoverPos and type(order) == 'table' and order[hoverPos]
 
     if hoverItem then
         inv.toggleDrag(true, {
