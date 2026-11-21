@@ -531,6 +531,34 @@ addEventHandler("rust:player:ensureSpawn", root, function()
     setElementFrozen(player, false)
 end)
 
+-- Real clothing customization: shirt, headwear and pants are saved per character.
+addEvent("rust:clothes:change", true)
+addEventHandler("rust:clothes:change", root, function(clothingSlot, clothingID)
+    local player = client
+    if not isElement(player) or source ~= player or not getElementData(player, "account") or getElementData(player, "isDead") then return end
+
+    clothingSlot = tonumber(clothingSlot)
+    clothingID = tonumber(clothingID)
+    local allowedSlots = { [0] = "shirt", [1] = "head", [2] = "pants" }
+    if not clothingSlot or not allowedSlots[clothingSlot] or not clothingID or clothingID < 0 or clothingID > 300 or clothingID ~= math.floor(clothingID) then
+        triggerClientEvent(player, "rust:clothes:result", player, false, "Vêtement invalide.")
+        return
+    end
+
+    local texture, model = getClothesByTypeIndex(clothingSlot, clothingID)
+    if not texture or not model then
+        triggerClientEvent(player, "rust:clothes:result", player, false, "Ce vêtement n'existe pas.")
+        return
+    end
+
+    local clothes = getElementData(player, "Clothes")
+    if type(clothes) ~= "table" then clothes = { shirt = 1, head = 0, pants = 7 } end
+    clothes[allowedSlots[clothingSlot]] = clothingID
+    setElementData(player, "Clothes", clothes)
+    setPedClothes(player, clothingSlot, clothingID)
+    triggerClientEvent(player, "rust:clothes:result", player, true, "Vêtement appliqué et sauvegardé.")
+end)
+
 addEvent("rust:skin:change", true)
 addEventHandler("rust:skin:change", root, function(skin)
     local player = client
