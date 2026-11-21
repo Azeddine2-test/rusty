@@ -284,7 +284,7 @@ end)
 
 -- //------------------- CRAFTING ANIMATION -------------------\\--
 loadEvent('craft:togglePedAnimation', root, function(state, fromPlanner)
-    if getElementData(client, 'isDead') then
+    if not isElement(client) or source ~= client or getElementData(client, 'isDead') then
         return
     end
     if state then
@@ -557,15 +557,17 @@ end
 -- //------------------- OPEN DOOR -------------------\\--
 local moving = {}
 function abrirPorta(ob, direction)
+    local player = client
+    if not isElement(player) or source ~= player or getElementData(player, 'isDead') then return end
     if ob and isElement(ob) and (not moving[ob]) then
-        if isFriendlyDoor(ob, source) then
+        if isFriendlyDoor(ob, player) then
 
-            setPedAnimation(source, 'crib', 'crib_use_switch', -1, false, false, false, false)
+            setPedAnimation(player, 'crib', 'crib_use_switch', -1, false, false, false, false)
 
             local x, y = UTILS:getPositionFromElementOffset(ob, 0.6, 0, 0)
-            local px, py = getElementPosition(source)
+            local px, py = getElementPosition(player)
             local pedZ = findRotation(px, py, x, y)
-            setElementRotation(source, 0, 0, pedZ, 'default', true)
+            setElementRotation(player, 0, 0, pedZ, 'default', true)
 
             setTimer(function(direction, ob)
                 if isElement(ob) then
@@ -603,8 +605,10 @@ loadEvent('craft:abrirPorta', root, abrirPorta)
 
 -- //------------------- OPEN GATE -------------------\\--
 function abrirPortao(ob, direction)
+    local player = client
+    if not isElement(player) or source ~= player or getElementData(player, 'isDead') then return end
     if ob and isElement(ob) and not moving[ob] then
-        if isFriendlyDoor(ob, source) then
+        if isFriendlyDoor(ob, player) then
             local rx, ry, rz = getElementRotation(ob)
 
             local openedModels = getObjectDataSetting(getElementData(ob, 'obName'), 'openedModels')
@@ -612,12 +616,12 @@ function abrirPortao(ob, direction)
                 return
             end
 
-            setPedAnimation(source, 'crib', 'crib_use_switch', -1, false, false, false, false)
+            setPedAnimation(player, 'crib', 'crib_use_switch', -1, false, false, false, false)
 
             local x, y = UTILS:getPositionFromElementOffset(ob, 0.75, 0, 0)
-            local px, py = getElementPosition(source)
+            local px, py = getElementPosition(player)
             local pedZ = findRotation(px, py, x, y)
-            setElementRotation(source, 0, 0, pedZ)
+            setElementRotation(player, 0, 0, pedZ)
 
             setTimer(function(ob)
                 if isElement(ob) and (not moving[ob]) then
