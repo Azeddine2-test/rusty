@@ -1393,6 +1393,12 @@ playerDataTable = {
             bone = 11,
             pos = {0, 0, 0.14, 0, 70, 0},
         },
+        attachBackward = {
+            modelID = 2995,
+            scale = 1.2,
+            bone = 3,
+            pos = {0.15, 0.18, 0.2, 0, 55, 180},
+        },
         receiveOnCraft = 1,
     },
     ['Chainsaw'] = {
@@ -1418,6 +1424,12 @@ playerDataTable = {
             bone = 12,
             pos = {0, 0, 0, 180, 87.5, 180},
         },
+        attachBackward = {
+            modelID = 2997,
+            scale = 1,
+            bone = 3,
+            pos = {0.15, 0.18, 0.2, 0, 55, 180},
+        },
         receiveOnCraft = 1,
     },
     ['JackHammer'] = {
@@ -1442,6 +1454,12 @@ playerDataTable = {
             scale = 1,
             bone = 12,
             pos = {0, 0, 0, 180, 87.5, 180},
+        },
+        attachBackward = {
+            modelID = 3000,
+            scale = 1,
+            bone = 3,
+            pos = {0.15, 0.18, 0.2, 0, 55, 180},
         },
         receiveOnCraft = 1,
     },
