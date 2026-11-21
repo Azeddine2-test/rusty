@@ -95,6 +95,23 @@ function accountHasAlreadyKey(accName, key)
     end
 end
 
+function getAccountPasswordHash(accountName)
+    if type(accountName) ~= "string" then return false end
+    local account = GetAccount(accountName)
+    return account and account.PasswordHash or false
+end
+
+function setAccountPasswordHash(accountName, passwordHashValue)
+    if type(accountName) ~= "string" or type(passwordHashValue) ~= "string" or passwordHashValue == "" or not SQL then
+        return false
+    end
+    if not GetAccount(accountName) then return false end
+    SQL:Exec("UPDATE `Accounts` SET `PasswordHash` = ? WHERE `Owner` = ?", passwordHashValue, accountName)
+    local updated = GetAccount(accountName)
+    ClearAccountDataCache(accountName)
+    return updated and updated.PasswordHash == passwordHashValue or false
+end
+
 function getPlayerAccount(p)
     return getElementData(p, 'account') or nil
 end

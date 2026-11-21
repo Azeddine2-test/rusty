@@ -5,6 +5,19 @@ function loadDataBaseConnection()
         -- SQL:Exec('DROP TABLE Objects')
 
         SQL:Exec('CREATE TABLE IF NOT EXISTS `Accounts` (`Owner` TEXT)')
+
+        -- Password hashes belong to Rusty's own authentication, not MTA's account system.
+        local accountColumns = SQL:Query('PRAGMA table_info(`Accounts`)')
+        local hasPasswordHash = false
+        for _, column in ipairs(accountColumns or {}) do
+            if column.name == 'PasswordHash' then
+                hasPasswordHash = true
+                break
+            end
+        end
+        if not hasPasswordHash then
+            SQL:Exec('ALTER TABLE `Accounts` ADD COLUMN `PasswordHash` TEXT')
+        end
         SQL:Exec('CREATE TABLE IF NOT EXISTS `Objects` (`ObjectID` INT, `Position` TEXT, `Name` TEXT, `Owner` TEXT, `Type` TEXT, `Others` TEXT)')
 
         -- SQL:Exec('INSERT INTO `Accounts` ("Owner") VALUES("CF93682723AFBD1658E8B000E9CB7594 (STAFF)")')
